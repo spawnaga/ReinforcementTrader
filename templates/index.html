@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AI Trading System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Status Cards -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Active Sessions</h5>
+                        <h2 class="mb-0">{{ active_sessions|length }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-brain fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Total Trades</h5>
+                        <h2 class="mb-0">{{ recent_trades|length }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-line fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">GPU Status</h5>
+                        <h2 class="mb-0 gpu-status">Active</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-microchip fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">IB Status</h5>
+                        <h2 class="mb-0 ib-status">Disconnected</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-link fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Quick Start Panel -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-rocket me-2"></i>Quick Start Training
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="quick-start-form">
+                    <div class="mb-3">
+                        <label for="session-name" class="form-label">Session Name</label>
+                        <input type="text" class="form-control" id="session-name" placeholder="Enter session name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="algorithm-type" class="form-label">Algorithm</label>
+                        <select class="form-select" id="algorithm-type">
+                            <option value="ANE_PPO">ANE-PPO (Recommended)</option>
+                            <option value="PPO">Standard PPO</option>
+                            <option value="Q_LEARNING">Q-Learning</option>
+                            <option value="GENETIC">Genetic Algorithm</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="total-episodes" class="form-label">Total Episodes</label>
+                        <input type="number" class="form-control" id="total-episodes" value="1000" min="100" max="10000">
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-play me-2"></i>Start Training
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Interactive Brokers Panel -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-link me-2"></i>Interactive Brokers
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="ib-connection-form">
+                    <div class="mb-3">
+                        <label for="ib-host" class="form-label">Host</label>
+                        <input type="text" class="form-control" id="ib-host" value="127.0.0.1">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ib-port" class="form-label">Port</label>
+                        <input type="number" class="form-control" id="ib-port" value="7497">
+                        <small class="form-text text-muted">7497 for TWS, 4002 for Gateway</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ib-client-id" class="form-label">Client ID</label>
+                        <input type="number" class="form-control" id="ib-client-id" value="1">
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success" id="ib-connect-btn">
+                            <i class="fas fa-plug me-2"></i>Connect
+                        </button>
+                        <button type="button" class="btn btn-danger" id="ib-disconnect-btn" style="display: none;">
+                            <i class="fas fa-unlink me-2"></i>Disconnect
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Active Sessions -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-brain me-2"></i>Active Training Sessions
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if active_sessions %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Session Name</th>
+                                <th>Algorithm</th>
+                                <th>Episode</th>
+                                <th>Progress</th>
+                                <th>Profit</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in active_sessions %}
+                            <tr data-session-id="{{ session.id }}">
+                                <td>{{ session.session_name }}</td>
+                                <td>{{ session.algorithm_type }}</td>
+                                <td>{{ session.current_episode }}/{{ session.total_episodes }}</td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ (session.current_episode / session.total_episodes * 100) if session.total_episodes > 0 else 0 }}%">
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if session.total_profit > 0 else 'danger' }}">
+                                        ${{ "%.2f"|format(session.total_profit) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewSession({{ session.id }})">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="stopSession({{ session.id }})">
+                                        <i class="fas fa-stop"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No active training sessions</h5>
+                    <p class="text-muted">Start a new training session to begin AI learning</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Trades -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history me-2"></i>Recent Trades
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_trades %}
+                <div class="list-group list-group-flush">
+                    {% for trade in recent_trades[:5] %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ trade.position_type|title }}</strong>
+                            <br>
+                            <small class="text-muted">{{ trade.entry_time.strftime('%H:%M:%S') }}</small>
+                        </div>
+                        <span class="badge bg-{{ 'success' if trade.profit_loss > 0 else 'danger' }} rounded-pill">
+                            ${{ "%.2f"|format(trade.profit_loss) }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-chart-line fa-2x text-muted mb-3"></i>
+                    <h6 class="text-muted">No recent trades</h6>
+                    <p class="text-muted small">Trades will appear here once training begins</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Status -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-server me-2"></i>System Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>GPU Utilization</h6>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 0%" id="gpu-progress">
+                                </div>
+                            </div>
+                            <small class="text-muted">0% GPU</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Memory Usage</h6>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 0%" id="memory-progress">
+                                </div>
+                            </div>
+                            <small class="text-muted">0% Memory</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Network I/O</h6>
+                            <div class="progress">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 0%" id="network-progress">
+                                </div>
+                            </div>
+                            <small class="text-muted">0 KB/s</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6>Training Speed</h6>
+                            <div class="progress">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 0%" id="speed-progress">
+                                </div>
+                            </div>
+                            <small class="text-muted">0 eps/min</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Socket.IO connection
+    const socket = io();
+    
+    // Handle quick start form submission
+    document.getElementById('quick-start-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const sessionName = document.getElementById('session-name').value;
+        const algorithmType = document.getElementById('algorithm-type').value;
+        const totalEpisodes = parseInt(document.getElementById('total-episodes').value);
+        
+        if (!sessionName) {
+            showAlert('Please enter a session name', 'warning');
+            return;
+        }
+        
+        const trainingData = {
+            session_name: sessionName,
+            algorithm_type: algorithmType,
+            total_episodes: totalEpisodes,
+            parameters: {
+                learning_rate: 3e-4,
+                gamma: 0.99,
+                clip_range: 0.2,
+                entropy_coef: 0.01
+            }
+        };
+        
+        fetch('/start_training', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(trainingData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('Training session started successfully!', 'success');
+                // Reset form
+                document.getElementById('quick-start-form').reset();
+                // Refresh page after 2 seconds
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                showAlert('Error starting training: ' + data.error, 'danger');
+            }
+        })
+        .catch(error => {
+            showAlert('Error starting training: ' + error.message, 'danger');
+        });
+    });
+    
+    // Handle IB connection form
+    document.getElementById('ib-connection-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const host = document.getElementById('ib-host').value;
+        const port = parseInt(document.getElementById('ib-port').value);
+        const clientId = parseInt(document.getElementById('ib-client-id').value);
+        
+        fetch('/api/interactive_brokers/connect', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                host: host,
+                port: port,
+                client_id: clientId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('Connected to Interactive Brokers!', 'success');
+                document.getElementById('ib-connect-btn').style.display = 'none';
+                document.getElementById('ib-disconnect-btn').style.display = 'block';
+                document.querySelector('.ib-status').textContent = 'Connected';
+                document.querySelector('.ib-status').parentElement.parentElement.className = 'card bg-success text-white';
+            } else {
+                showAlert('Error connecting to IB: ' + data.error, 'danger');
+            }
+        })
+        .catch(error => {
+            showAlert('Error connecting to IB: ' + error.message, 'danger');
+        });
+    });
+    
+    // Handle IB disconnect
+    document.getElementById('ib-disconnect-btn').addEventListener('click', function() {
+        fetch('/api/interactive_brokers/disconnect', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('Disconnected from Interactive Brokers', 'info');
+                document.getElementById('ib-connect-btn').style.display = 'block';
+                document.getElementById('ib-disconnect-btn').style.display = 'none';
+                document.querySelector('.ib-status').textContent = 'Disconnected';
+                document.querySelector('.ib-status').parentElement.parentElement.className = 'card bg-info text-white';
+            } else {
+                showAlert('Error disconnecting from IB: ' + data.error, 'danger');
+            }
+        })
+        .catch(error => {
+            showAlert('Error disconnecting from IB: ' + error.message, 'danger');
+        });
+    });
+    
+    // Socket.IO event handlers
+    socket.on('training_update', function(data) {
+        console.log('Training update:', data);
+        updateTrainingProgress(data);
+    });
+    
+    socket.on('training_complete', function(data) {
+        console.log('Training complete:', data);
+        showAlert('Training session completed!', 'success');
+        setTimeout(() => location.reload(), 3000);
+    });
+    
+    // Update system performance (mock data for now)
+    setInterval(updateSystemPerformance, 5000);
+});
+
+function viewSession(sessionId) {
+    window.location.href = `/trading_dashboard?session_id=${sessionId}`;
+}
+
+function stopSession(sessionId) {
+    if (confirm('Are you sure you want to stop this training session?')) {
+        fetch('/stop_training', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                session_id: sessionId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('Training session stopped', 'info');
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                showAlert('Error stopping training: ' + data.error, 'danger');
+            }
+        })
+        .catch(error => {
+            showAlert('Error stopping training: ' + error.message, 'danger');
+        });
+    }
+}
+
+function updateTrainingProgress(data) {
+    const sessionRow = document.querySelector(`tr[data-session-id="${data.session_id}"]`);
+    if (sessionRow) {
+        const progressBar = sessionRow.querySelector('.progress-bar');
+        const profitBadge = sessionRow.querySelector('.badge');
+        
+        if (progressBar) {
+            const progress = (data.episode / data.total_episodes) * 100;
+            progressBar.style.width = progress + '%';
+        }
+        
+        if (profitBadge && data.reward !== undefined) {
+            const currentProfit = parseFloat(profitBadge.textContent.replace('$', ''));
+            const newProfit = currentProfit + data.reward;
+            profitBadge.textContent = `$${newProfit.toFixed(2)}`;
+            profitBadge.className = `badge bg-${newProfit > 0 ? 'success' : 'danger'}`;
+        }
+    }
+}
+
+function updateSystemPerformance() {
+    // Mock system performance data
+    const gpuUsage = Math.random() * 100;
+    const memoryUsage = Math.random() * 100;
+    const networkIO = Math.random() * 100;
+    const trainingSpeed = Math.random() * 100;
+    
+    document.getElementById('gpu-progress').style.width = gpuUsage + '%';
+    document.getElementById('memory-progress').style.width = memoryUsage + '%';
+    document.getElementById('network-progress').style.width = networkIO + '%';
+    document.getElementById('speed-progress').style.width = trainingSpeed + '%';
+}
+</script>
+{% endblock %}

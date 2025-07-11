@@ -1,0 +1,688 @@
+{% extends "base.html" %}
+
+{% block title %}Strategy Builder - AI Trading System{% endblock %}
+
+{% block head %}
+<style>
+    .strategy-canvas {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        border-radius: 15px;
+        padding: 20px;
+        min-height: 600px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .component-palette {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 15px;
+        height: 600px;
+        overflow-y: auto;
+    }
+    
+    .algorithm-component {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        cursor: grab;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .algorithm-component:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        border-color: #00ff88;
+    }
+    
+    .algorithm-component:active {
+        cursor: grabbing;
+    }
+    
+    .component-node {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid #00ff88;
+        border-radius: 15px;
+        padding: 20px;
+        position: absolute;
+        min-width: 200px;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .connection-line {
+        stroke: #00ff88;
+        stroke-width: 3;
+        fill: none;
+        opacity: 0.8;
+    }
+    
+    .parameter-slider {
+        margin: 10px 0;
+    }
+    
+    .parameter-value {
+        background: rgba(0, 255, 136, 0.2);
+        border: 1px solid #00ff88;
+        border-radius: 5px;
+        padding: 5px;
+        text-align: center;
+        color: #00ff88;
+        font-weight: bold;
+    }
+    
+    .genetic-visualization {
+        background: radial-gradient(circle, rgba(255, 107, 107, 0.3) 0%, rgba(78, 205, 196, 0.3) 100%);
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+    
+    .organism {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #ff6b6b;
+        position: absolute;
+        transition: all 0.5s ease;
+        box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+    }
+    
+    .organism.elite {
+        background: #00ff88;
+        box-shadow: 0 0 15px rgba(0, 255, 136, 0.8);
+        transform: scale(1.2);
+    }
+    
+    .performance-graph {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+    
+    .backtest-results {
+        background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    .optimization-progress {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+    
+    .hyperparameter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .hyperparameter-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 15px;
+        backdrop-filter: blur(5px);
+    }
+    
+    .neural-layer {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        padding: 10px;
+        margin: 10px 0;
+        text-align: center;
+        color: white;
+        font-weight: bold;
+        position: relative;
+    }
+    
+    .neural-layer::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: -20px;
+        width: 0;
+        height: 0;
+        border-left: 20px solid #764ba2;
+        border-top: 15px solid transparent;
+        border-bottom: 15px solid transparent;
+        transform: translateY(-50%);
+    }
+    
+    .neural-layer:last-child::after {
+        display: none;
+    }
+    
+    .attention-heads {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 10px;
+    }
+    
+    .attention-head {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #00ff88;
+        box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .strategy-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .metric-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        backdrop-filter: blur(5px);
+    }
+    
+    .metric-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #00ff88;
+    }
+    
+    .metric-label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Component Palette -->
+        <div class="col-md-3">
+            <div class="component-palette">
+                <h5 class="text-white mb-3">
+                    <i class="fas fa-puzzle-piece me-2"></i>Algorithm Components
+                </h5>
+                
+                <!-- Base Algorithms -->
+                <div class="algorithm-component" data-type="ppo">
+                    <h6 class="text-white mb-2">
+                        <i class="fas fa-brain me-2"></i>PPO Agent
+                    </h6>
+                    <p class="text-white small mb-0">Proximal Policy Optimization</p>
+                </div>
+                
+                <div class="algorithm-component" data-type="dqn">
+                    <h6 class="text-white mb-2">
+                        <i class="fas fa-network-wired me-2"></i>DQN Agent
+                    </h6>
+                    <p class="text-white small mb-0">Deep Q-Network</p>
+                </div>
+                
+                <div class="algorithm-component" data-type="genetic">
+                    <h6 class="text-white mb-2">
+                        <i class="fas fa-dna me-2"></i>Genetic Optimizer
+                    </h6>
+                    <p class="text-white small mb-0">Evolutionary Algorithm</p>
+                </div>
+                
+                <div class="algorithm-component" data-type="transformer">
+                    <h6 class="text-white mb-2">
+                        <i class="fas fa-eye me-2"></i>Transformer Attention
+                    </h6>
+                    <p class="text-white small mb-0">Market Regime Detection</p>
+                </div>
+                
+                <!-- Advanced Components -->
+                <div class="algorithm-component" data-type="risk_manager">
+                    <h6 class="text-white mb-2">
+                        <i class="fas fa-shield-alt me-2"></i>Risk Manager
+                    </h6>
+                    <p class="text-white small mb-0">Advanced Risk Controls</p>
+                </div>
+                
+                <div class="algorithm-component" data-type="portfolio_optimizer">
+                    <h6 class="text-white mb-2">
+                        <i class="fas fa-chart-pie me-2"></i>Portfolio Optimizer
+                    </h6>
+                    <p class="text-white small mb-0">Position Sizing</p>
+                </div>
+                
+                <div class="algorithm-component" data-type="market_detector">
+                    <h6 class="text-white mb-2">
+                        <i class="fas fa-search me-2"></i>Market Detector
+                    </h6>
+                    <p class="text-white small mb-0">Regime Classification</p>
+                </div>
+                
+                <div class="algorithm-component" data-type="feature_extractor">
+                    <h6 class="text-white mb-2">
+                        <i class="fas fa-filter me-2"></i>Feature Extractor
+                    </h6>
+                    <p class="text-white small mb-0">Technical Indicators</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Strategy Canvas -->
+        <div class="col-md-6">
+            <div class="strategy-canvas" id="strategy-canvas">
+                <h5 class="text-white mb-3">
+                    <i class="fas fa-project-diagram me-2"></i>Strategy Architecture
+                </h5>
+                <svg id="connection-svg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+                    <!-- Connection lines will be drawn here -->
+                </svg>
+                <div class="text-center text-white mt-5" id="canvas-placeholder">
+                    <i class="fas fa-mouse-pointer fa-3x mb-3"></i>
+                    <h6>Drag components here to build your strategy</h6>
+                    <p>Connect components to create complex trading algorithms</p>
+                </div>
+            </div>
+            
+            <!-- Strategy Controls -->
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <button class="btn btn-success w-100" id="validate-strategy">
+                        <i class="fas fa-check me-2"></i>Validate Strategy
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-warning w-100" id="backtest-strategy">
+                        <i class="fas fa-chart-line me-2"></i>Backtest
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-primary w-100" id="deploy-strategy">
+                        <i class="fas fa-rocket me-2"></i>Deploy
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Configuration Panel -->
+        <div class="col-md-3">
+            <div class="card bg-dark text-white">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Configuration
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="component-config">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-arrow-left fa-2x mb-2"></i>
+                            <p>Select a component to configure</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Neural Network Architecture -->
+            <div class="card bg-dark text-white mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-sitemap me-2"></i>Neural Architecture
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="neural-layer">Input Layer (60)</div>
+                    <div class="neural-layer">Attention (8 heads)</div>
+                    <div class="attention-heads">
+                        <div class="attention-head"></div>
+                        <div class="attention-head"></div>
+                        <div class="attention-head"></div>
+                        <div class="attention-head"></div>
+                        <div class="attention-head"></div>
+                        <div class="attention-head"></div>
+                        <div class="attention-head"></div>
+                        <div class="attention-head"></div>
+                    </div>
+                    <div class="neural-layer">Hidden (512)</div>
+                    <div class="neural-layer">Hidden (256)</div>
+                    <div class="neural-layer">Output (3)</div>
+                </div>
+            </div>
+            
+            <!-- Genetic Algorithm Visualization -->
+            <div class="card bg-dark text-white mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-dna me-2"></i>Genetic Evolution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="genetic-visualization" id="genetic-viz" style="height: 200px; position: relative;">
+                        <!-- Genetic algorithm organisms will be visualized here -->
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Generation: <span id="generation-count">0</span></small>
+                        <br>
+                        <small class="text-muted">Best Fitness: <span id="best-fitness">0.00</span></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Performance Metrics -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="backtest-results" id="backtest-results" style="display: none;">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-bar me-2"></i>Backtest Results
+                </h5>
+                <div class="strategy-metrics">
+                    <div class="metric-card">
+                        <div class="metric-value" id="total-return">0.00%</div>
+                        <div class="metric-label">Total Return</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="sharpe-ratio">0.00</div>
+                        <div class="metric-label">Sharpe Ratio</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="max-drawdown">0.00%</div>
+                        <div class="metric-label">Max Drawdown</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="win-rate">0.00%</div>
+                        <div class="metric-label">Win Rate</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="total-trades">0</div>
+                        <div class="metric-label">Total Trades</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="avg-trade">$0.00</div>
+                        <div class="metric-label">Avg Trade</div>
+                    </div>
+                </div>
+                <div class="performance-graph mt-3">
+                    <canvas id="performance-chart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Component Configuration Modal -->
+<div class="modal fade" id="componentConfigModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Component Configuration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-config-content">
+                    <!-- Dynamic configuration form will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-config">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Strategy Templates Modal -->
+<div class="modal fade" id="templatesModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Strategy Templates</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">ANE-PPO Strategy</h6>
+                                <p class="card-text">Hybrid algorithm combining PPO with genetic optimization</p>
+                                <button class="btn btn-primary btn-sm" onclick="loadTemplate('ane_ppo')">Load Template</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Conservative Strategy</h6>
+                                <p class="card-text">Risk-averse approach with strong risk management</p>
+                                <button class="btn btn-primary btn-sm" onclick="loadTemplate('conservative')">Load Template</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Aggressive Strategy</h6>
+                                <p class="card-text">High-frequency trading with maximum profit potential</p>
+                                <button class="btn btn-primary btn-sm" onclick="loadTemplate('aggressive')">Load Template</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Template Buttons -->
+<div class="position-fixed top-50 start-0 translate-middle-y">
+    <div class="btn-group-vertical">
+        <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#templatesModal">
+            <i class="fas fa-file-import"></i>
+        </button>
+        <button class="btn btn-outline-light btn-sm" onclick="saveStrategy()">
+            <i class="fas fa-save"></i>
+        </button>
+        <button class="btn btn-outline-light btn-sm" onclick="clearCanvas()">
+            <i class="fas fa-trash"></i>
+        </button>
+        <button class="btn btn-outline-light btn-sm" onclick="exportStrategy()">
+            <i class="fas fa-download"></i>
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/strategy_builder.js') }}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize strategy builder
+    const strategyBuilder = new StrategyBuilder();
+    strategyBuilder.init();
+    
+    // Load available algorithms
+    loadAlgorithmConfigs();
+    
+    // Initialize genetic algorithm visualization
+    initGeneticVisualization();
+    
+    // Strategy control buttons
+    document.getElementById('validate-strategy').addEventListener('click', function() {
+        strategyBuilder.validateStrategy();
+    });
+    
+    document.getElementById('backtest-strategy').addEventListener('click', function() {
+        strategyBuilder.runBacktest();
+    });
+    
+    document.getElementById('deploy-strategy').addEventListener('click', function() {
+        strategyBuilder.deployStrategy();
+    });
+    
+    // Component configuration
+    document.getElementById('save-config').addEventListener('click', function() {
+        strategyBuilder.saveComponentConfig();
+    });
+});
+
+function loadAlgorithmConfigs() {
+    fetch('/api/algorithm_configs')
+        .then(response => response.json())
+        .then(configs => {
+            console.log('Available algorithms:', configs);
+            // Update component palette with available configurations
+        })
+        .catch(error => {
+            console.error('Error loading algorithm configs:', error);
+        });
+}
+
+function initGeneticVisualization() {
+    const viz = document.getElementById('genetic-viz');
+    
+    // Create initial population
+    for (let i = 0; i < 20; i++) {
+        const organism = document.createElement('div');
+        organism.className = 'organism';
+        organism.style.left = Math.random() * 150 + 'px';
+        organism.style.top = Math.random() * 150 + 'px';
+        viz.appendChild(organism);
+    }
+    
+    // Simulate evolution
+    let generation = 0;
+    setInterval(() => {
+        generation++;
+        document.getElementById('generation-count').textContent = generation;
+        
+        // Update organism positions and fitness
+        const organisms = viz.querySelectorAll('.organism');
+        organisms.forEach((organism, index) => {
+            // Random movement
+            const currentLeft = parseInt(organism.style.left);
+            const currentTop = parseInt(organism.style.top);
+            
+            organism.style.left = Math.max(0, Math.min(150, currentLeft + (Math.random() - 0.5) * 20)) + 'px';
+            organism.style.top = Math.max(0, Math.min(150, currentTop + (Math.random() - 0.5) * 20)) + 'px';
+            
+            // Randomly mark some as elite
+            if (Math.random() < 0.1) {
+                organism.classList.add('elite');
+            } else {
+                organism.classList.remove('elite');
+            }
+        });
+        
+        // Update best fitness
+        const bestFitness = (Math.random() * 100).toFixed(2);
+        document.getElementById('best-fitness').textContent = bestFitness;
+    }, 2000);
+}
+
+function loadTemplate(templateName) {
+    const templates = {
+        'ane_ppo': {
+            name: 'ANE-PPO Strategy',
+            components: [
+                {type: 'feature_extractor', position: {x: 50, y: 50}},
+                {type: 'transformer', position: {x: 200, y: 50}},
+                {type: 'ppo', position: {x: 350, y: 50}},
+                {type: 'genetic', position: {x: 200, y: 150}},
+                {type: 'risk_manager', position: {x: 350, y: 150}}
+            ],
+            connections: [
+                {from: 0, to: 1},
+                {from: 1, to: 2},
+                {from: 2, to: 3},
+                {from: 3, to: 4}
+            ]
+        },
+        'conservative': {
+            name: 'Conservative Strategy',
+            components: [
+                {type: 'feature_extractor', position: {x: 50, y: 50}},
+                {type: 'risk_manager', position: {x: 200, y: 50}},
+                {type: 'ppo', position: {x: 350, y: 50}}
+            ],
+            connections: [
+                {from: 0, to: 1},
+                {from: 1, to: 2}
+            ]
+        },
+        'aggressive': {
+            name: 'Aggressive Strategy',
+            components: [
+                {type: 'feature_extractor', position: {x: 50, y: 50}},
+                {type: 'transformer', position: {x: 200, y: 50}},
+                {type: 'dqn', position: {x: 350, y: 50}},
+                {type: 'genetic', position: {x: 200, y: 150}}
+            ],
+            connections: [
+                {from: 0, to: 1},
+                {from: 1, to: 2},
+                {from: 2, to: 3}
+            ]
+        }
+    };
+    
+    const template = templates[templateName];
+    if (template) {
+        const strategyBuilder = window.strategyBuilder || new StrategyBuilder();
+        strategyBuilder.loadTemplate(template);
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('templatesModal'));
+        modal.hide();
+        
+        showAlert(`Loaded ${template.name} template`, 'success');
+    }
+}
+
+function saveStrategy() {
+    const strategyBuilder = window.strategyBuilder || new StrategyBuilder();
+    const strategy = strategyBuilder.exportStrategy();
+    
+    // Save to localStorage for now
+    localStorage.setItem('saved_strategy', JSON.stringify(strategy));
+    showAlert('Strategy saved successfully!', 'success');
+}
+
+function clearCanvas() {
+    if (confirm('Are you sure you want to clear the canvas?')) {
+        const strategyBuilder = window.strategyBuilder || new StrategyBuilder();
+        strategyBuilder.clearCanvas();
+        showAlert('Canvas cleared', 'info');
+    }
+}
+
+function exportStrategy() {
+    const strategyBuilder = window.strategyBuilder || new StrategyBuilder();
+    const strategy = strategyBuilder.exportStrategy();
+    
+    // Create download link
+    const blob = new Blob([JSON.stringify(strategy, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `strategy_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    showAlert('Strategy exported successfully!', 'success');
+}
+</script>
+{% endblock %}
