@@ -42,14 +42,11 @@ def main():
     print("\nPress Ctrl+C to stop the server\n")
     
     try:
-        # Run gunicorn with proper settings
+        # Run gunicorn with config file
         subprocess.run([
             "gunicorn",
+            "--config", "gunicorn_config.py",
             "--bind", "127.0.0.1:5000",
-            "--reload",
-            "--worker-class", "sync",
-            "--workers", "1",
-            "--timeout", "120",
             "main:app"
         ])
     except KeyboardInterrupt:

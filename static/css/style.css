@@ -434,6 +434,39 @@ select,
     background-color: transparent !important;
 }
 
+/* Specific fix for Active Training Sessions table */
+.table-striped > tbody > tr {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: rgba(20, 20, 20, 0.9) !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(even) {
+    background-color: rgba(10, 10, 10, 0.9) !important;
+}
+
+/* Force all table cells to have white text */
+.table td {
+    color: #ffffff !important;
+}
+
+.table th {
+    color: #00ff88 !important;
+}
+
+/* Ensure buttons in tables are visible */
+.table .btn-outline-primary {
+    color: #007bff !important;
+    border-color: #007bff !important;
+}
+
+.table .btn-outline-danger {
+    color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+
 /* Text highlight for better contrast */
 .text-muted {
     color: #c0c0c0 !important;
