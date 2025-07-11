@@ -313,7 +313,8 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/trading_dashboard.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/trading.js') }}"></script>
 <script src="{{ url_for('static', filename='js/3d_visualization.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neural_network_viz.js') }}"></script>
 <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
@@ -322,19 +323,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize trading dashboard
     const dashboard = new TradingDashboard();
-    dashboard.init();
     
     // Initialize 3D visualization
     const viz3D = new Portfolio3DVisualization('portfolio-3d');
-    viz3D.init();
     
-    // Initialize neural network visualization
+    // Initialize neural network visualization  
     const neuralViz = new NeuralNetworkVisualization('neural-network-viz');
-    neuralViz.init();
     
     // Initialize charts
-    const charts = new TradingCharts();
-    charts.initPriceChart('price-chart');
+    const charts = new TradingCharts('price-chart');
     
     // Check for session parameter
     const urlParams = new URLSearchParams(window.location.search);

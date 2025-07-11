@@ -1,0 +1,42 @@
+# Python Dependencies for Revolutionary AI Trading System
+# Generated on 2025-01-11
+
+# Flask and web framework dependencies
+flask==3.1.0
+flask-socketio==5.3.6
+flask-sqlalchemy==3.1.1
+gunicorn==23.0.0
+werkzeug==3.0.3
+
+# Database dependencies
+sqlalchemy==2.0.32
+psycopg2-binary==2.9.9
+
+# ML and AI dependencies
+torch==2.4.1
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.5.2
+scipy==1.14.1
+gym==0.26.2
+
+# Trading and market data dependencies
+yfinance==0.2.40
+ib-insync==0.9.86
+ta==0.11.0
+
+# WebSocket and networking
+python-socketio==5.11.3
+eventlet==0.36.1
+websocket-client==1.8.0
+
+# Utilities
+python-dotenv==1.0.1
+email-validator==2.2.0
+pytz==2024.2
+
+# Data visualization (for backend processing)
+matplotlib==3.9.2
+
+# Note: To install these dependencies, use:
+# pip install -r python_dependencies.txt
