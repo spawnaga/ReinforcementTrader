@@ -1,4 +1,27 @@
 // Trading Dashboard JavaScript
+
+// Placeholder for missing visualization components
+class Portfolio3DVisualization {
+    constructor(containerId) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">3D Visualization will be available soon</div>';
+        }
+    }
+    update() {}
+    resize() {}
+}
+
+class NeuralNetworkVisualization {
+    constructor(containerId) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Neural Network Visualization will be available soon</div>';
+        }
+    }
+    update() {}
+}
+
 class TradingDashboard {
     constructor() {
         this.sessionId = null;
@@ -187,6 +210,12 @@ class TradingDashboard {
     }
     
     subscribeToUpdates() {
+        // Check if socket exists before subscribing
+        if (!this.socket) {
+            console.error('Socket is not defined, cannot subscribe to updates');
+            return;
+        }
+        
         // Training updates
         this.socket.on('training_update', (data) => {
             this.updateTrainingMetrics(data);

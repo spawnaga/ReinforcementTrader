@@ -127,6 +127,12 @@
 
 {% block content %}
 <div class="container-fluid p-0">
+    <!-- Error Alert -->
+    <div id="errorAlert" class="alert alert-danger alert-dismissible fade show" role="alert" style="display: none;">
+        <strong>Error!</strong> <span id="errorMessage">An unexpected error occurred. Please refresh the page.</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    
     <!-- Main Trading Grid -->
     <div class="trading-grid">
         <!-- 3D Portfolio Visualization -->
@@ -315,22 +321,47 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ url_for('static', filename='js/trading.js') }}"></script>
+<!-- Temporarily disabled to debug
 <script src="{{ url_for('static', filename='js/3d_visualization.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neural_network_viz.js') }}"></script>
 <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+-->
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Socket.IO connection
-    window.socket = io();
-    
-    // Wait for socket connection before initializing dashboard
-    window.socket.on('connect', function() {
-        console.log('Connected to server');
-    });
-    
-    // Initialize trading dashboard
-    const dashboard = new TradingDashboard();
+    try {
+        // Initialize Socket.IO connection
+        window.socket = io();
+        
+        // Add error handling for socket connection
+        window.socket.on('connect', function() {
+            console.log('Connected to server with ID:', window.socket.id);
+        });
+        
+        window.socket.on('disconnect', function() {
+            console.log('Disconnected from server');
+        });
+        
+        window.socket.on('connect_error', function(error) {
+            console.error('Socket connection error:', error);
+        });
+        
+        // Wait a moment for socket to initialize then create dashboard
+        setTimeout(function() {
+            try {
+                // Initialize trading dashboard
+                const dashboard = new TradingDashboard();
+                console.log('Trading dashboard initialized successfully');
+            } catch (dashboardError) {
+                console.error('Error initializing trading dashboard:', dashboardError);
+                document.getElementById('errorAlert').style.display = 'block';
+            }
+        }, 100);
+        
+    } catch (error) {
+        console.error('Error in page initialization:', error);
+        document.getElementById('errorAlert').style.display = 'block';
+    }
     
     // Initialize 3D visualization
     const viz3D = new Portfolio3DVisualization('portfolio-3d');
