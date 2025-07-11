@@ -1,26 +1,8 @@
 // Trading Dashboard JavaScript
-
-// Placeholder for missing visualization components
-class Portfolio3DVisualization {
-    constructor(containerId) {
-        const container = document.getElementById(containerId);
-        if (container) {
-            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">3D Visualization will be available soon</div>';
-        }
-    }
-    update() {}
-    resize() {}
-}
-
-class NeuralNetworkVisualization {
-    constructor(containerId) {
-        const container = document.getElementById(containerId);
-        if (container) {
-            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Neural Network Visualization will be available soon</div>';
-        }
-    }
-    update() {}
-}
+// Visualization classes are loaded from separate files:
+// - Portfolio3DVisualization from 3d_visualization.js
+// - NeuralNetworkVisualization from neural_network_viz.js  
+// - TradingCharts from charts.js
 
 class TradingDashboard {
     constructor() {
