@@ -10,12 +10,23 @@ class Config:
     
     # Database Configuration
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///trading_system.db')
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_recycle': 300,
-        'pool_pre_ping': True,
-        'pool_size': 20,
-        'max_overflow': 0
-    }
+    if 'sqlite' in SQLALCHEMY_DATABASE_URI:
+        # SQLite specific settings to handle concurrent access
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_pre_ping': True,
+            'connect_args': {
+                'check_same_thread': False,
+                'timeout': 15
+            }
+        }
+    else:
+        # PostgreSQL/MySQL settings
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_recycle': 300,
+            'pool_pre_ping': True,
+            'pool_size': 20,
+            'max_overflow': 0
+        }
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Session Configuration

@@ -410,48 +410,64 @@ def get_system_status() -> Dict[str, Any]:
         return {'error': 'Failed to get system status'}
 
 def get_session_real_time_data(session_id: int) -> Optional[Dict[str, Any]]:
-    """Get real-time data for a training session"""
-    try:
-        with app.app_context():
-            session = TradingSession.query.get(session_id)
-            if not session:
+    """Get real-time data for a training session with retry logic for database locks"""
+    import time
+    from sqlalchemy.exc import OperationalError
+    
+    max_retries = 3
+    retry_delay = 0.1  # Start with 100ms
+    
+    for attempt in range(max_retries):
+        try:
+            with app.app_context():
+                session = TradingSession.query.get(session_id)
+                if not session:
+                    return None
+                
+                # Get latest training metrics
+                latest_metrics = TrainingMetrics.query.filter_by(
+                    session_id=session_id
+                ).order_by(TrainingMetrics.episode.desc()).first()
+                
+                # Get recent trades
+                recent_trades = Trade.query.filter_by(
+                    session_id=session_id
+                ).order_by(Trade.entry_time.desc()).limit(10).all()
+                
+                return {
+                    'session_id': session_id,
+                    'current_episode': session.current_episode,
+                    'total_episodes': session.total_episodes,
+                    'total_profit': session.total_profit,
+                    'total_trades': session.total_trades,
+                    'win_rate': session.win_rate,
+                    'latest_metrics': {
+                        'episode': latest_metrics.episode if latest_metrics else 0,
+                        'reward': latest_metrics.reward if latest_metrics else 0,
+                        'loss': latest_metrics.loss if latest_metrics else 0,
+                        'timestamp': latest_metrics.timestamp.isoformat() if latest_metrics else None
+                    } if latest_metrics else None,
+                    'recent_trades': [{
+                        'trade_id': trade.trade_id,
+                        'entry_time': trade.entry_time.isoformat(),
+                        'position_type': trade.position_type,
+                        'profit_loss': trade.profit_loss,
+                        'status': trade.status
+                    } for trade in recent_trades]
+                }
+                
+        except OperationalError as e:
+            if 'database is locked' in str(e) and attempt < max_retries - 1:
+                logger.warning(f"Database locked, retrying in {retry_delay}s (attempt {attempt + 1}/{max_retries})")
+                time.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff
+                continue
+            else:
+                logger.error(f"Error getting session real-time data after {attempt + 1} attempts: {str(e)}")
                 return None
-            
-            # Get latest training metrics
-            latest_metrics = TrainingMetrics.query.filter_by(
-                session_id=session_id
-            ).order_by(TrainingMetrics.episode.desc()).first()
-            
-            # Get recent trades
-            recent_trades = Trade.query.filter_by(
-                session_id=session_id
-            ).order_by(Trade.entry_time.desc()).limit(10).all()
-            
-            return {
-                'session_id': session_id,
-                'current_episode': session.current_episode,
-                'total_episodes': session.total_episodes,
-                'total_profit': session.total_profit,
-                'total_trades': session.total_trades,
-                'win_rate': session.win_rate,
-                'latest_metrics': {
-                    'episode': latest_metrics.episode if latest_metrics else 0,
-                    'reward': latest_metrics.reward if latest_metrics else 0,
-                    'loss': latest_metrics.loss if latest_metrics else 0,
-                    'timestamp': latest_metrics.timestamp.isoformat() if latest_metrics else None
-                } if latest_metrics else None,
-                'recent_trades': [{
-                    'trade_id': trade.trade_id,
-                    'entry_time': trade.entry_time.isoformat(),
-                    'position_type': trade.position_type,
-                    'profit_loss': trade.profit_loss,
-                    'status': trade.status
-                } for trade in recent_trades]
-            }
-        
-    except Exception as e:
-        logger.error(f"Error getting session real-time data: {str(e)}")
-        return None
+        except Exception as e:
+            logger.error(f"Error getting session real-time data: {str(e)}")
+            return None
 
 def get_performance_metrics(session_id: int) -> Dict[str, Any]:
     """Get performance metrics for a session"""
