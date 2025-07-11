@@ -86,6 +86,13 @@ class TradingEngine:
     def start_training(self, session_id: int, config: Dict):
         """Start a new training session"""
         try:
+            # Check if any session is already running to prevent database locks
+            active_count = sum(1 for s in self.active_sessions.values() 
+                             if s.get('status') in ['starting', 'running'])
+            if active_count > 0:
+                logger.warning(f"Another training session is already active. Please wait for it to complete.")
+                return False
+            
             if session_id in self.active_sessions:
                 logger.warning(f"Session {session_id} already active")
                 return False

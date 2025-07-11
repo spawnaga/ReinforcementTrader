@@ -107,14 +107,14 @@ def test_training():
         if success:
             return jsonify({
                 'success': True,
-                'message': f'Test training started! Session ID: {session.id}',
+                'message': f'Test training started! Session ID: {session.id}. Check the "Active Training Sessions" section below for progress.',
                 'session_id': session.id
             })
         else:
             return jsonify({
                 'success': False,
-                'error': 'Failed to start test training'
-            }), 500
+                'error': 'Another training session is already running. Please wait for it to complete before starting a new one.'
+            }), 400
             
     except Exception as e:
         logger.error(f"Error in test training: {str(e)}")

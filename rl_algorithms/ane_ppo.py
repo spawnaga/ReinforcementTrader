@@ -287,7 +287,20 @@ class ANEPPO:
     def _state_to_tensor(self, state) -> torch.Tensor:
         """Convert state to tensor"""
         try:
-            if hasattr(state, 'data'):
+            # Handle memoryview objects
+            if isinstance(state, memoryview):
+                # Convert memoryview to numpy array
+                data = np.frombuffer(state, dtype=np.float32)
+                # Reshape to match input dimension
+                if data.size >= self.input_dim:
+                    current_state = data[:self.input_dim]
+                else:
+                    # Pad with zeros if too small
+                    current_state = np.zeros(self.input_dim)
+                    current_state[:data.size] = data
+                return torch.FloatTensor(current_state).unsqueeze(0).to(self.device)
+            
+            elif hasattr(state, 'data'):
                 if hasattr(state.data, 'values'):
                     # DataFrame
                     data = state.data.values
