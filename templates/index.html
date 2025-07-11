@@ -446,8 +446,11 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => location.reload(), 3000);
     });
     
-    // Update system performance (mock data for now)
-    setInterval(updateSystemPerformance, 5000);
+    // Listen for real performance metrics from the server
+    socket.on('performance_metrics', function(data) {
+        console.log('📊 Performance metrics received:', data);
+        updateSystemPerformance(data);
+    });
     
     // Test training button
     document.getElementById('test-training-btn').addEventListener('click', function() {
@@ -517,17 +520,41 @@ function updateTrainingProgress(data) {
     }
 }
 
-function updateSystemPerformance() {
-    // Mock system performance data
-    const gpuUsage = Math.random() * 100;
-    const memoryUsage = Math.random() * 100;
-    const networkIO = Math.random() * 100;
-    const trainingSpeed = Math.random() * 100;
+function updateSystemPerformance(data) {
+    // Update GPU progress
+    const gpuElement = document.getElementById('gpu-progress');
+    const gpuText = gpuElement.parentElement.nextElementSibling;
+    if (data.gpu_usage !== undefined) {
+        gpuElement.style.width = data.gpu_usage + '%';
+        gpuText.textContent = data.gpu_usage.toFixed(1) + '% GPU';
+    }
     
-    document.getElementById('gpu-progress').style.width = gpuUsage + '%';
-    document.getElementById('memory-progress').style.width = memoryUsage + '%';
-    document.getElementById('network-progress').style.width = networkIO + '%';
-    document.getElementById('speed-progress').style.width = trainingSpeed + '%';
+    // Update Memory progress
+    const memoryElement = document.getElementById('memory-progress');
+    const memoryText = memoryElement.parentElement.nextElementSibling;
+    if (data.memory_usage !== undefined) {
+        memoryElement.style.width = data.memory_usage + '%';
+        memoryText.textContent = data.memory_usage.toFixed(1) + '% Memory';
+    }
+    
+    // Update Network I/O
+    const networkElement = document.getElementById('network-progress');
+    const networkText = networkElement.parentElement.nextElementSibling;
+    if (data.network_io !== undefined) {
+        // Scale network IO for display (0-100 scale)
+        const networkPercent = Math.min(data.network_io / 10, 100); // Assuming 10 MB/s is max
+        networkElement.style.width = networkPercent + '%';
+        networkText.textContent = data.network_io.toFixed(2) + ' MB/s';
+    }
+    
+    // Update CPU usage if available
+    if (data.cpu_usage !== undefined) {
+        // Can use for training speed indicator as proxy
+        const speedElement = document.getElementById('speed-progress');
+        const speedText = speedElement.parentElement.nextElementSibling;
+        speedElement.style.width = data.cpu_usage + '%';
+        speedText.textContent = 'CPU: ' + data.cpu_usage.toFixed(1) + '%';
+    }
 }
 </script>
 {% endblock %}

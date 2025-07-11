@@ -613,47 +613,88 @@ def background_broadcast_loop():
     """Background loop for periodic broadcasts"""
     global broadcast_active
     
+    logger.info("Background broadcast loop started successfully")
+    loop_iteration = 0
+    
     while broadcast_active:
         try:
+            loop_iteration += 1
+            logger.debug(f"Broadcast loop iteration {loop_iteration} starting...")
+            
             if active_connections:
-                # Broadcast system performance metrics
+                logger.debug(f"Active connections found: {len(active_connections)}")
+                
+                # Collect system performance metrics
+                logger.debug("Collecting system performance metrics...")
+                cpu_usage = get_cpu_usage()
+                memory_usage = get_memory_usage()
+                gpu_usage = get_gpu_usage()
+                network_io = get_network_io()
+                
                 performance_data = {
-                    'cpu_usage': get_cpu_usage(),
-                    'memory_usage': get_memory_usage(),
-                    'gpu_usage': get_gpu_usage(),
-                    'network_io': get_network_io()
+                    'cpu_usage': cpu_usage,
+                    'memory_usage': memory_usage,
+                    'gpu_usage': gpu_usage,
+                    'network_io': network_io
                 }
                 
+                logger.info(f"Performance metrics collected - CPU: {cpu_usage:.1f}%, Memory: {memory_usage:.1f}%, GPU: {gpu_usage:.1f}%, Network: {network_io:.2f} MB/s")
+                
+                # Broadcast the metrics
+                logger.debug("Broadcasting performance metrics...")
                 socketio.emit('performance_metrics', performance_data)
+                logger.debug("Performance metrics broadcast complete")
                 
                 # Broadcast active session updates
-                for session_id in trading_engine.get_active_sessions():
+                active_sessions = trading_engine.get_active_sessions()
+                logger.debug(f"Found {len(active_sessions)} active training sessions")
+                
+                for session_id in active_sessions:
+                    logger.debug(f"Getting real-time data for session {session_id}")
                     session_data = get_session_real_time_data(session_id)
                     if session_data:
                         room_name = f"session_{session_id}"
+                        logger.debug(f"Broadcasting update for session {session_id}")
                         socketio.emit('session_update', session_data, room=room_name)
+            else:
+                logger.debug("No active connections, skipping broadcast")
             
+            logger.debug(f"Broadcast loop iteration {loop_iteration} complete, sleeping for 5 seconds")
             time.sleep(5)  # Broadcast every 5 seconds
             
         except Exception as e:
-            logger.error(f"Error in background broadcast loop: {str(e)}")
+            logger.error(f"Error in background broadcast loop (iteration {loop_iteration}): {str(e)}", exc_info=True)
             time.sleep(5)
+    
+    logger.info("Background broadcast loop exited")
 
 # System monitoring functions
 def get_cpu_usage() -> float:
     """Get CPU usage percentage"""
     try:
         import psutil
-        return psutil.cpu_percent(interval=1)
-    except ImportError:
+        cpu_percent = psutil.cpu_percent(interval=1)
+        logger.debug(f"CPU usage collected: {cpu_percent}%")
+        return cpu_percent
+    except ImportError as e:
+        logger.error(f"psutil not imported for CPU monitoring: {str(e)}")
+        return 0.0
+    except Exception as e:
+        logger.error(f"Error getting CPU usage: {str(e)}")
         return 0.0
 
 def get_memory_usage() -> float:
     """Get memory usage percentage"""
     try:
         import psutil
-        return psutil.virtual_memory().percent
-    except ImportError:
+        memory_percent = psutil.virtual_memory().percent
+        logger.debug(f"Memory usage collected: {memory_percent}%")
+        return memory_percent
+    except ImportError as e:
+        logger.error(f"psutil not imported for memory monitoring: {str(e)}")
+        return 0.0
+    except Exception as e:
+        logger.error(f"Error getting memory usage: {str(e)}")
         return 0.0
 
 def get_gpu_usage() -> float:
@@ -661,9 +702,18 @@ def get_gpu_usage() -> float:
     try:
         import torch
         if torch.cuda.is_available():
-            return torch.cuda.utilization()
+            # torch.cuda.utilization() returns percentage 0-100
+            gpu_util = torch.cuda.utilization()
+            logger.debug(f"GPU usage collected: {gpu_util}%")
+            return gpu_util
+        else:
+            logger.debug("No CUDA GPUs available")
+            return 0.0
+    except ImportError as e:
+        logger.debug(f"torch not imported for GPU monitoring: {str(e)}")
         return 0.0
-    except ImportError:
+    except Exception as e:
+        logger.error(f"Error getting GPU usage: {str(e)}")
         return 0.0
 
 def get_network_io() -> float:
@@ -671,8 +721,16 @@ def get_network_io() -> float:
     try:
         import psutil
         net_io = psutil.net_io_counters()
-        return (net_io.bytes_sent + net_io.bytes_recv) / 1024 / 1024  # MB/s
-    except ImportError:
+        # Calculate MB/s (we'll need to track previous values for rate)
+        total_bytes = net_io.bytes_sent + net_io.bytes_recv
+        network_rate = total_bytes / 1024 / 1024  # Convert to MB
+        logger.debug(f"Network I/O collected: {network_rate:.2f} MB total")
+        return network_rate
+    except ImportError as e:
+        logger.error(f"psutil not imported for network monitoring: {str(e)}")
+        return 0.0
+    except Exception as e:
+        logger.error(f"Error getting network I/O: {str(e)}")
         return 0.0
 
 # Error handlers

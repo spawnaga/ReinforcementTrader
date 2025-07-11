@@ -96,9 +96,14 @@ Preferred communication style: Simple, everyday language.
 - **Environment-based Secrets**: Secure credential management
 
 ### Monitoring and Logging
-- **Comprehensive Logging**: Debug-level logging throughout the system
-- **Real-time Metrics**: WebSocket-based performance monitoring
+- **Comprehensive Logging**: Debug-level logging throughout the system with detailed performance tracking
+- **Real-time Metrics**: WebSocket-based performance monitoring broadcasting every 5 seconds
+  - CPU usage monitoring with psutil
+  - Memory usage tracking
+  - Network I/O statistics
+  - GPU utilization (when CUDA available)
 - **Error Handling**: Global error handlers and graceful degradation
-- **System Health**: GPU status and resource monitoring
+- **System Health**: Real-time resource monitoring with detailed debug logs
+- **WebSocket Debugging**: Full broadcast loop tracking with iteration counters
 
 The system is designed to be highly scalable, with the ability to add multiple trading algorithms, extend to different financial instruments, and integrate with various data sources and brokers.
