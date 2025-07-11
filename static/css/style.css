@@ -414,6 +414,26 @@ select,
     background-color: rgba(0, 0, 0, 0.3);
 }
 
+/* Fix Active Training Sessions table specifically */
+.card-body .table-striped tbody tr {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.card-body .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+.card-body .table-striped tbody tr:nth-of-type(even) {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Ensure all table text in cards is visible */
+.card-body .table td,
+.card-body .table th {
+    color: #ffffff !important;
+    background-color: transparent !important;
+}
+
 /* Text highlight for better contrast */
 .text-muted {
     color: #c0c0c0 !important;

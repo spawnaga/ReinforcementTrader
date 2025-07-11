@@ -1,0 +1,101 @@
+/home/alex/miniconda3/envs/ReinforcementTrader/bin/python /home/alex/PycharmProjects/ReinforcementTrader/START_HERE.py 
+
+🚀 Starting Revolutionary AI Trading System...
+============================================================
+✓ Gunicorn is installed
+✓ Using SQLite database at: /home/alex/PycharmProjects/ReinforcementTrader/instance/trading_system.db
+
+🌐 Starting server on http://127.0.0.1:5000
+============================================================
+
+⚡ The application is starting...
+📊 Open your browser to http://127.0.0.1:5000
+
+Press Ctrl+C to stop the server
+
+[2025-07-11 16:39:32 -0700] [52406] [INFO] Starting gunicorn 23.0.0
+[2025-07-11 16:39:32 -0700] [52406] [INFO] Listening at: http://127.0.0.1:5000 (52406)
+[2025-07-11 16:39:32 -0700] [52406] [INFO] Using worker: sync
+[2025-07-11 16:39:32 -0700] [52439] [INFO] Booting worker with pid: 52439
+INFO:gpu_data_loader:GPU processing enabled with 4 GPUs
+DEBUG:asyncio:Using selector: EpollSelector
+INFO:data_manager:Data Manager initialized with data directory: data
+INFO:ib_integration:IB Integration initialized
+INFO:risk_manager:Risk Manager initialized
+INFO:trading_engine:CUDA available: 4 GPU(s) detected
+INFO:trading_engine:Using GPU: NVIDIA GeForce RTX 3090
+INFO:trading_engine:Trading Engine initialized with device: cuda
+INFO:trading_engine:Default configurations initialized
+INFO:websocket_handler:WebSocket handler initialized
+INFO:websocket_handler:Client GOrLutZ9OOiBXaDeAAAB connected from 127.0.0.1
+INFO:websocket_handler:Background broadcast thread started
+[2025-07-11 16:41:37 -0700] [52406] [CRITICAL] WORKER TIMEOUT (pid:52439)
+[2025-07-11 16:41:37 -0700] [52439] [ERROR] Error handling request /socket.io/?EIO=4&transport=websocket
+Traceback (most recent call last):
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/flask_socketio/__init__.py", line 43, in __call__
+    return super(_SocketIOMiddleware, self).__call__(environ,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/engineio/middleware.py", line 63, in __call__
+    return self.engineio_app.handle_request(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/socketio/server.py", line 433, in handle_request
+    return self.eio.handle_request(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/engineio/server.py", line 261, in handle_request
+    r = self._handle_connect(environ, start_response,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/engineio/server.py", line 416, in _handle_connect
+    ret = s.handle_get_request(environ, start_response)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/engineio/socket.py", line 92, in handle_get_request
+    return getattr(self, '_upgrade_' + transport)(environ,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/engineio/socket.py", line 151, in _upgrade_websocket
+    return ws(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/engineio/async_drivers/_websocket_wsgi.py", line 15, in __call__
+    ret = self.app(self)
+          ^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/engineio/socket.py", line 225, in _websocket_handler
+    p = websocket_wait()
+        ^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/engineio/socket.py", line 156, in websocket_wait
+    data = ws.wait()
+           ^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/engineio/async_drivers/_websocket_wsgi.py", line 32, in wait
+    return self.ws.receive()
+           ^^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/simple_websocket/ws.py", line 96, in receive
+    if not self.event.wait(timeout=timeout):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/threading.py", line 655, in wait
+    signaled = self._cond.wait(timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/threading.py", line 355, in wait
+    waiter.acquire()
+  File "/home/alex/miniconda3/envs/ReinforcementTrader/lib/python3.12/site-packages/gunicorn/workers/base.py", line 204, in handle_abort
+    sys.exit(1)
+SystemExit: 1
+[2025-07-11 16:41:37 -0700] [52439] [INFO] Worker exiting (pid: 52439)
+INFO:websocket_handler:Background broadcast thread stopped
+[2025-07-11 16:41:37 -0700] [52922] [INFO] Booting worker with pid: 52922
+INFO:gpu_data_loader:GPU processing enabled with 4 GPUs
+DEBUG:asyncio:Using selector: EpollSelector
+INFO:data_manager:Data Manager initialized with data directory: data
+INFO:ib_integration:IB Integration initialized
+INFO:risk_manager:Risk Manager initialized
+INFO:trading_engine:CUDA available: 4 GPU(s) detected
+INFO:trading_engine:Using GPU: NVIDIA GeForce RTX 3090
+INFO:trading_engine:Trading Engine initialized with device: cuda
+INFO:trading_engine:Default configurations initialized
+INFO:websocket_handler:WebSocket handler initialized
+INFO:websocket_handler:Client B3Ojl5lu6iHyW8PuAAAG connected from 127.0.0.1
+INFO:websocket_handler:Background broadcast thread started

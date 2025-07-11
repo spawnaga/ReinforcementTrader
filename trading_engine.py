@@ -144,13 +144,8 @@ class TradingEngine:
             
             # Load market data
             logger.info(f"Loading NQ market data for session {session_id}")
-            # Emit loading status
-            if hasattr(current_app, 'socketio'):
-                current_app.socketio.emit('training_status', {
-                    'session_id': session_id,
-                    'status': 'loading_data',
-                    'message': 'Loading market data, this may take a moment for large datasets...'
-                })
+            # Emit loading status - we don't have Flask context in thread, but that's ok
+            # We'll emit status updates through the main thread instead
             
             market_data = self.data_manager.load_nq_data()
             if market_data is None or len(market_data) == 0:
