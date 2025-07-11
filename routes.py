@@ -33,7 +33,9 @@ def strategy_builder():
 def start_training():
     """Start a new training session"""
     try:
+        logger.info("Received training start request")
         data = request.get_json()
+        logger.info(f"Training request data: {data}")
         
         # Create new trading session
         session = TradingSession(
@@ -45,18 +47,77 @@ def start_training():
         
         db.session.add(session)
         db.session.commit()
+        logger.info(f"Created training session with ID: {session.id}")
         
         # Start training in background
-        trading_engine.start_training(session.id, data)
+        success = trading_engine.start_training(session.id, data)
         
-        return jsonify({
-            'success': True,
-            'session_id': session.id,
-            'message': 'Training started successfully'
-        })
+        if success:
+            logger.info(f"Training started successfully for session {session.id}")
+            return jsonify({
+                'success': True,
+                'session_id': session.id,
+                'message': 'Training started successfully'
+            })
+        else:
+            logger.error(f"Failed to start training for session {session.id}")
+            return jsonify({
+                'success': False,
+                'error': 'Failed to start training'
+            }), 500
         
     except Exception as e:
         logger.error(f"Error starting training: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/test_training', methods=['GET'])
+def test_training():
+    """Test training with default parameters"""
+    try:
+        logger.info("Testing training system")
+        
+        # Create test session
+        test_data = {
+            'session_name': f'Test_Training_{datetime.now().strftime("%Y%m%d_%H%M%S")}',
+            'algorithm_type': 'ANE_PPO',
+            'total_episodes': 10,  # Small number for testing
+            'parameters': {
+                'learning_rate': 3e-4,
+                'gamma': 0.99
+            }
+        }
+        
+        # Create session
+        session = TradingSession(
+            session_name=test_data['session_name'],
+            algorithm_type=test_data['algorithm_type'],
+            parameters=test_data['parameters'],
+            total_episodes=test_data['total_episodes']
+        )
+        
+        db.session.add(session)
+        db.session.commit()
+        
+        # Start training
+        success = trading_engine.start_training(session.id, test_data)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Test training started! Session ID: {session.id}',
+                'session_id': session.id
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to start test training'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error in test training: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)

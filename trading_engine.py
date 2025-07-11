@@ -131,15 +131,19 @@ class TradingEngine:
     def _training_loop(self, session_id: int, config: Dict):
         """Main training loop for a session"""
         try:
+            logger.info(f"Starting training loop for session {session_id}")
             # Update session status
             self.active_sessions[session_id]['status'] = 'running'
             
             # Load market data
+            logger.info(f"Loading NQ market data for session {session_id}")
             market_data = self.data_manager.load_nq_data()
             if market_data is None or len(market_data) == 0:
                 logger.error(f"No market data available for session {session_id}")
                 self._end_session(session_id, 'error')
                 return
+            
+            logger.info(f"Loaded {len(market_data)} rows of market data for session {session_id}")
             
             # Create time series states
             states = self._create_time_series_states(market_data)
@@ -270,7 +274,7 @@ class TradingEngine:
             data['open_close_ratio'] = (data['close'] - data['open']) / data['close']
             
             # Fill NaN values
-            data.fillna(method='ffill', inplace=True)
+            data.ffill(inplace=True)
             data.fillna(0, inplace=True)
             
             return data
