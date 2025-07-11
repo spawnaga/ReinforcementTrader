@@ -12,7 +12,7 @@ bind = "0.0.0.0:5000"
 workers = 1  # Single worker to avoid memory issues
 worker_class = "sync"
 worker_connections = 1000
-timeout = 120  # Increased timeout for heavy initialization
+timeout = 300  # 5 minutes for processing large datasets
 keepalive = 5
 
 # Reload on code changes

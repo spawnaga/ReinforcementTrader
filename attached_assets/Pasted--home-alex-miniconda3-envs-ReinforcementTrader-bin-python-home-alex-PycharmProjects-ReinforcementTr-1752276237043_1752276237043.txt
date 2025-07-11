@@ -1,0 +1,128 @@
+/home/alex/miniconda3/envs/ReinforcementTrader/bin/python /home/alex/PycharmProjects/ReinforcementTrader/START_HERE.py 
+
+🚀 Starting Revolutionary AI Trading System...
+============================================================
+✓ Gunicorn is installed
+✓ Using SQLite database at: /home/alex/PycharmProjects/ReinforcementTrader/instance/trading_system.db
+
+🌐 Starting server on http://127.0.0.1:5000
+============================================================
+
+⚡ The application is starting...
+📊 Open your browser to http://127.0.0.1:5000
+
+Press Ctrl+C to stop the server
+
+[2025-07-11 16:20:26 -0700] [48706] [INFO] Starting gunicorn 23.0.0
+[2025-07-11 16:20:26 -0700] [48706] [INFO] Listening at: http://127.0.0.1:5000 (48706)
+[2025-07-11 16:20:26 -0700] [48706] [INFO] Using worker: sync
+[2025-07-11 16:20:26 -0700] [48740] [INFO] Booting worker with pid: 48740
+INFO:gpu_data_loader:GPU processing enabled with 4 GPUs
+DEBUG:asyncio:Using selector: EpollSelector
+INFO:data_manager:Data Manager initialized with data directory: data
+INFO:ib_integration:IB Integration initialized
+INFO:risk_manager:Risk Manager initialized
+INFO:trading_engine:CUDA available: 4 GPU(s) detected
+INFO:trading_engine:Using GPU: NVIDIA GeForce RTX 3090
+INFO:trading_engine:Trading Engine initialized with device: cuda
+INFO:trading_engine:Default configurations initialized
+INFO:websocket_handler:WebSocket handler initialized
+INFO:websocket_handler:Client EcgtzyyUjo8vk1eRAAAB connected from 127.0.0.1
+INFO:websocket_handler:Background broadcast thread started
+INFO:websocket_handler:Client EcgtzyyUjo8vk1eRAAAB disconnected
+INFO:websocket_handler:Background broadcast thread stopped
+INFO:routes:Testing training system
+INFO:trading_engine:Starting training loop for session 16
+INFO:trading_engine:Loading NQ market data for session 16
+INFO:trading_engine:Training session 16 started
+INFO:data_manager:Found data file: data/NQ_data.csv
+INFO:gpu_data_loader:Loading cached data from ./data_cache/nq_data_311059740f77cc509ffcc44e2c7d8c25.parquet
+INFO:websocket_handler:Client UCB-dDjtFrG8w1JmAAAI connected from 127.0.0.1
+INFO:numba.cuda.cudadrv.driver:init
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuInit
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetCount
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGet
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetName
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetUuid_v2
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGet
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetName
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetUuid_v2
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGet
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetName
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetUuid_v2
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGet
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetName
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDeviceGetUuid_v2
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuDevicePrimaryCtxRetain
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuPointerGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuMemcpyDtoH_v2
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuPointerGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuMemcpyDtoH_v2
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuPointerGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuMemcpyDtoH_v2
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuPointerGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuMemcpyDtoH_v2
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuPointerGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuMemcpyDtoH_v2
+WARNING:data_manager:Insufficient data in NQ_data.csv: 24 rows
+INFO:data_manager:Found data file: data/NQ.csv
+INFO:gpu_data_loader:Loading cached data from ./data_cache/nq_data_141354cfe489b267668d742f599217ba.parquet
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuPointerGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuMemcpyDtoH_v2
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuPointerGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuMemcpyDtoH_v2
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuPointerGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuMemcpyDtoH_v2
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuPointerGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuMemcpyDtoH_v2
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuPointerGetAttribute
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetCurrent
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuCtxGetDevice
+DEBUG:numba.cuda.cudadrv.driver:call driver api: cuMemcpyDtoH_v2
+INFO:data_manager:Successfully loaded 5,389,750 rows from NQ.csv

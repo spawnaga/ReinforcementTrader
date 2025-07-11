@@ -385,6 +385,27 @@ select,
     font-weight: 500 !important;
 }
 
+/* Fix for ALL table cells to be visible */
+.table, 
+.table-dark,
+.table-striped,
+.table-bordered {
+    color: #ffffff !important;
+}
+
+.table td {
+    color: #ffffff !important;
+}
+
+.table th {
+    color: #00ff88 !important;
+}
+
+/* Force all algorithm type cells to be white */
+.table tbody tr td:nth-child(2) {
+    color: #ffffff !important;
+}
+
 .table-striped tbody tr:nth-of-type(odd) {
     background-color: rgba(255, 255, 255, 0.05);
 }
