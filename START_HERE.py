@@ -25,8 +25,14 @@ def main():
     
     # Set environment variables if not set
     if not os.environ.get('DATABASE_URL'):
-        os.environ['DATABASE_URL'] = 'sqlite:///instance/trading_system.db'
-        print("✓ Using SQLite database")
+        # Create instance directory if it doesn't exist
+        instance_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
+        os.makedirs(instance_dir, exist_ok=True)
+        
+        # Use absolute path for database
+        db_path = os.path.join(instance_dir, 'trading_system.db')
+        os.environ['DATABASE_URL'] = f'sqlite:///{db_path}'
+        print(f"✓ Using SQLite database at: {db_path}")
     
     # Start the application
     print("\n🌐 Starting server on http://127.0.0.1:5000")
