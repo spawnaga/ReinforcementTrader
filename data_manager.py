@@ -83,36 +83,38 @@ class DataManager:
     def _load_from_database(self, symbol: str, start_date: Optional[str] = None, 
                            end_date: Optional[str] = None) -> Optional[pd.DataFrame]:
         """Load data from database"""
+        from app import app
         try:
-            query = MarketData.query.filter_by(symbol=symbol)
-            
-            if start_date:
-                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
-                query = query.filter(MarketData.timestamp >= start_dt)
-            
-            if end_date:
-                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
-                query = query.filter(MarketData.timestamp <= end_dt)
-            
-            data = query.order_by(MarketData.timestamp.asc()).all()
-            
-            if not data:
-                return None
-            
-            # Convert to DataFrame
-            df = pd.DataFrame([{
-                'timestamp': row.timestamp,
-                'open': row.open_price,
-                'high': row.high_price,
-                'low': row.low_price,
-                'close': row.close_price,
-                'volume': row.volume
-            } for row in data])
-            
-            df['timestamp'] = pd.to_datetime(df['timestamp'])
-            df.set_index('timestamp', inplace=True)
-            
-            return df
+            with app.app_context():
+                query = MarketData.query.filter_by(symbol=symbol)
+                
+                if start_date:
+                    start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                    query = query.filter(MarketData.timestamp >= start_dt)
+                
+                if end_date:
+                    end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                    query = query.filter(MarketData.timestamp <= end_dt)
+                
+                data = query.order_by(MarketData.timestamp.asc()).all()
+                
+                if not data:
+                    return None
+                
+                # Convert to DataFrame
+                df = pd.DataFrame([{
+                    'timestamp': row.timestamp,
+                    'open': row.open_price,
+                    'high': row.high_price,
+                    'low': row.low_price,
+                    'close': row.close_price,
+                    'volume': row.volume
+                } for row in data])
+                
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                df.set_index('timestamp', inplace=True)
+                
+                return df
             
         except Exception as e:
             logger.error(f"Error loading data from database: {str(e)}")
@@ -236,37 +238,40 @@ class DataManager:
     
     def _save_to_database(self, data: pd.DataFrame, symbol: str):
         """Save data to database"""
+        from app import app
         try:
-            for timestamp, row in data.iterrows():
-                # Check if record already exists
-                existing = MarketData.query.filter_by(
-                    symbol=symbol,
-                    timestamp=timestamp
-                ).first()
+            with app.app_context():
+                for timestamp, row in data.iterrows():
+                    # Check if record already exists
+                    existing = MarketData.query.filter_by(
+                        symbol=symbol,
+                        timestamp=timestamp
+                    ).first()
+                    
+                    if existing:
+                        continue
+                    
+                    # Create new record
+                    market_data = MarketData(
+                        timestamp=timestamp,
+                        symbol=symbol,
+                        open_price=float(row['open']),
+                        high_price=float(row['high']),
+                        low_price=float(row['low']),
+                        close_price=float(row['close']),
+                        volume=int(row['volume']) if not pd.isna(row['volume']) else 0,
+                        timeframe='1min'
+                    )
+                    
+                    db.session.add(market_data)
                 
-                if existing:
-                    continue
-                
-                # Create new record
-                market_data = MarketData(
-                    timestamp=timestamp,
-                    symbol=symbol,
-                    open_price=float(row['open']),
-                    high_price=float(row['high']),
-                    low_price=float(row['low']),
-                    close_price=float(row['close']),
-                    volume=int(row['volume']) if not pd.isna(row['volume']) else 0,
-                    timeframe='1min'
-                )
-                
-                db.session.add(market_data)
-            
-            db.session.commit()
-            logger.info(f"Saved {len(data)} records to database for {symbol}")
+                db.session.commit()
+                logger.info(f"Saved {len(data)} records to database for {symbol}")
             
         except Exception as e:
             logger.error(f"Error saving data to database: {str(e)}")
-            db.session.rollback()
+            if app.app_context:
+                db.session.rollback()
     
     def preprocess_data(self, data: pd.DataFrame) -> pd.DataFrame:
         """

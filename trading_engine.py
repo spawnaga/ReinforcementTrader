@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 import torch
 import torch.nn as nn
+from flask import current_app
 
 from models import TradingSession, Trade, MarketData, TrainingMetrics
 from gym_futures.envs.futures_env import FuturesEnv
@@ -357,18 +358,20 @@ class TradingEngine:
     def _save_training_metrics(self, session_id: int, episode: int, reward: float, loss: float, metrics: Dict):
         """Save training metrics to database"""
         from extensions import db
+        from app import app
         try:
-            metric = TrainingMetrics(
-                session_id=session_id,
-                episode=episode,
-                reward=reward,
-                loss=loss,
-                action_distribution=metrics.get('action_distribution', []),
-                network_weights_summary={}  # Could add weight statistics here
-            )
-            
-            db.session.add(metric)
-            db.session.commit()
+            with app.app_context():
+                metric = TrainingMetrics(
+                    session_id=session_id,
+                    episode=episode,
+                    reward=reward,
+                    loss=loss,
+                    action_distribution=metrics.get('action_distribution', []),
+                    network_weights_summary={}  # Could add weight statistics here
+                )
+                
+                db.session.add(metric)
+                db.session.commit()
             
         except Exception as e:
             logger.error(f"Error saving training metrics: {str(e)}")
@@ -376,18 +379,20 @@ class TradingEngine:
     def _update_session_stats(self, session_id: int, episode: int, reward: float, metrics: Dict):
         """Update session statistics"""
         from extensions import db
+        from app import app
         try:
-            session = TradingSession.query.get(session_id)
-            if session:
-                session.current_episode = episode
-                session.total_profit += reward
-                
-                # Update other statistics based on metrics
-                if metrics.get('total_trades', 0) > 0:
-                    session.total_trades = metrics['total_trades']
-                    session.win_rate = metrics.get('profitable_trades', 0) / metrics['total_trades']
-                
-                db.session.commit()
+            with app.app_context():
+                session = TradingSession.query.get(session_id)
+                if session:
+                    session.current_episode = episode
+                    session.total_profit += reward
+                    
+                    # Update other statistics based on metrics
+                    if metrics.get('total_trades', 0) > 0:
+                        session.total_trades = metrics['total_trades']
+                        session.win_rate = metrics.get('profitable_trades', 0) / metrics['total_trades']
+                    
+                    db.session.commit()
                 
         except Exception as e:
             logger.error(f"Error updating session stats: {str(e)}")
@@ -407,13 +412,15 @@ class TradingEngine:
     def _end_session(self, session_id: int, status: str):
         """End a training session"""
         from extensions import db, socketio
+        from app import app
         try:
             # Update database
-            session = TradingSession.query.get(session_id)
-            if session:
-                session.status = status
-                session.end_time = datetime.utcnow()
-                db.session.commit()
+            with app.app_context():
+                session = TradingSession.query.get(session_id)
+                if session:
+                    session.status = status
+                    session.end_time = datetime.utcnow()
+                    db.session.commit()
             
             # Clean up
             if session_id in self.active_sessions:
