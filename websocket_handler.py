@@ -51,7 +51,7 @@ def handle_connect(auth=None):
         emit('error', {'message': 'Connection error'})
 
 @socketio.on('disconnect')
-def handle_disconnect():
+def handle_disconnect(*args, **kwargs):
     """Handle client disconnection"""
     try:
         client_id = request.sid

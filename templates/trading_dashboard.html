@@ -321,6 +321,14 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Socket.IO connection
+    window.socket = io();
+    
+    // Wait for socket connection before initializing dashboard
+    window.socket.on('connect', function() {
+        console.log('Connected to server');
+    });
+    
     // Initialize trading dashboard
     const dashboard = new TradingDashboard();
     
