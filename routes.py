@@ -171,6 +171,36 @@ def get_algorithm_configs():
         logger.error(f"Error fetching algorithm configs: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/sessions')
+def get_sessions():
+    """Get all trading sessions"""
+    try:
+        sessions = TradingSession.query.order_by(TradingSession.start_time.desc()).all()
+        result = []
+        
+        for session in sessions:
+            result.append({
+                'id': session.id,
+                'name': session.session_name,
+                'algorithm_type': session.algorithm_type,
+                'status': session.status,
+                'start_time': session.start_time.isoformat() if session.start_time else None,
+                'end_time': session.end_time.isoformat() if session.end_time else None,
+                'total_episodes': session.total_episodes,
+                'current_episode': session.current_episode,
+                'total_profit': session.total_profit,
+                'total_trades': session.total_trades,
+                'win_rate': session.win_rate,
+                'sharpe_ratio': session.sharpe_ratio,
+                'max_drawdown': session.max_drawdown
+            })
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error fetching sessions: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/session_status/<int:session_id>')
 def get_session_status(session_id):
     """Get real-time status of a training session"""
