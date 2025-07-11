@@ -1,5 +1,6 @@
 from flask import render_template, request, jsonify, redirect, url_for, flash
-from app import app, db, socketio, trading_engine
+from app import app, trading_engine
+from extensions import db, socketio
 from models import TradingSession, Trade, MarketData, TrainingMetrics, AlgorithmConfig
 from datetime import datetime
 import json

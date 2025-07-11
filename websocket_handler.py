@@ -4,7 +4,8 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from flask import request
 from flask_socketio import emit, join_room, leave_room, disconnect
-from app import socketio, db, trading_engine, app
+from app import app, trading_engine
+from extensions import socketio, db
 from models import TradingSession, TrainingMetrics, Trade
 import threading
 import time

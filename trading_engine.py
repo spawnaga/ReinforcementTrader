@@ -178,7 +178,7 @@ class TradingEngine:
                     self._save_model(session_id, algorithm, episode)
                 
                 # Emit real-time updates
-                from app import socketio
+                from extensions import socketio
                 socketio.emit('training_update', {
                     'session_id': session_id,
                     'episode': episode,
@@ -356,7 +356,7 @@ class TradingEngine:
     
     def _save_training_metrics(self, session_id: int, episode: int, reward: float, loss: float, metrics: Dict):
         """Save training metrics to database"""
-        from app import db
+        from extensions import db
         try:
             metric = TrainingMetrics(
                 session_id=session_id,
@@ -375,7 +375,7 @@ class TradingEngine:
     
     def _update_session_stats(self, session_id: int, episode: int, reward: float, metrics: Dict):
         """Update session statistics"""
-        from app import db
+        from extensions import db
         try:
             session = TradingSession.query.get(session_id)
             if session:
@@ -406,7 +406,7 @@ class TradingEngine:
     
     def _end_session(self, session_id: int, status: str):
         """End a training session"""
-        from app import db, socketio
+        from extensions import db, socketio
         try:
             # Update database
             session = TradingSession.query.get(session_id)

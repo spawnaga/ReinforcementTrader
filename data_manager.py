@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 import sqlite3
 from pathlib import Path
 import yfinance as yf
-from app import db
+from extensions import db
 from models import MarketData
 
 logger = logging.getLogger(__name__)
