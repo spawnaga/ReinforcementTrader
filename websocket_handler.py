@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from flask import request
 from flask_socketio import emit, join_room, leave_room, disconnect
-from app import socketio, db, trading_engine
+from app import socketio, db, trading_engine, app
 from models import TradingSession, TrainingMetrics, Trade
 import threading
 import time
@@ -89,10 +89,11 @@ def handle_subscribe_session(data):
             return
         
         # Verify session exists
-        session = TradingSession.query.get(session_id)
-        if not session:
-            emit('error', {'message': 'Session not found'})
-            return
+        with app.app_context():
+            session = TradingSession.query.get(session_id)
+            if not session:
+                emit('error', {'message': 'Session not found'})
+                return
         
         room_name = f"session_{session_id}"
         join_room(room_name)
@@ -410,41 +411,42 @@ def get_system_status() -> Dict[str, Any]:
 def get_session_real_time_data(session_id: int) -> Optional[Dict[str, Any]]:
     """Get real-time data for a training session"""
     try:
-        session = TradingSession.query.get(session_id)
-        if not session:
-            return None
-        
-        # Get latest training metrics
-        latest_metrics = TrainingMetrics.query.filter_by(
-            session_id=session_id
-        ).order_by(TrainingMetrics.episode.desc()).first()
-        
-        # Get recent trades
-        recent_trades = Trade.query.filter_by(
-            session_id=session_id
-        ).order_by(Trade.entry_time.desc()).limit(10).all()
-        
-        return {
-            'session_id': session_id,
-            'current_episode': session.current_episode,
-            'total_episodes': session.total_episodes,
-            'total_profit': session.total_profit,
-            'total_trades': session.total_trades,
-            'win_rate': session.win_rate,
-            'latest_metrics': {
-                'episode': latest_metrics.episode if latest_metrics else 0,
-                'reward': latest_metrics.reward if latest_metrics else 0,
-                'loss': latest_metrics.loss if latest_metrics else 0,
-                'timestamp': latest_metrics.timestamp.isoformat() if latest_metrics else None
-            } if latest_metrics else None,
-            'recent_trades': [{
-                'trade_id': trade.trade_id,
-                'entry_time': trade.entry_time.isoformat(),
-                'position_type': trade.position_type,
-                'profit_loss': trade.profit_loss,
-                'status': trade.status
-            } for trade in recent_trades]
-        }
+        with app.app_context():
+            session = TradingSession.query.get(session_id)
+            if not session:
+                return None
+            
+            # Get latest training metrics
+            latest_metrics = TrainingMetrics.query.filter_by(
+                session_id=session_id
+            ).order_by(TrainingMetrics.episode.desc()).first()
+            
+            # Get recent trades
+            recent_trades = Trade.query.filter_by(
+                session_id=session_id
+            ).order_by(Trade.entry_time.desc()).limit(10).all()
+            
+            return {
+                'session_id': session_id,
+                'current_episode': session.current_episode,
+                'total_episodes': session.total_episodes,
+                'total_profit': session.total_profit,
+                'total_trades': session.total_trades,
+                'win_rate': session.win_rate,
+                'latest_metrics': {
+                    'episode': latest_metrics.episode if latest_metrics else 0,
+                    'reward': latest_metrics.reward if latest_metrics else 0,
+                    'loss': latest_metrics.loss if latest_metrics else 0,
+                    'timestamp': latest_metrics.timestamp.isoformat() if latest_metrics else None
+                } if latest_metrics else None,
+                'recent_trades': [{
+                    'trade_id': trade.trade_id,
+                    'entry_time': trade.entry_time.isoformat(),
+                    'position_type': trade.position_type,
+                    'profit_loss': trade.profit_loss,
+                    'status': trade.status
+                } for trade in recent_trades]
+            }
         
     except Exception as e:
         logger.error(f"Error getting session real-time data: {str(e)}")
@@ -453,57 +455,58 @@ def get_session_real_time_data(session_id: int) -> Optional[Dict[str, Any]]:
 def get_performance_metrics(session_id: int) -> Dict[str, Any]:
     """Get performance metrics for a session"""
     try:
-        session = TradingSession.query.get(session_id)
-        if not session:
-            return {'error': 'Session not found'}
-        
-        # Calculate additional metrics
-        total_trades = Trade.query.filter_by(session_id=session_id, status='closed').count()
-        profitable_trades = Trade.query.filter_by(session_id=session_id, status='closed').filter(Trade.profit_loss > 0).count()
-        
-        win_rate = (profitable_trades / total_trades * 100) if total_trades > 0 else 0
-        
-        # Get profit/loss history
-        trades = Trade.query.filter_by(session_id=session_id, status='closed').order_by(Trade.exit_time).all()
-        pnl_history = [trade.profit_loss for trade in trades]
-        
-        # Calculate drawdown
-        cumulative_pnl = []
-        running_total = 0
-        for pnl in pnl_history:
-            running_total += pnl
-            cumulative_pnl.append(running_total)
-        
-        max_drawdown = 0
-        peak = 0
-        for value in cumulative_pnl:
-            if value > peak:
-                peak = value
-            drawdown = (peak - value) / peak if peak > 0 else 0
-            if drawdown > max_drawdown:
-                max_drawdown = drawdown
-        
-        # Calculate Sharpe ratio (simplified)
-        if len(pnl_history) > 1:
-            avg_return = sum(pnl_history) / len(pnl_history)
-            volatility = (sum([(x - avg_return) ** 2 for x in pnl_history]) / (len(pnl_history) - 1)) ** 0.5
-            sharpe_ratio = avg_return / volatility if volatility > 0 else 0
-        else:
-            sharpe_ratio = 0
-        
-        return {
-            'session_id': session_id,
-            'total_return': session.total_profit,
-            'total_trades': total_trades,
-            'profitable_trades': profitable_trades,
-            'win_rate': win_rate,
-            'max_drawdown': max_drawdown * 100,
-            'sharpe_ratio': sharpe_ratio,
-            'average_trade': sum(pnl_history) / len(pnl_history) if pnl_history else 0,
-            'largest_win': max(pnl_history) if pnl_history else 0,
-            'largest_loss': min(pnl_history) if pnl_history else 0,
-            'profit_factor': sum([p for p in pnl_history if p > 0]) / abs(sum([p for p in pnl_history if p < 0])) if any(p < 0 for p in pnl_history) else float('inf')
-        }
+        with app.app_context():
+            session = TradingSession.query.get(session_id)
+            if not session:
+                return {'error': 'Session not found'}
+            
+            # Calculate additional metrics
+            total_trades = Trade.query.filter_by(session_id=session_id, status='closed').count()
+            profitable_trades = Trade.query.filter_by(session_id=session_id, status='closed').filter(Trade.profit_loss > 0).count()
+            
+            win_rate = (profitable_trades / total_trades * 100) if total_trades > 0 else 0
+            
+            # Get profit/loss history
+            trades = Trade.query.filter_by(session_id=session_id, status='closed').order_by(Trade.exit_time).all()
+            pnl_history = [trade.profit_loss for trade in trades]
+            
+            # Calculate drawdown
+            cumulative_pnl = []
+            running_total = 0
+            for pnl in pnl_history:
+                running_total += pnl
+                cumulative_pnl.append(running_total)
+            
+            max_drawdown = 0
+            peak = 0
+            for value in cumulative_pnl:
+                if value > peak:
+                    peak = value
+                drawdown = (peak - value) / peak if peak > 0 else 0
+                if drawdown > max_drawdown:
+                    max_drawdown = drawdown
+            
+            # Calculate Sharpe ratio (simplified)
+            if len(pnl_history) > 1:
+                avg_return = sum(pnl_history) / len(pnl_history)
+                volatility = (sum([(x - avg_return) ** 2 for x in pnl_history]) / (len(pnl_history) - 1)) ** 0.5
+                sharpe_ratio = avg_return / volatility if volatility > 0 else 0
+            else:
+                sharpe_ratio = 0
+            
+            return {
+                'session_id': session_id,
+                'total_return': session.total_profit,
+                'total_trades': total_trades,
+                'profitable_trades': profitable_trades,
+                'win_rate': win_rate,
+                'max_drawdown': max_drawdown * 100,
+                'sharpe_ratio': sharpe_ratio,
+                'average_trade': sum(pnl_history) / len(pnl_history) if pnl_history else 0,
+                'largest_win': max(pnl_history) if pnl_history else 0,
+                'largest_loss': min(pnl_history) if pnl_history else 0,
+                'profit_factor': sum([p for p in pnl_history if p > 0]) / abs(sum([p for p in pnl_history if p < 0])) if any(p < 0 for p in pnl_history) else float('inf')
+            }
         
     except Exception as e:
         logger.error(f"Error getting performance metrics: {str(e)}")
