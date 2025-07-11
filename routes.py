@@ -23,12 +23,6 @@ def trading_dashboard():
     """Advanced trading dashboard with real-time charts"""
     return render_template('trading_dashboard.html')
 
-@app.route('/test_api')
-def test_api():
-    """Test API endpoint"""
-    from flask import send_file
-    return send_file('test_api.html')
-
 @app.route('/strategy_builder')
 def strategy_builder():
     """Interactive strategy builder interface"""
