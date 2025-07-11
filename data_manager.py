@@ -254,8 +254,10 @@ class DataManager:
             
         except Exception as e:
             logger.error(f"Error saving data to database: {str(e)}")
-            if app.app_context:
+            try:
                 db.session.rollback()
+            except:
+                pass
     
     def preprocess_data(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -345,8 +347,8 @@ class DataManager:
             df['uptick_ratio'] = df['tick_direction'].rolling(window=10).apply(lambda x: (x == 1).sum() / len(x))
             
             # Forward fill NaN values
-            df.fillna(method='ffill', inplace=True)
-            df.fillna(0, inplace=True)
+            df = df.ffill()
+            df = df.fillna(0)
             
             logger.info(f"Preprocessed data with {len(df.columns)} features")
             
