@@ -307,10 +307,51 @@ body {
 /* Algorithm and Session Styling - Improved Readability */
 .algorithm-card,
 .session-card,
-.list-group-item {
-    background: rgba(0, 0, 0, 0.8) !important;
+.list-group-item,
+.algorithm-component,
+.strategy-component,
+.form-select option,
+.form-control option,
+select option,
+#algorithmType option {
+    background: rgba(0, 0, 0, 0.9) !important;
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
     color: #f0f0f0 !important;
+}
+
+/* Fix dropdown and select elements */
+select,
+.form-select,
+#algorithmType {
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    color: #ffffff !important;
+}
+
+/* Modal styling fixes */
+.modal .algorithm-component,
+.modal .strategy-component,
+.modal .list-group-item {
+    background: rgba(30, 30, 30, 0.95) !important;
+    color: #ffffff !important;
+}
+
+/* Strategy builder component nodes */
+.component-node {
+    background: rgba(0, 0, 0, 0.85) !important;
+    color: #ffffff !important;
+}
+
+.component-node h6 {
+    color: #ffffff !important;
+}
+
+/* Fix for any remaining white backgrounds */
+.bg-light {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+.text-dark {
+    color: #ffffff !important;
 }
 
 .algorithm-card h6,

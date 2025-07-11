@@ -418,7 +418,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // AI Assistant toggle
     document.getElementById('toggle-ai').addEventListener('click', function() {
-        dashboard.toggleAI();
+        if (window.tradingDashboard) {
+            window.tradingDashboard.toggleAI();
+        }
     });
 });
 

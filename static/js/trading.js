@@ -547,6 +547,17 @@ class TradingDashboard {
             setTimeout(() => notification.remove(), 300);
         }, 3000);
     }
+    
+    toggleAI() {
+        // Toggle AI assistant functionality
+        const aiStatus = document.getElementById('ai-status');
+        if (aiStatus) {
+            const isActive = aiStatus.textContent === 'Active';
+            aiStatus.textContent = isActive ? 'Inactive' : 'Active';
+            aiStatus.className = isActive ? 'text-danger' : 'text-success';
+            this.showNotification(`AI Assistant ${isActive ? 'disabled' : 'enabled'}`, 'info');
+        }
+    }
 }
 
 // Initialize when DOM is ready
