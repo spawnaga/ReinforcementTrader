@@ -9,6 +9,7 @@ from pathlib import Path
 import yfinance as yf
 from extensions import db
 from models import MarketData
+from gpu_data_loader import GPUDataLoader
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,9 @@ class DataManager:
     def __init__(self, data_dir: str = "data"):
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(exist_ok=True)
+        
+        # Initialize GPU data loader for large datasets
+        self.gpu_loader = GPUDataLoader(cache_dir="./data_cache")
         
         # NQ futures specifications
         self.nq_specs = {
@@ -121,65 +125,45 @@ class DataManager:
             return None
     
     def _load_from_file(self, symbol: str) -> Optional[pd.DataFrame]:
-        """Load data from CSV file"""
+        """Load data from CSV file using GPU-accelerated loader for large files"""
         try:
-            # Look for various file formats
+            # Look for various file formats including .txt files
             possible_files = [
                 f"{symbol}_1min.csv",
                 f"{symbol}_data.csv",
                 f"{symbol}.csv",
+                f"{symbol}_test_data.txt",
+                f"{symbol}.txt",
                 "nq_data.csv",
-                "market_data.csv"
+                "market_data.csv",
+                "NQ_test_data.txt"
             ]
             
             for filename in possible_files:
                 file_path = self.data_dir / filename
                 if file_path.exists():
-                    logger.info(f"Loading data from {file_path}")
+                    logger.info(f"Found data file: {file_path}")
                     
-                    # Try different CSV formats
                     try:
-                        df = pd.read_csv(file_path)
+                        # Load with GPU acceleration and caching
+                        df = self.gpu_loader.load_nq_data(str(file_path))
                         
-                        # Standardize column names
-                        df.columns = df.columns.str.lower().str.strip()
+                        # GPU loader already handles:
+                        # - Column standardization
+                        # - Timestamp conversion
+                        # - Sorting and deduplication
+                        # - Caching for faster subsequent loads
                         
-                        # Map common column name variations
-                        column_mapping = {
-                            'time': 'timestamp',
-                            'datetime': 'timestamp',
-                            'date': 'timestamp',
-                            'o': 'open',
-                            'h': 'high',
-                            'l': 'low',
-                            'c': 'close',
-                            'v': 'volume',
-                            'vol': 'volume'
-                        }
+                        # Just ensure we have the right index
+                        if 'timestamp' in df.columns and df.index.name != 'timestamp':
+                            df.set_index('timestamp', inplace=True)
                         
-                        df.rename(columns=column_mapping, inplace=True)
-                        
-                        # Ensure required columns exist
-                        required_cols = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
-                        if not all(col in df.columns for col in required_cols):
-                            logger.warning(f"Missing required columns in {filename}")
-                            continue
-                        
-                        # Convert timestamp
-                        df['timestamp'] = pd.to_datetime(df['timestamp'])
-                        df.set_index('timestamp', inplace=True)
-                        
-                        # Sort by timestamp
-                        df.sort_index(inplace=True)
-                        
-                        # Remove duplicates
-                        df = df[~df.index.duplicated(keep='first')]
-                        
-                        # Basic data validation
+                        # Basic validation
                         if len(df) < 100:
                             logger.warning(f"Insufficient data in {filename}: {len(df)} rows")
                             continue
                         
+                        logger.info(f"Successfully loaded {len(df):,} rows from {filename}")
                         return df
                         
                     except Exception as e:

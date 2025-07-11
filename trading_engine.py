@@ -33,6 +33,10 @@ class TradingEngine:
         self.ib_integration = IBIntegration()
         self.risk_manager = RiskManager()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        if torch.cuda.is_available():
+            torch.cuda.set_device(0)  # Use first GPU
+            logger.info(f"CUDA available: {torch.cuda.device_count()} GPU(s) detected")
+            logger.info(f"Using GPU: {torch.cuda.get_device_name(0)}")
         
         logger.info(f"Trading Engine initialized with device: {self.device}")
         

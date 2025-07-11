@@ -304,6 +304,65 @@ body {
     100% { transform: rotate(360deg); }
 }
 
+/* Algorithm and Session Styling - Improved Readability */
+.algorithm-card,
+.session-card,
+.list-group-item {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: #f0f0f0 !important;
+}
+
+.algorithm-card h6,
+.session-card h6,
+.list-group-item h6,
+.algorithm-component h6 {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.algorithm-card p,
+.session-card p,
+.list-group-item p,
+.algorithm-component p {
+    color: #e0e0e0 !important;
+    font-weight: 400 !important;
+}
+
+.algorithm-card small,
+.session-card small,
+.list-group-item small {
+    color: #b0b0b0 !important;
+    font-weight: 500 !important;
+}
+
+/* Enhanced Table Text Readability */
+.table td,
+.table th {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Text highlight for better contrast */
+.text-muted {
+    color: #c0c0c0 !important;
+}
+
+/* List group items for sessions */
+.list-group-item-action:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border-color: var(--neural-green) !important;
+}
+
 /* Holographic Effects */
 .holographic-text {
     background: var(--holographic-border);

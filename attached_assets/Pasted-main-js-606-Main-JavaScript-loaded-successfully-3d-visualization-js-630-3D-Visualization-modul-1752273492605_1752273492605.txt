@@ -1,0 +1,29 @@
+main.js:606 🚀 Main JavaScript loaded successfully
+3d_visualization.js:630 🎮 3D Visualization module loaded
+neural_network_viz.js:634 🧠 Neural Network Visualization module loaded
+charts.js:854 📊 Trading Charts module loaded
+main.js:602 Service Worker registration failed: TypeError: Failed to register a ServiceWorker for scope ('http://127.0.0.1:5000/') with script ('http://127.0.0.1:5000/sw.js'): A bad HTTP response code (404) was received when fetching the script.
+main.js:21 🚀 Revolutionary AI Trading System - Initializing...
+main.js:44 ✅ Application initialized successfully
+3d_visualization.js:28 🎮 3D Portfolio Visualization initialized
+neural_network_viz.js:42 🧠 Neural Network Visualization initialized
+charts.js:37 📊 Trading Charts initialized
+main.js:587 ⚡ Page load performance: Object
+main.js:107 🔌 Socket.IO connected
+trading_dashboard:457 Trading dashboard initialized successfully
+trading_dashboard:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+trading_dashboard:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+trading_dashboard:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+trading_dashboard:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+trading_dashboard:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+trading_dashboard:449 Socket connection error: Error: timeout
+    at manager.js:147:38
+(anonymous) @ trading_dashboard:449
+./node_modules/component-emitter/index.js.Emitter.emit @ index.js:145
+emitReserved @ typed-events.js:59
+onerror @ socket.js:177
+./node_modules/component-emitter/index.js.Emitter.emit @ index.js:145
+emitReserved @ typed-events.js:59
+(anonymous) @ manager.js:127
+./node_modules/component-emitter/index.js.Emitter.emit @ index.js:145
+(anonymous) @ manager.js:147
