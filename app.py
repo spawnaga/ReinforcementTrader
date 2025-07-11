@@ -30,6 +30,10 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 db.init_app(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
+# Initialize trading engine before importing routes to avoid circular imports
+from trading_engine import TradingEngine
+trading_engine = TradingEngine()
+
 with app.app_context():
     # Import models and routes
     import models
@@ -38,7 +42,3 @@ with app.app_context():
     
     # Create all tables
     db.create_all()
-
-# Initialize trading engine
-from trading_engine import TradingEngine
-trading_engine = TradingEngine()
