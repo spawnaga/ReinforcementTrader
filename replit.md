@@ -117,8 +117,9 @@ Preferred communication style: Simple, everyday language.
 - **Session Management**: Added automatic cleanup for stale training sessions
 
 ### Known Issues
-- **WebSocket Timeouts**: Gunicorn workers experiencing periodic timeouts with WebSocket connections
+- **WebSocket Timeouts**: Fixed by updating SocketIO configuration to auto-detect async mode and adding longer timeout settings
 - **GPU Access**: System running in CPU-only mode in Replit environment despite detecting GPUs
-- **UI Updates**: Performance metrics being broadcast but potential timing issues with DOM updates
+- **UI Updates**: Performance metrics being broadcast successfully to frontend
+- **Worker Configuration**: Gunicorn using sync worker (workflow limitation) but WebSocket handling improved with proper configuration
 
 The system is designed to be highly scalable, with the ability to add multiple trading algorithms, extend to different financial instruments, and integrate with various data sources and brokers.

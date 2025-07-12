@@ -10,10 +10,11 @@ bind = "0.0.0.0:5000"
 
 # Worker configuration
 workers = 1  # Single worker to avoid memory issues
-worker_class = "sync"
+worker_class = "eventlet"  # Better for WebSocket connections
 worker_connections = 1000
-timeout = 300  # 5 minutes for processing large datasets
+timeout = 600  # 10 minutes for WebSocket connections
 keepalive = 5
+graceful_timeout = 600  # Allow graceful shutdown
 
 # Reload on code changes
 reload = True
