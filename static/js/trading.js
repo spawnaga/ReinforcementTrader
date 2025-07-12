@@ -221,6 +221,11 @@ class TradingDashboard {
         this.socket.on('trade_update', (data) => {
             this.updateTradeInfo(data);
         });
+        
+        // Performance metrics updates
+        this.socket.on('performance_metrics', (data) => {
+            this.updatePerformanceMetrics(data);
+        });
     }
     
     showNewSessionModal() {
@@ -577,6 +582,51 @@ class TradingDashboard {
                 <td><span class="status-${trade.status}">${trade.status}</span></td>
             </tr>
         `).join('');
+    }
+    
+    updatePerformanceMetrics(data) {
+        console.log('📊 Performance metrics received:', data);
+        
+        // Update GPU progress
+        if (data.gpu_usage !== undefined) {
+            const gpuProgress = document.getElementById('gpu-progress');
+            const gpuText = document.getElementById('gpu-text');
+            if (gpuProgress && gpuText) {
+                gpuProgress.style.width = data.gpu_usage + '%';
+                gpuText.textContent = data.gpu_usage.toFixed(1) + '% GPU';
+            }
+        }
+        
+        // Update Memory progress
+        if (data.memory_usage !== undefined) {
+            const memProgress = document.getElementById('memory-progress');
+            const memText = document.getElementById('memory-text');
+            if (memProgress && memText) {
+                memProgress.style.width = data.memory_usage + '%';
+                memText.textContent = data.memory_usage.toFixed(1) + '% Memory';
+            }
+        }
+        
+        // Update Network I/O
+        if (data.network_io !== undefined) {
+            const netProgress = document.getElementById('network-progress');
+            const netText = document.getElementById('network-text');
+            if (netProgress && netText) {
+                const networkPercent = Math.min(data.network_io / 10, 100);
+                netProgress.style.width = networkPercent + '%';
+                netText.textContent = data.network_io.toFixed(2) + ' MB/s';
+            }
+        }
+        
+        // Update CPU usage
+        if (data.cpu_usage !== undefined) {
+            const cpuProgress = document.getElementById('speed-progress');
+            const cpuText = document.getElementById('speed-text');
+            if (cpuProgress && cpuText) {
+                cpuProgress.style.width = data.cpu_usage + '%';
+                cpuText.textContent = 'CPU: ' + data.cpu_usage.toFixed(1) + '%';
+            }
+        }
     }
     
     showNotification(message, type = 'info') {

@@ -9,7 +9,7 @@ import random
 from typing import Tuple, List, Optional, Dict
 import logging
 
-from transformer_attention import HybridAttention
+from .transformer_attention import HybridAttention
 
 logger = logging.getLogger(__name__)
 

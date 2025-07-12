@@ -7,6 +7,9 @@ import json
 import logging
 from db_utils import retry_on_db_error
 
+# Import websocket handlers to register them
+import websocket_handler
+
 logger = logging.getLogger(__name__)
 
 @app.route('/')
