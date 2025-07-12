@@ -29,7 +29,8 @@ class PositionalEncoding(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Add positional encoding to input"""
         # x should be (seq_len, batch, d_model) after transpose in transformer
-        return x + self.pe[:x.size(0), :]
+        # self.pe shape is (seq_len, 1, d_model)
+        return x + self.pe[:x.size(0), :, :x.size(2)]
 
 
 class MultiHeadAttention(nn.Module):
