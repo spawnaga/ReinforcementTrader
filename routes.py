@@ -29,6 +29,39 @@ def test_chart():
     """Test chart page for debugging"""
     return render_template('test_chart.html')
 
+@app.route('/test_chart_simple')
+def test_chart_simple():
+    """Simple inline chart test"""
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Simple Chart Test</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+        <h1>Simple Chart Test</h1>
+        <canvas id="myChart" width="400" height="200"></canvas>
+        <script>
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                    datasets: [{
+                        label: '# of Votes',
+                        data: [12, 19, 3, 5, 2, 3],
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                }
+            });
+            console.log('Chart created:', myChart);
+        </script>
+    </body>
+    </html>
+    '''
+
 @app.route('/trading_dashboard')
 def trading_dashboard():
     """Advanced trading dashboard with real-time charts"""

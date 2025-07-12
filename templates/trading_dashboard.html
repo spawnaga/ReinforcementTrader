@@ -570,15 +570,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Initialize 3D visualization
-    viz3D = new Portfolio3DVisualization('portfolio-3d');
+    try {
+        viz3D = new Portfolio3DVisualization('portfolio-3d');
+        console.log('✅ 3D Visualization initialized');
+    } catch (e) {
+        console.error('❌ Error initializing 3D Visualization:', e);
+    }
     
     // Initialize neural network visualization  
-    neuralViz = new NeuralNetworkVisualization('neural-network-viz');
+    try {
+        neuralViz = new NeuralNetworkVisualization('neural-network-viz');
+        console.log('✅ Neural Network Visualization initialized');
+    } catch (e) {
+        console.error('❌ Error initializing Neural Network Visualization:', e);
+    }
     
     // Initialize charts
     try {
         charts = new TradingCharts('price-chart');
         console.log('✅ TradingCharts initialized successfully');
+        
+        // Force a chart update to display sample data
+        if (charts && charts.priceChart) {
+            console.log('📈 Price chart is available, updating...');
+            charts.priceChart.update();
+        }
     } catch (chartError) {
         console.error('❌ Error initializing TradingCharts:', chartError);
     }
