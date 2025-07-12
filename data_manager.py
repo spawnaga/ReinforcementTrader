@@ -187,11 +187,21 @@ class DataManager:
             if not start_date:
                 start_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
             
-            logger.info(f"Downloading {symbol} data from {start_date} to {end_date}")
+            # For 1-minute data, Yahoo Finance only allows the last 8 days
+            eight_days_ago = (datetime.now() - timedelta(days=8)).strftime('%Y-%m-%d')
+            
+            # Use the more recent of start_date or eight_days_ago for minute data
+            if start_date < eight_days_ago:
+                actual_start = eight_days_ago
+                logger.info(f"Adjusting start date to {actual_start} (Yahoo Finance 8-day limit for 1m data)")
+            else:
+                actual_start = start_date
+                
+            logger.info(f"Downloading {symbol} data from {actual_start} to {end_date}")
             
             # Download data
             ticker = yf.Ticker(symbol)
-            data = ticker.history(start=start_date, end=end_date, interval='1m')
+            data = ticker.history(start=actual_start, end=end_date, interval='1m')
             
             if data.empty:
                 logger.warning(f"No data downloaded for {symbol}")

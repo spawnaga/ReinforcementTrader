@@ -475,4 +475,27 @@ class TradingEngine:
     
     def get_active_sessions(self) -> Dict:
         """Get all active training sessions"""
+        # Clean up any stale sessions before returning
+        self._cleanup_stale_sessions()
         return self.active_sessions.copy()
+    
+    def _cleanup_stale_sessions(self):
+        """Remove any sessions that are no longer active"""
+        stale_sessions = []
+        for session_id, session_info in self.active_sessions.items():
+            # Check if thread is still alive
+            if session_id in self.training_threads:
+                thread = self.training_threads[session_id]
+                if not thread.is_alive():
+                    stale_sessions.append(session_id)
+            else:
+                # No thread means session is stale
+                stale_sessions.append(session_id)
+        
+        # Remove stale sessions
+        for session_id in stale_sessions:
+            logger.info(f"Cleaning up stale session {session_id}")
+            if session_id in self.active_sessions:
+                del self.active_sessions[session_id]
+            if session_id in self.training_threads:
+                del self.training_threads[session_id]

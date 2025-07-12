@@ -1,0 +1,152 @@
+/home/alex/miniconda3/envs/ReinforcementTrader/bin/python /home/alex/PycharmProjects/ReinforcementTrader/START_HERE.py 
+
+🚀 Starting Revolutionary AI Trading System...
+============================================================
+✓ Gunicorn is installed
+✓ Using SQLite database at: /home/alex/PycharmProjects/ReinforcementTrader/instance/trading_system.db
+
+🌐 Starting server on http://127.0.0.1:5000
+============================================================
+
+⚡ The application is starting...
+📊 Open your browser to http://127.0.0.1:5000
+
+Press Ctrl+C to stop the server
+
+[2025-07-11 16:54:45 -0700] [56144] [INFO] Starting gunicorn 23.0.0
+[2025-07-11 16:54:45 -0700] [56144] [INFO] Listening at: http://127.0.0.1:5000 (56144)
+[2025-07-11 16:54:45 -0700] [56144] [INFO] Using worker: sync
+[2025-07-11 16:54:45 -0700] [56178] [INFO] Booting worker with pid: 56178
+INFO:gpu_data_loader:GPU processing enabled with 4 GPUs
+DEBUG:asyncio:Using selector: EpollSelector
+INFO:data_manager:Data Manager initialized with data directory: data
+INFO:ib_integration:IB Integration initialized
+INFO:risk_manager:Risk Manager initialized
+INFO:trading_engine:CUDA available: 4 GPU(s) detected
+INFO:trading_engine:Using GPU: NVIDIA GeForce RTX 3090
+INFO:trading_engine:Trading Engine initialized with device: cuda
+INFO:trading_engine:Default configurations initialized
+INFO:websocket_handler:WebSocket handler initialized
+127.0.0.1 - - [11/Jul/2025:16:54:55 -0700] "GET / HTTP/1.1" 200 25874 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+127.0.0.1 - - [11/Jul/2025:16:54:55 -0700] "GET /static/css/style.css HTTP/1.1" 200 0 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+127.0.0.1 - - [11/Jul/2025:16:54:55 -0700] "GET /static/js/main.js HTTP/1.1" 200 0 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+127.0.0.1 - - [11/Jul/2025:16:54:55 -0700] "GET /sw.js HTTP/1.1" 404 207 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+INFO:websocket_handler:Client sD1TvbAQBbg7Tm2fAAAB connected from 127.0.0.1
+INFO:websocket_handler:Background broadcast loop started successfully
+DEBUG:websocket_handler:Broadcast loop iteration 1 starting...
+DEBUG:websocket_handler:Active connections found: 1
+DEBUG:websocket_handler:Collecting system performance metrics...
+INFO:websocket_handler:Background broadcast thread started
+DEBUG:websocket_handler:CPU usage collected: 3.4%
+DEBUG:websocket_handler:Memory usage collected: 10.8%
+DEBUG:websocket_handler:GPU usage collected: 2%
+DEBUG:websocket_handler:Network I/O collected: 3901.86 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 3.4%, Memory: 10.8%, GPU: 2.0%, Network: 3901.86 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 0 active training sessions
+DEBUG:websocket_handler:Broadcast loop iteration 1 complete, sleeping for 5 seconds
+DEBUG:websocket_handler:Broadcast loop iteration 2 starting...
+DEBUG:websocket_handler:Active connections found: 1
+DEBUG:websocket_handler:Collecting system performance metrics...
+DEBUG:websocket_handler:CPU usage collected: 3.5%
+DEBUG:websocket_handler:Memory usage collected: 10.8%
+DEBUG:websocket_handler:GPU usage collected: 6%
+DEBUG:websocket_handler:Network I/O collected: 3902.59 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 3.5%, Memory: 10.8%, GPU: 6.0%, Network: 3902.59 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 0 active training sessions
+DEBUG:websocket_handler:Broadcast loop iteration 2 complete, sleeping for 5 seconds
+DEBUG:websocket_handler:Broadcast loop iteration 3 starting...
+DEBUG:websocket_handler:Active connections found: 1
+DEBUG:websocket_handler:Collecting system performance metrics...
+DEBUG:websocket_handler:CPU usage collected: 3.9%
+DEBUG:websocket_handler:Memory usage collected: 10.8%
+DEBUG:websocket_handler:GPU usage collected: 13%
+DEBUG:websocket_handler:Network I/O collected: 3902.98 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 3.9%, Memory: 10.8%, GPU: 13.0%, Network: 3902.98 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 0 active training sessions
+DEBUG:websocket_handler:Broadcast loop iteration 3 complete, sleeping for 5 seconds
+DEBUG:websocket_handler:Broadcast loop iteration 4 starting...
+DEBUG:websocket_handler:Active connections found: 1
+DEBUG:websocket_handler:Collecting system performance metrics...
+DEBUG:websocket_handler:CPU usage collected: 3.5%
+DEBUG:websocket_handler:Memory usage collected: 10.6%
+DEBUG:websocket_handler:GPU usage collected: 16%
+DEBUG:websocket_handler:Network I/O collected: 3903.61 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 3.5%, Memory: 10.6%, GPU: 16.0%, Network: 3903.61 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 0 active training sessions
+DEBUG:websocket_handler:Broadcast loop iteration 4 complete, sleeping for 5 seconds
+DEBUG:websocket_handler:Broadcast loop iteration 5 starting...
+DEBUG:websocket_handler:Active connections found: 1
+DEBUG:websocket_handler:Collecting system performance metrics...
+DEBUG:websocket_handler:CPU usage collected: 3.7%
+DEBUG:websocket_handler:Memory usage collected: 10.6%
+DEBUG:websocket_handler:GPU usage collected: 6%
+DEBUG:websocket_handler:Network I/O collected: 3904.13 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 3.7%, Memory: 10.6%, GPU: 6.0%, Network: 3904.13 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 0 active training sessions
+DEBUG:websocket_handler:Broadcast loop iteration 5 complete, sleeping for 5 seconds
+DEBUG:websocket_handler:Broadcast loop iteration 6 starting...
+DEBUG:websocket_handler:Active connections found: 1
+DEBUG:websocket_handler:Collecting system performance metrics...
+DEBUG:websocket_handler:CPU usage collected: 4.8%
+DEBUG:websocket_handler:Memory usage collected: 10.6%
+DEBUG:websocket_handler:GPU usage collected: 26%
+DEBUG:websocket_handler:Network I/O collected: 3904.69 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 4.8%, Memory: 10.6%, GPU: 26.0%, Network: 3904.69 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 0 active training sessions
+DEBUG:websocket_handler:Broadcast loop iteration 6 complete, sleeping for 5 seconds
+DEBUG:websocket_handler:Broadcast loop iteration 7 starting...
+DEBUG:websocket_handler:Active connections found: 1
+DEBUG:websocket_handler:Collecting system performance metrics...
+DEBUG:websocket_handler:CPU usage collected: 3.8%
+DEBUG:websocket_handler:Memory usage collected: 10.6%
+DEBUG:websocket_handler:GPU usage collected: 31%
+DEBUG:websocket_handler:Network I/O collected: 3905.29 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 3.8%, Memory: 10.6%, GPU: 31.0%, Network: 3905.29 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 0 active training sessions
+DEBUG:websocket_handler:Broadcast loop iteration 7 complete, sleeping for 5 seconds
+DEBUG:websocket_handler:Broadcast loop iteration 8 starting...
+DEBUG:websocket_handler:Active connections found: 1
+DEBUG:websocket_handler:Collecting system performance metrics...
+INFO:websocket_handler:Client sD1TvbAQBbg7Tm2fAAAB disconnected
+INFO:websocket_handler:Background broadcast thread stopped
+127.0.0.1 - - [11/Jul/2025:16:55:38 -0700] "GET /socket.io/?EIO=4&transport=polling&t=PVxwTRV HTTP/1.1" 200 118 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+127.0.0.1 - - [11/Jul/2025:16:55:38 -0700] "GET /favicon.ico HTTP/1.1" 404 207 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+127.0.0.1 - - [11/Jul/2025:16:55:38 -0700] "GET /socket.io/?EIO=4&transport=polling&t=PVxwYdg HTTP/1.1" 200 118 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+WARNING:trading_engine:Session 17 not found in active sessions
+WARNING:trading_engine:Session 17 not found in active sessions
+WARNING:trading_engine:Session 17 not found in active sessions
+127.0.0.1 - - [11/Jul/2025:16:55:38 -0700] "POST /stop_training HTTP/1.1" 200 59 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+127.0.0.1 - - [11/Jul/2025:16:55:38 -0700] "POST /stop_training HTTP/1.1" 200 59 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+127.0.0.1 - - [11/Jul/2025:16:55:38 -0700] "POST /stop_training HTTP/1.1" 200 59 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+127.0.0.1 - - [11/Jul/2025:16:55:38 -0700] "GET / HTTP/1.1" 200 24093 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+127.0.0.1 - - [11/Jul/2025:16:55:38 -0700] "POST /stop_training HTTP/1.1" 200 59 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+127.0.0.1 - - [11/Jul/2025:16:55:38 -0700] "GET /socket.io/?EIO=4&transport=polling&t=PVxwdtx HTTP/1.1" 200 118 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+WARNING:trading_engine:Session 17 not found in active sessions
+127.0.0.1 - - [11/Jul/2025:16:55:38 -0700] "GET /static/css/style.css HTTP/1.1" 304 0 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+127.0.0.1 - - [11/Jul/2025:16:55:38 -0700] "GET /static/js/main.js HTTP/1.1" 304 0 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+127.0.0.1 - - [11/Jul/2025:16:55:38 -0700] "GET /sw.js HTTP/1.1" 404 207 "http://127.0.0.1:5000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+DEBUG:websocket_handler:CPU usage collected: 5.5%
+DEBUG:websocket_handler:Memory usage collected: 10.7%
+DEBUG:websocket_handler:GPU usage collected: 31%
+DEBUG:websocket_handler:Network I/O collected: 3906.14 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 5.5%, Memory: 10.7%, GPU: 31.0%, Network: 3906.14 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 0 active training sessions
+DEBUG:websocket_handler:Broadcast loop iteration 8 complete, sleeping for 5 seconds
+INFO:websocket_handler:Client 1bPsAax0HfakE8E1AAAG connected from 127.0.0.1
+INFO:websocket_handler:Background broadcast loop exited

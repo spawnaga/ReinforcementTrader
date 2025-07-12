@@ -277,7 +277,7 @@
                                 <div class="progress-bar bg-success" role="progressbar" style="width: 0%" id="gpu-progress">
                                 </div>
                             </div>
-                            <small class="text-muted">0% GPU</small>
+                            <small class="text-muted" id="gpu-text">0% GPU</small>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -287,7 +287,7 @@
                                 <div class="progress-bar bg-warning" role="progressbar" style="width: 0%" id="memory-progress">
                                 </div>
                             </div>
-                            <small class="text-muted">0% Memory</small>
+                            <small class="text-muted" id="memory-text">0% Memory</small>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -297,7 +297,7 @@
                                 <div class="progress-bar bg-info" role="progressbar" style="width: 0%" id="network-progress">
                                 </div>
                             </div>
-                            <small class="text-muted">0 KB/s</small>
+                            <small class="text-muted" id="network-text">0 KB/s</small>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -307,7 +307,7 @@
                                 <div class="progress-bar bg-primary" role="progressbar" style="width: 0%" id="speed-progress">
                                 </div>
                             </div>
-                            <small class="text-muted">0 eps/min</small>
+                            <small class="text-muted" id="speed-text">0 eps/min</small>
                         </div>
                     </div>
                 </div>
@@ -522,38 +522,30 @@ function updateTrainingProgress(data) {
 
 function updateSystemPerformance(data) {
     // Update GPU progress
-    const gpuElement = document.getElementById('gpu-progress');
-    const gpuText = gpuElement.parentElement.nextElementSibling;
     if (data.gpu_usage !== undefined) {
-        gpuElement.style.width = data.gpu_usage + '%';
-        gpuText.textContent = data.gpu_usage.toFixed(1) + '% GPU';
+        document.getElementById('gpu-progress').style.width = data.gpu_usage + '%';
+        document.getElementById('gpu-text').textContent = data.gpu_usage.toFixed(1) + '% GPU';
     }
     
     // Update Memory progress
-    const memoryElement = document.getElementById('memory-progress');
-    const memoryText = memoryElement.parentElement.nextElementSibling;
     if (data.memory_usage !== undefined) {
-        memoryElement.style.width = data.memory_usage + '%';
-        memoryText.textContent = data.memory_usage.toFixed(1) + '% Memory';
+        document.getElementById('memory-progress').style.width = data.memory_usage + '%';
+        document.getElementById('memory-text').textContent = data.memory_usage.toFixed(1) + '% Memory';
     }
     
     // Update Network I/O
-    const networkElement = document.getElementById('network-progress');
-    const networkText = networkElement.parentElement.nextElementSibling;
     if (data.network_io !== undefined) {
         // Scale network IO for display (0-100 scale)
         const networkPercent = Math.min(data.network_io / 10, 100); // Assuming 10 MB/s is max
-        networkElement.style.width = networkPercent + '%';
-        networkText.textContent = data.network_io.toFixed(2) + ' MB/s';
+        document.getElementById('network-progress').style.width = networkPercent + '%';
+        document.getElementById('network-text').textContent = data.network_io.toFixed(2) + ' MB/s';
     }
     
     // Update CPU usage if available
     if (data.cpu_usage !== undefined) {
         // Can use for training speed indicator as proxy
-        const speedElement = document.getElementById('speed-progress');
-        const speedText = speedElement.parentElement.nextElementSibling;
-        speedElement.style.width = data.cpu_usage + '%';
-        speedText.textContent = 'CPU: ' + data.cpu_usage.toFixed(1) + '%';
+        document.getElementById('speed-progress').style.width = data.cpu_usage + '%';
+        document.getElementById('speed-text').textContent = 'CPU: ' + data.cpu_usage.toFixed(1) + '%';
     }
 }
 </script>
