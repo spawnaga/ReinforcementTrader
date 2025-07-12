@@ -1,5 +1,28 @@
 # IMPORTANT: How to Run This Application
 
+## ⚠️ PostgreSQL Setup Required (NEW)
+
+The system now requires PostgreSQL. SQLite has been completely removed for better multi-GPU performance.
+
+### Quick PostgreSQL Setup:
+```bash
+# 1. Install PostgreSQL (if needed)
+sudo apt install postgresql postgresql-contrib  # Ubuntu/Debian
+# OR: brew install postgresql  # macOS
+
+# 2. Run setup script
+chmod +x setup_postgresql.sh
+./setup_postgresql.sh
+
+# 3. Set environment variable
+export DATABASE_URL="postgresql://trader_user:your_password@localhost:5432/reinforcement_trader"
+
+# 4. Migrate existing data (optional)
+python migrate_local_data.py
+```
+
+See `POSTGRESQL_SETUP.md` for detailed instructions.
+
 ## DO NOT USE `flask run` or `python -m flask run`
 
 Flask's development server has a known bug with WebSocket connections that causes the "write() before start_response" error.
@@ -26,12 +49,6 @@ python run_local.py
 
 The WebSocket errors you're seeing are because Flask's development server cannot handle WebSocket upgrades properly. This is a known limitation, not a bug in our code.
 
-## Database Lock Issues
+## Database Requirements
 
-If you see "database is locked" errors, this is because SQLite doesn't handle concurrent access well. For production use, switch to PostgreSQL:
-
-```bash
-export DATABASE_URL=postgresql://username:password@localhost/trading_db
-```
-
-The application includes retry logic for SQLite, but PostgreSQL is recommended for better performance.
+The system now uses PostgreSQL exclusively. SQLite support has been removed to enable proper multi-GPU concurrent training without database locking issues.

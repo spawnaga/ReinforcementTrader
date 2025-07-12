@@ -12,16 +12,24 @@ def main():
     print("\n🚀 Starting Revolutionary AI Trading System (Local Development)...")
     print("=" * 60)
     
-    # Set environment variables if not set
-    if not os.environ.get('DATABASE_URL'):
-        # Create instance directory if it doesn't exist
-        instance_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
-        os.makedirs(instance_dir, exist_ok=True)
-        
-        # Use absolute path for database
-        db_path = os.path.join(instance_dir, 'trading_system.db')
-        os.environ['DATABASE_URL'] = f'sqlite:///{db_path}'
-        print(f"✓ Using SQLite database at: {db_path}")
+    # Check for DATABASE_URL
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url:
+        print("❌ ERROR: DATABASE_URL environment variable not set!")
+        print("\nTo set up PostgreSQL:")
+        print("1. Install PostgreSQL")
+        print("2. Create database and user:")
+        print("   sudo -u postgres psql")
+        print("   CREATE DATABASE reinforcement_trader;")
+        print("   CREATE USER trader_user WITH PASSWORD 'your_password';")
+        print("   GRANT ALL PRIVILEGES ON DATABASE reinforcement_trader TO trader_user;")
+        print("3. Set environment variable:")
+        print("   export DATABASE_URL='postgresql://trader_user:your_password@localhost:5432/reinforcement_trader'")
+        print("\nFor detailed instructions, see POSTGRESQL_SETUP.md")
+        print("=" * 60)
+        sys.exit(1)
+    
+    print(f"✓ Using PostgreSQL database")
     
     # Start the application with threaded worker (better for ib_insync compatibility)
     print("\n🌐 Starting server on http://127.0.0.1:5000")
