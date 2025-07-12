@@ -511,10 +511,15 @@
 <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 
 <script>
+// Global variables
 let dashboard = null;  // Declare dashboard in outer scope
 let viz3D = null;
 let neuralViz = null;
 let charts = null;
+
+// Tell IDE about Chart.js from CDN
+/** @type {typeof Chart} */
+const Chart = window.Chart;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Check if Chart.js is loaded
@@ -709,10 +714,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+/**
+ * @typedef {Object} Session
+ * @property {number} id - Session ID
+ * @property {string} name - Session name
+ * @property {string} algorithm_type - Algorithm type
+ * @property {string} status - Session status
+ * @property {number} current_episode - Current episode number
+ * @property {number} total_episodes - Total episodes
+ * @property {number} total_profit - Total profit
+ */
+
 function loadAvailableSessions() {
     fetch('/api/session_status/active')
         .then(response => response.json())
-        .then(sessions => {
+        .then(/** @type {Session[]} */ sessions => {
             const sessionList = document.getElementById('session-list');
             sessionList.innerHTML = '';
             
