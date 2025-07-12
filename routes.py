@@ -73,6 +73,26 @@ def test_trades():
     """Test page for API endpoints"""
     return render_template('test_trades.html')
 
+@app.route('/api/debug_trades')
+def debug_trades():
+    """Debug endpoint to check trades"""
+    try:
+        trades = Trade.query.limit(5).all()
+        result = {
+            'count': len(trades),
+            'trades': []
+        }
+        for trade in trades:
+            result['trades'].append({
+                'id': trade.id,
+                'session_id': trade.session_id,
+                'entry_price': trade.entry_price,
+                'position_type': trade.position_type
+            })
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e), 'type': type(e).__name__}), 500
+
 @app.route('/strategy_builder')
 def strategy_builder():
     """Interactive strategy builder interface"""
@@ -353,7 +373,11 @@ def get_recent_trades():
         if session_id:
             query = query.filter_by(session_id=session_id)
         
+        # For now, show all trades if no specific session is requested
+        # This ensures the dashboard displays data even if trades are from old sessions
         trades = query.order_by(Trade.entry_time.desc()).limit(limit).all()
+        
+        logger.debug(f"Found {len(trades)} trades")
         
         trades_data = []
         for trade in trades:
@@ -370,9 +394,11 @@ def get_recent_trades():
                     'session_id': trade.session_id
                 })
         
+        logger.debug(f"Returning {len(trades_data)} trades")
         return jsonify(trades_data), 200
     except Exception as e:
         logger.error(f"Error fetching recent trades: {str(e)}")
+        logger.error(f"Full error: {e}", exc_info=True)
         return jsonify({'error': 'Failed to fetch recent trades'}), 500
 
 @app.route('/api/session_status/<int:session_id>')

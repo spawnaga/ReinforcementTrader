@@ -23,17 +23,31 @@
 
     <script>
         // Test recent trades API
+        console.log('Testing recent trades API...');
         fetch('/api/recent_trades?limit=10')
             .then(response => {
+                console.log('Response received:', response.status);
                 const status = response.status;
                 return response.text().then(text => ({ status, text }));
             })
             .then(({ status, text }) => {
+                console.log('Response data:', text);
                 const result = document.getElementById('trades-result');
                 result.className = status === 200 ? 'success' : 'error';
                 result.textContent = `Status: ${status}\n\n${text}`;
+                
+                // Also try to parse and display as JSON
+                if (status === 200) {
+                    try {
+                        const trades = JSON.parse(text);
+                        result.textContent += `\n\nFound ${trades.length} trades`;
+                    } catch (e) {
+                        console.error('Failed to parse JSON:', e);
+                    }
+                }
             })
             .catch(error => {
+                console.error('Fetch error:', error);
                 document.getElementById('trades-result').textContent = 'Error: ' + error;
             });
             
