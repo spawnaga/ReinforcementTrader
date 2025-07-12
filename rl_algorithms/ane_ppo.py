@@ -302,14 +302,29 @@ class ANEPPO:
             
             elif hasattr(state, 'data'):
                 if hasattr(state.data, 'values'):
-                    # DataFrame
-                    data = state.data.values
+                    # DataFrame - extract only numeric columns
+                    import pandas as pd
+                    df = state.data
+                    numeric_df = df.select_dtypes(include=[np.number])
+                    
+                    # If no numeric columns, try to extract from specific columns
+                    if numeric_df.empty:
+                        # Try common numeric column names
+                        numeric_cols = ['open', 'high', 'low', 'close', 'volume']
+                        available_cols = [col for col in numeric_cols if col in df.columns]
+                        if available_cols:
+                            numeric_df = df[available_cols]
+                        else:
+                            logger.error(f"No numeric columns found in state data")
+                            return torch.zeros(1, self.input_dim).to(self.device)
+                    
+                    data = numeric_df.values.astype(np.float32)
                 elif hasattr(state.data, 'shape'):
                     # NumPy array
-                    data = state.data
+                    data = state.data.astype(np.float32)
                 else:
                     # List or other
-                    data = np.array(state.data)
+                    data = np.array(state.data, dtype=np.float32)
                 
                 # Ensure 2D shape
                 if data.ndim == 1:
@@ -318,11 +333,14 @@ class ANEPPO:
                     data = data.reshape(data.shape[0], -1)
                 
                 # Take last row as current state
-                current_state = data[-1]
+                if data.shape[0] > 0:
+                    current_state = data[-1]
+                else:
+                    current_state = np.zeros(self.input_dim, dtype=np.float32)
                 
                 # Pad or truncate to match input dimension
                 if len(current_state) < self.input_dim:
-                    current_state = np.pad(current_state, (0, self.input_dim - len(current_state)))
+                    current_state = np.pad(current_state, (0, self.input_dim - len(current_state)), constant_values=0)
                 elif len(current_state) > self.input_dim:
                     current_state = current_state[:self.input_dim]
                 

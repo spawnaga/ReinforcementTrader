@@ -266,6 +266,19 @@ class TradingEngine:
                 logger.debug(f"Adding technical indicators to window {i-window_size+1}")
                 window_data = self._add_technical_indicators(window_data)
                 
+                # Ensure numeric columns are properly typed
+                numeric_columns = ['open', 'high', 'low', 'close', 'volume']
+                for col in numeric_columns:
+                    if col in window_data.columns:
+                        window_data[col] = pd.to_numeric(window_data[col], errors='coerce')
+                
+                # Remove any rows with NaN values in critical columns
+                window_data = window_data.dropna(subset=['close'])
+                
+                if len(window_data) == 0:
+                    logger.warning(f"Window {i-window_size+1} has no valid data after cleaning")
+                    continue
+                
                 # Create state
                 try:
                     # Check if timestamp column exists, otherwise try other common names
@@ -286,6 +299,11 @@ class TradingEngine:
                     
                     logger.debug(f"Creating TimeSeriesState with timestamp column: {ts_col}")
                     
+                    # Debug logging
+                    if len(window_data) > 0:
+                        logger.debug(f"Close price (last row): {window_data['close'].iloc[-1]}")
+                        logger.debug(f"Data shape: {window_data.shape}")
+                    
                     # Create proper TimeSeriesState object
                     state = TimeSeriesState(
                         data=window_data,
@@ -294,7 +312,7 @@ class TradingEngine:
                         timestamp_format='%Y-%m-%d %H:%M:%S'
                     )
                     
-                    logger.debug(f"State created successfully for window {i-window_size+1}")
+                    logger.debug(f"State created successfully for window {i-window_size+1}, price: {state.price}")
                     states.append(state)
                     
                 except Exception as e:

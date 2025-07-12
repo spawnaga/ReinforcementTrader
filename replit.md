@@ -115,6 +115,8 @@ Preferred communication style: Simple, everyday language.
 - **Error Handling**: Added comprehensive error handling in state creation with fallback timestamp detection
 - **Debug Logging**: Set log level to DEBUG for better diagnostics during training
 - **Session Management**: Added automatic cleanup for stale training sessions
+- **Data Type Fixes**: Added numeric type conversion for OHLCV columns to fix numpy object dtype tensor conversion errors
+- **ANE-PPO Algorithm**: Updated state-to-tensor conversion to handle DataFrames with mixed types by extracting only numeric columns
 
 ### Known Issues
 - **WebSocket Timeouts**: Fixed by:
