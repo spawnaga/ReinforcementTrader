@@ -16,6 +16,7 @@ class TradingDashboard {
         this.initializeEventListeners();
         this.initializeCharts();
         this.updateSessionsList();
+        this.loadRecentTrades();  // Load recent trades on page load
         
         // Subscribe to real-time updates
         this.subscribeToUpdates();
@@ -404,6 +405,49 @@ class TradingDashboard {
             }
         } catch (error) {
             console.error('Error fetching sessions:', error);
+        }
+    }
+    
+    async loadRecentTrades() {
+        try {
+            const response = await fetch('/api/recent_trades?limit=10');
+            if (response.ok) {
+                const trades = await response.json();
+                const tradesContainer = document.getElementById('recent-trades-list');
+                const noTradesMessage = document.getElementById('no-trades-message');
+                
+                if (tradesContainer && noTradesMessage) {
+                    if (trades.length > 0) {
+                        noTradesMessage.style.display = 'none';
+                        tradesContainer.innerHTML = trades.map(trade => `
+                            <div class="list-group-item list-group-item-action bg-dark text-white border-secondary">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">
+                                        <span class="badge bg-${trade.position_type === 'long' ? 'success' : 'danger'}">
+                                            ${trade.position_type.toUpperCase()}
+                                        </span>
+                                    </h6>
+                                    <small class="${trade.profit_loss >= 0 ? 'text-success' : 'text-danger'}">
+                                        ${trade.profit_loss >= 0 ? '+' : ''}$${trade.profit_loss.toFixed(2)}
+                                    </small>
+                                </div>
+                                <p class="mb-1">
+                                    Entry: $${trade.entry_price.toFixed(2)} → Exit: $${trade.exit_price ? trade.exit_price.toFixed(2) : 'Open'}
+                                </p>
+                                <small class="text-muted">
+                                    ${new Date(trade.entry_time).toLocaleString()}
+                                </small>
+                            </div>
+                        `).join('');
+                        tradesContainer.style.display = 'block';
+                    } else {
+                        tradesContainer.style.display = 'none';
+                        noTradesMessage.style.display = 'block';
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching recent trades:', error);
         }
     }
     
