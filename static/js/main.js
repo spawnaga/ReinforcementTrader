@@ -100,26 +100,37 @@ function initializeSocket() {
         socket = io({
             transports: ['websocket'],
             upgrade: true,
-            rememberUpgrade: true
+            rememberUpgrade: true,
+            reconnection: true,
+            reconnectionAttempts: Infinity,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            timeout: 20000
         });
         
         socket.on('connect', function() {
             console.log('🔌 Socket.IO connected');
             isConnected = true;
             updateConnectionStatus(true);
-            showNotification('Connected to server', 'success');
+            // Don't show notification on reconnect
+            if (!socket.recovered) {
+                showNotification('Connected to server', 'success');
+            }
         });
         
         socket.on('disconnect', function() {
             console.log('🔌 Socket.IO disconnected');
             isConnected = false;
             updateConnectionStatus(false);
-            showNotification('Disconnected from server', 'warning');
+            // Don't show warning, auto-reconnect will handle it
         });
         
         socket.on('error', function(error) {
             console.error('Socket.IO error:', error);
-            showAlert('Connection error: ' + error, 'danger');
+            // Only show error for non-reconnection errors
+            if (error.type !== 'TransportError') {
+                showAlert('Connection error: ' + error, 'danger');
+            }
         });
         
         // Training updates
@@ -315,20 +326,48 @@ function handleMarketDataUpdate(data) {
 }
 
 function updatePerformanceMetrics(data) {
-    const metrics = {
-        'gpu-usage': data.gpu_usage || 0,
-        'memory-usage': data.memory_usage || 0,
-        'network-io': data.network_io || 0,
-        'training-speed': data.training_speed || 0
-    };
+    console.log('📊 Performance metrics received:', data);
     
-    Object.entries(metrics).forEach(([key, value]) => {
-        const element = document.getElementById(key);
-        if (element) {
-            element.textContent = value.toFixed(1) + '%';
-            element.style.width = value + '%';
+    // Update GPU progress
+    if (data.gpu_usage !== undefined) {
+        const gpuProgress = document.getElementById('gpu-progress');
+        const gpuText = document.getElementById('gpu-text');
+        if (gpuProgress && gpuText) {
+            gpuProgress.style.width = data.gpu_usage + '%';
+            gpuText.textContent = data.gpu_usage.toFixed(1) + '% GPU';
         }
-    });
+    }
+    
+    // Update Memory progress
+    if (data.memory_usage !== undefined) {
+        const memProgress = document.getElementById('memory-progress');
+        const memText = document.getElementById('memory-text');
+        if (memProgress && memText) {
+            memProgress.style.width = data.memory_usage + '%';
+            memText.textContent = data.memory_usage.toFixed(1) + '% Memory';
+        }
+    }
+    
+    // Update Network I/O
+    if (data.network_io !== undefined) {
+        const netProgress = document.getElementById('network-progress');
+        const netText = document.getElementById('network-text');
+        if (netProgress && netText) {
+            const networkPercent = Math.min(data.network_io / 10, 100);
+            netProgress.style.width = networkPercent + '%';
+            netText.textContent = data.network_io.toFixed(2) + ' MB/s';
+        }
+    }
+    
+    // Update CPU usage
+    if (data.cpu_usage !== undefined) {
+        const cpuProgress = document.getElementById('speed-progress');
+        const cpuText = document.getElementById('speed-text');
+        if (cpuProgress && cpuText) {
+            cpuProgress.style.width = data.cpu_usage + '%';
+            cpuText.textContent = 'CPU: ' + data.cpu_usage.toFixed(1) + '%';
+        }
+    }
 }
 
 function updateTrainingMetrics(sessionId, metrics) {
