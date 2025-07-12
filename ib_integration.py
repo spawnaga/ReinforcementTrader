@@ -4,10 +4,46 @@ from typing import Dict, List, Optional, Callable
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
-from ib_insync import IB, Stock, Future, MarketOrder, LimitOrder, Contract, util
-from ib_insync.objects import BarData, TickData
 import threading
 import time
+
+# Lazy import to avoid event loop conflicts with eventlet
+IB = None
+Stock = None
+Future = None
+MarketOrder = None
+LimitOrder = None
+Contract = None
+util = None
+BarData = None
+TickData = None
+
+def _ensure_ib_imports():
+    """Ensure ib_insync is imported when needed"""
+    global IB, Stock, Future, MarketOrder, LimitOrder, Contract, util, BarData, TickData
+    if IB is None:
+        try:
+            # Check if event loop exists
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            # Create new event loop if needed
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        from ib_insync import IB as _IB, Stock as _Stock, Future as _Future
+        from ib_insync import MarketOrder as _MarketOrder, LimitOrder as _LimitOrder
+        from ib_insync import Contract as _Contract, util as _util
+        from ib_insync.objects import BarData as _BarData, TickData as _TickData
+        
+        IB = _IB
+        Stock = _Stock
+        Future = _Future
+        MarketOrder = _MarketOrder
+        LimitOrder = _LimitOrder
+        Contract = _Contract
+        util = _util
+        BarData = _BarData
+        TickData = _TickData
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +53,9 @@ class IBIntegration:
     """
     
     def __init__(self):
+        # Ensure ib_insync is imported
+        _ensure_ib_imports()
+        
         self.ib = IB()
         self.connected = False
         self.contracts = {}
