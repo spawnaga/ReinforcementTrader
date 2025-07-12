@@ -172,11 +172,14 @@ Preferred communication style: Simple, everyday language.
   - Enabling SQLite WAL mode for better concurrent access
   - Setting pool_size to 1 for SQLite
   - Adding retry logic with exponential backoff
+  - Enhanced db_connection_manager.py to automatically fix database permissions before each write operation
+  - Fixed permissions for database files including WAL and SHM files (chmod 666)
 - **Readonly Database Errors**: Fixed by:
   - Created db_utils.py module with retry decorators for database operations
   - Added ensure_db_writable() checks before write operations
   - Created fix_db_permissions.py utility script for local development
   - Updated _save_training_metrics and _update_session_stats with @retry_on_db_error decorators
+  - db_connection_manager.py now automatically fixes permissions on initialization and before write operations
 - **Chart Display Issues** (July 12, 2025): 
   - Added chartjs-adapter-date-fns for time scale support
   - Charts initialized but may need debugging based on console errors

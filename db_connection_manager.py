@@ -4,6 +4,11 @@ Database Connection Manager for SQLite Concurrent Access
 This module provides a thread-safe connection manager that ensures
 only one writer accesses the SQLite database at a time.
 """
+import os
+import stat
+import logging
+
+logger = logging.getLogger(__name__)
 
 import threading
 import time
@@ -24,6 +29,11 @@ class DatabaseConnectionManager:
         
         # Create engine with special SQLite settings
         if 'sqlite' in database_uri:
+            # Extract database path
+            self.db_path = database_uri.replace('sqlite:///', '')
+            if self.db_path and self.db_path != ':memory:':
+                self._fix_db_permissions()
+            
             self.engine = create_engine(
                 database_uri,
                 connect_args={
@@ -55,10 +65,35 @@ class DatabaseConnectionManager:
                 pool_recycle=300
             )
     
+    def _fix_db_permissions(self):
+        """Fix database file permissions to ensure it's writable"""
+        try:
+            if os.path.exists(self.db_path):
+                # Set read/write permissions for owner, group, and others
+                os.chmod(self.db_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH)
+                
+                # Also fix permissions for WAL and SHM files if they exist
+                wal_path = f"{self.db_path}-wal"
+                shm_path = f"{self.db_path}-shm"
+                
+                if os.path.exists(wal_path):
+                    os.chmod(wal_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH)
+                
+                if os.path.exists(shm_path):
+                    os.chmod(shm_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH)
+                    
+                logger.info(f"Fixed permissions for database: {self.db_path}")
+        except Exception as e:
+            logger.warning(f"Could not fix database permissions: {e}")
+    
     @contextmanager
     def get_connection(self, write_operation=False):
         """Get a database connection with proper locking for write operations"""
         if write_operation and 'sqlite' in self.database_uri:
+            # Fix permissions before write operation
+            if hasattr(self, 'db_path') and self.db_path:
+                self._fix_db_permissions()
+            
             # Acquire write lock for SQLite
             with self.write_lock:
                 conn = self.engine.connect()
@@ -84,6 +119,10 @@ class DatabaseConnectionManager:
         
         for attempt in range(max_retries):
             try:
+                # Fix permissions before each retry for write operations
+                if write_operation and hasattr(self, 'db_path') and self.db_path:
+                    self._fix_db_permissions()
+                    
                 with self.get_connection(write_operation=write_operation) as conn:
                     return operation(conn)
             except Exception as e:

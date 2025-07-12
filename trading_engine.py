@@ -19,6 +19,7 @@ from data_manager import DataManager
 from ib_integration import IBIntegration
 from risk_manager import RiskManager
 from db_utils import retry_on_db_error, check_and_fix_db_permissions, ensure_db_writable
+from db_connection_manager import get_db_connection
 
 logger = logging.getLogger(__name__)
 
