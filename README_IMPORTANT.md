@@ -4,7 +4,16 @@
 
 The system now requires PostgreSQL. SQLite has been completely removed for better multi-GPU performance.
 
-### Quick PostgreSQL Setup:
+### Easiest Setup (Using .env file):
+
+A `.env` file has been created with your database credentials. Just run:
+```bash
+python run_local.py
+```
+
+The application will automatically load the DATABASE_URL from the .env file.
+
+### Manual PostgreSQL Setup:
 ```bash
 # 1. Install PostgreSQL (if needed)
 sudo apt install postgresql postgresql-contrib  # Ubuntu/Debian
@@ -14,14 +23,14 @@ sudo apt install postgresql postgresql-contrib  # Ubuntu/Debian
 chmod +x setup_postgresql.sh
 ./setup_postgresql.sh
 
-# 3. Set environment variable
+# 3. Set environment variable (or use .env file)
 export DATABASE_URL="postgresql://trader_user:your_password@localhost:5432/reinforcement_trader"
 
 # 4. Migrate existing data (optional)
 python migrate_local_data.py
 ```
 
-See `POSTGRESQL_SETUP.md` for detailed instructions.
+See `POSTGRESQL_SETUP.md` and `LOCAL_DEVELOPMENT.md` for detailed instructions.
 
 ## DO NOT USE `flask run` or `python -m flask run`
 

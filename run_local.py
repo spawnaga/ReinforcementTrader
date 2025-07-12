@@ -7,6 +7,10 @@ This avoids conflicts between ib_insync and eventlet
 import subprocess
 import sys
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 def main():
     print("\n🚀 Starting Revolutionary AI Trading System (Local Development)...")
