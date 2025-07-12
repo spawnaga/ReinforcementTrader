@@ -133,6 +133,10 @@ class FuturesEnv(gym.Env):
         self.exit_time = None
         self.exit_id = None
         self.exit_price = None
+        
+        # Store last closed trade prices for reward calculation
+        self._last_closed_entry_price = None
+        self._last_closed_exit_price = None
 
         # episode attributes
         self.total_reward = 0
@@ -208,6 +212,14 @@ class FuturesEnv(gym.Env):
                     reason='Buy order closing short position',
                     price=self.exit_price
                 )
+            
+            # Store prices for reward calculation before resetting
+            self._last_closed_entry_price = self.entry_price
+            self._last_closed_exit_price = self.exit_price
+            
+            # Reset prices after closing position
+            self.entry_price = None
+            self.exit_price = None
 
         elif self.current_position == 0:
             self.last_position = self.current_position
@@ -264,6 +276,14 @@ class FuturesEnv(gym.Env):
                     reason='Sell order closing long position',
                     price=self.exit_price
                 )
+            
+            # Store prices for reward calculation before resetting
+            self._last_closed_entry_price = self.entry_price
+            self._last_closed_exit_price = self.exit_price
+            
+            # Reset prices after closing position
+            self.entry_price = None
+            self.exit_price = None
 
         elif self.current_position == 0:
             self.last_position = self.current_position
@@ -305,15 +325,19 @@ class FuturesEnv(gym.Env):
             dif = 0  # Initialize dif to avoid unbound variable error
             if all([self.current_position == 0, self.last_position == 1]):
                 # closed a long
-                if self.exit_price is not None and self.entry_price is not None:
-                    dif = round((self.exit_price - self.entry_price), 2)
+                # Use stored prices if current prices are None (after position was closed)
+                exit_price = self._last_closed_exit_price if self.exit_price is None else self.exit_price
+                entry_price = self._last_closed_entry_price if self.entry_price is None else self.entry_price
+                
+                if exit_price is not None and entry_price is not None:
+                    dif = round((exit_price - entry_price), 2)
                 else:
-                    logger.warning(f"Missing price data: exit_price={self.exit_price}, entry_price={self.entry_price}")
+                    logger.warning(f"Missing price data: exit_price={exit_price}, entry_price={entry_price}")
                     # Log error to trading logger
                     if self.trading_logger:
                         self.trading_logger.log_error(
                             error_type="MISSING_PRICE_DATA",
-                            error_message=f"Cannot calculate reward - exit_price={self.exit_price}, entry_price={self.entry_price}",
+                            error_message=f"Cannot calculate reward - exit_price={exit_price}, entry_price={entry_price}",
                             context={
                                 'position': 'LONG_CLOSED',
                                 'current_position': self.current_position,
@@ -325,15 +349,19 @@ class FuturesEnv(gym.Env):
                     return 0
             elif all([self.current_position == 0, self.last_position == -1]):
                 # closed a short
-                if self.exit_price is not None and self.entry_price is not None:
-                    dif = -round((self.exit_price - self.entry_price), 2)
+                # Use stored prices if current prices are None (after position was closed)
+                exit_price = self._last_closed_exit_price if self.exit_price is None else self.exit_price
+                entry_price = self._last_closed_entry_price if self.entry_price is None else self.entry_price
+                
+                if exit_price is not None and entry_price is not None:
+                    dif = -round((exit_price - entry_price), 2)
                 else:
-                    logger.warning(f"Missing price data: exit_price={self.exit_price}, entry_price={self.entry_price}")
+                    logger.warning(f"Missing price data: exit_price={exit_price}, entry_price={entry_price}")
                     # Log error to trading logger
                     if self.trading_logger:
                         self.trading_logger.log_error(
                             error_type="MISSING_PRICE_DATA",
-                            error_message=f"Cannot calculate reward - exit_price={self.exit_price}, entry_price={self.entry_price}",
+                            error_message=f"Cannot calculate reward - exit_price={exit_price}, entry_price={entry_price}",
                             context={
                                 'position': 'SHORT_CLOSED',
                                 'current_position': self.current_position,
@@ -352,12 +380,16 @@ class FuturesEnv(gym.Env):
             
             # Log reward calculation
             if self.trading_logger:
+                # Use stored prices for logging if current prices are None
+                log_entry_price = entry_price if 'entry_price' in locals() else self.entry_price
+                log_exit_price = exit_price if 'exit_price' in locals() else self.exit_price
+                
                 self.trading_logger.log_reward_calculation(
                     timestamp=state.ts if state else datetime.datetime.now(),
                     reward=net_profit,
                     position=self.last_position,
-                    entry_price=self.entry_price,
-                    exit_price=self.exit_price,
+                    entry_price=log_entry_price,
+                    exit_price=log_exit_price,
                     calculation_details={
                         'price_difference': dif,
                         'n_ticks': n_ticks,
@@ -567,6 +599,10 @@ class FuturesEnv(gym.Env):
         self.exit_time = None
         self.exit_id = None
         self.exit_price = None
+        
+        # Reset stored prices
+        self._last_closed_entry_price = None
+        self._last_closed_exit_price = None
 
         self.total_reward = 0
         self.total_net_profit = 0
