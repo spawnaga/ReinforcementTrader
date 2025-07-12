@@ -247,7 +247,7 @@
                                 {% endif %}
                             </small>
                         </div>
-                        <span class="badge bg-{{ 'success' if trade.profit_loss and trade.profit_loss > 0 else 'danger' if trade.profit_loss and trade.profit_loss < 0 else 'secondary' }} rounded-pill">
+                        <span class="badge bg-{% if trade.profit_loss and trade.profit_loss > 0 %}success{% elif trade.profit_loss and trade.profit_loss < 0 %}danger{% else %}secondary{% endif %} rounded-pill">
                             {% if trade.profit_loss %}
                                 ${{ "%.2f"|format(trade.profit_loss) }}
                             {% else %}
