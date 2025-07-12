@@ -27,6 +27,9 @@ class ActorCritic(nn.Module):
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         
+        # Input normalization layer
+        self.input_norm = nn.LayerNorm(input_dim)
+        
         # Multi-scale feature extraction
         self.feature_extractors = nn.ModuleList([
             nn.Sequential(
@@ -105,9 +108,13 @@ class ActorCritic(nn.Module):
         self.apply(self._init_weights)
     
     def _init_weights(self, m):
-        """Initialize network weights"""
+        """Initialize network weights with smaller values to prevent gradient explosion"""
         if isinstance(m, nn.Linear):
-            nn.init.xavier_uniform_(m.weight)
+            # Use smaller initialization for stability
+            nn.init.xavier_uniform_(m.weight, gain=0.1)
+            nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.constant_(m.weight, 1)
             nn.init.constant_(m.bias, 0)
     
     def forward(self, x: torch.Tensor, sequence_length: int = 60) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -125,6 +132,24 @@ class ActorCritic(nn.Module):
             regime_probs: Market regime probabilities
         """
         batch_size = x.size(0)
+        
+        # Check for NaN values in input
+        if torch.isnan(x).any():
+            logger.warning("NaN values detected in input, replacing with zeros")
+            x = torch.nan_to_num(x, nan=0.0)
+        
+        # Normalize input
+        if x.dim() == 2:
+            x = self.input_norm(x)
+        else:
+            # For 3D input, normalize along the last dimension
+            orig_shape = x.shape
+            x = x.view(-1, self.input_dim)
+            x = self.input_norm(x)
+            x = x.view(orig_shape)
+        
+        # Clamp input values to prevent extreme values
+        x = torch.clamp(x, min=-10.0, max=10.0)
         
         # Multi-scale feature extraction
         features = []
@@ -162,11 +187,31 @@ class ActorCritic(nn.Module):
         
         # Actor and Critic outputs
         action_logits = self.actor(processed_features)
+        
+        # Check for NaN in logits and clamp to prevent extreme values
+        if torch.isnan(action_logits).any():
+            logger.warning("NaN detected in action logits, resetting to zeros")
+            action_logits = torch.zeros_like(action_logits)
+        action_logits = torch.clamp(action_logits, min=-10.0, max=10.0)
+        
         action_probs = F.softmax(action_logits, dim=-1)
         state_values = self.critic(processed_features)
         
         # Q-values for hybrid approach
         q_values = self.q_network(processed_features)
+        
+        # Final NaN check on outputs
+        if torch.isnan(action_probs).any():
+            logger.warning("NaN in action probs, using uniform distribution")
+            action_probs = torch.ones_like(action_probs) / action_probs.size(-1)
+        
+        if torch.isnan(state_values).any():
+            logger.warning("NaN in state values, resetting to zeros")
+            state_values = torch.zeros_like(state_values)
+            
+        if torch.isnan(q_values).any():
+            logger.warning("NaN in Q values, resetting to zeros")
+            q_values = torch.zeros_like(q_values)
         
         return action_probs, state_values, q_values, regime_probs
 

@@ -1,0 +1,621 @@
+
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:trading_engine:Received None reward in episode 8, step 99
+ERROR:rl_algorithms.ane_ppo:Error calculating advantages: Subtraction, the `-` operator, with a bool tensor is not supported. If you are trying to invert a mask, use the `~` or `logical_not()` operator instead.
+ERROR:rl_algorithms.ane_ppo:Error in training: Trying to backward through the graph a second time (or directly access saved tensors after they have already been freed). Saved intermediate values of the graph are freed when you call .backward() or autograd.grad(). Specify retain_graph=True if you need to backward through the graph a second time or if you need to access saved tensors after calling backward.
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:trading_engine:Received None reward in episode 9, step 99
+ERROR:rl_algorithms.ane_ppo:Error calculating advantages: Subtraction, the `-` operator, with a bool tensor is not supported. If you are trying to invert a mask, use the `~` or `logical_not()` operator instead.
+ERROR:rl_algorithms.ane_ppo:Error in training: Trying to backward through the graph a second time (or directly access saved tensors after they have already been freed). Saved intermediate values of the graph are freed when you call .backward() or autograd.grad(). Specify retain_graph=True if you need to backward through the graph a second time or if you need to access saved tensors after calling backward.
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+[2025-07-11 18:26:50 -0700] [72533] [INFO] Handling signal: int
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:trading_engine:Received None reward in episode 10, step 99
+ERROR:rl_algorithms.ane_ppo:Error calculating advantages: Subtraction, the `-` operator, with a bool tensor is not supported. If you are trying to invert a mask, use the `~` or `logical_not()` operator instead.
+ERROR:rl_algorithms.ane_ppo:Error in training: Trying to backward through the graph a second time (or directly access saved tensors after they have already been freed). Saved intermediate values of the graph are freed when you call .backward() or autograd.grad(). Specify retain_graph=True if you need to backward through the graph a second time or if you need to access saved tensors after calling backward.
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+[2025-07-11 18:26:50 -0700] [72566] [INFO] Worker exiting (pid: 72566)
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+
+
+✓ Server stopped gracefully
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+WARNING:gym_futures.envs.futures_env:Missing price data: exit_price=None, entry_price=None
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
+tensor([[nan, nan, nan]], device='cuda:0')
+ERROR:rl_algorithms.ane_ppo:Error getting action: Expected parameter probs (Tensor of shape (1, 3)) of distribution Categorical(probs: torch.Size([1, 3])) to satisfy the constraint Simplex(), but found invalid values:
