@@ -1,5 +1,76 @@
 // Revolutionary AI Trading Dashboard
 
+/**
+ * @typedef {Object} PerformanceMetrics
+ * @property {number} totalReturn
+ * @property {number} sharpeRatio
+ * @property {number} maxDrawdown
+ * @property {number} winRate
+ * @property {number} totalTrades
+ * @property {number} profitableTrades
+ */
+
+/**
+ * @typedef {Object} Trade
+ * @property {string} position_type
+ * @property {number} profit_loss
+ * @property {number} entry_price
+ * @property {number} exit_price
+ * @property {string} entry_time
+ * @property {string} action
+ * @property {string} symbol
+ * @property {number} position_size
+ * @property {string} risk_level
+ * @property {number} current_price
+ * @property {string} timestamp
+ */
+
+/**
+ * @typedef {Object} TrainingUpdate
+ * @property {number} episode
+ * @property {number} reward
+ * @property {number} sharpe_ratio
+ * @property {number} total_return
+ * @property {number} win_rate
+ * @property {number} total_trades
+ * @property {boolean} success
+ * @property {string} error
+ * @property {string} session_id
+ */
+
+// Declare global functions that are defined in other files
+/**
+ * @function showAlert
+ * @param {string} message
+ * @param {string} type
+ */
+
+/**
+ * @function showNotification
+ * @param {string} message
+ * @param {string} type
+ */
+
+/**
+ * @var {Function} io - Socket.IO client factory
+ */
+
+/**
+ * @var {PerformanceMetrics} performanceMetrics - Global performance metrics
+ */
+
+/**
+ * @var {NeuralNetworkViz} neuralNetworkViz - Neural network visualization instance
+ */
+
+/**
+ * @var {TradingCharts} tradingCharts - Trading charts instance
+ */
+
+/**
+ * @var {Portfolio3D} portfolio3D - 3D portfolio visualization instance
+ */
+
 class TradingDashboard {
     constructor() {
         this.currentSession = null;
@@ -181,6 +252,9 @@ class TradingDashboard {
         }
     }
     
+    /**
+     * @param {Trade[]} trades
+     */
     displayRecentTrades(trades) {
         const tradesContainer = document.getElementById('recent-trades-list');
         const noTradesMessage = document.getElementById('no-trades-message');
@@ -290,6 +364,10 @@ class TradingDashboard {
         });
     }
     
+    /**
+     * @param {Trade} trade
+     * @returns {boolean}
+     */
     validateTrade(trade) {
         // Check if market is open
         if (!this.isMarketOpen()) {
@@ -416,6 +494,9 @@ class TradingDashboard {
         }
     }
     
+    /**
+     * @param {TrainingUpdate} data
+     */
     handleTrainingUpdate(data) {
         if (data.session_id === this.currentSession) {
             // Update session progress
