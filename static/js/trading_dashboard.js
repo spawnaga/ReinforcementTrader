@@ -622,9 +622,14 @@ class TradingDashboard {
      */
     updateSessionDisplay(sessionData) {
         // Update session info
-        document.querySelector('.session-name')?.textContent = sessionData.session.name;
-        document.querySelector('.session-algorithm')?.textContent = sessionData.session.algorithm_type;
-        document.querySelector('.session-episode')?.textContent = 
+        const sessionName = document.querySelector('.session-name');
+        if (sessionName) sessionName.textContent = sessionData.session.name;
+        
+        const sessionAlgorithm = document.querySelector('.session-algorithm');
+        if (sessionAlgorithm) sessionAlgorithm.textContent = sessionData.session.algorithm_type;
+        
+        const sessionEpisode = document.querySelector('.session-episode');
+        if (sessionEpisode) sessionEpisode.textContent = 
             `${sessionData.session.current_episode}/${sessionData.session.total_episodes}`;
         
         // Update progress bar
@@ -637,7 +642,8 @@ class TradingDashboard {
     
     updateSessionProgress(data) {
         // Update episode counter
-        document.querySelector('.current-episode')?.textContent = data.episode;
+        const episodeElement = document.querySelector('.current-episode');
+        if (episodeElement) episodeElement.textContent = data.episode;
         
         // Update progress bar
         const progressBar = document.querySelector('.episode-progress');
@@ -647,19 +653,31 @@ class TradingDashboard {
         }
         
         // Update reward display
-        document.querySelector('.current-reward')?.textContent = data.reward.toFixed(2);
+        const rewardElement = document.querySelector('.current-reward');
+        if (rewardElement) rewardElement.textContent = data.reward.toFixed(2);
     }
     
     updatePerformanceMetrics(metrics) {
         if (!metrics) return;
         
         // Update display elements
-        document.getElementById('sharpe-ratio')?.textContent = metrics.sharpe_ratio?.toFixed(2) || '0.00';
-        document.getElementById('total-return')?.textContent = (metrics.total_return * 100)?.toFixed(2) + '%' || '0.00%';
-        document.getElementById('max-drawdown')?.textContent = (metrics.max_drawdown * 100)?.toFixed(2) + '%' || '0.00%';
-        document.getElementById('win-rate')?.textContent = (metrics.win_rate * 100)?.toFixed(2) + '%' || '0.00%';
-        document.getElementById('total-trades')?.textContent = metrics.total_trades || '0';
-        document.getElementById('profitable-trades')?.textContent = metrics.profitable_trades || '0';
+        const sharpeElement = document.getElementById('sharpe-ratio');
+        if (sharpeElement) sharpeElement.textContent = metrics.sharpe_ratio?.toFixed(2) || '0.00';
+        
+        const totalReturnElement = document.getElementById('total-return');
+        if (totalReturnElement) totalReturnElement.textContent = ((metrics.total_return * 100)?.toFixed(2) || '0.00') + '%';
+        
+        const maxDrawdownElement = document.getElementById('max-drawdown');
+        if (maxDrawdownElement) maxDrawdownElement.textContent = ((metrics.max_drawdown * 100)?.toFixed(2) || '0.00') + '%';
+        
+        const winRateElement = document.getElementById('win-rate');
+        if (winRateElement) winRateElement.textContent = ((metrics.win_rate * 100)?.toFixed(2) || '0.00') + '%';
+        
+        const totalTradesElement = document.getElementById('total-trades');
+        if (totalTradesElement) totalTradesElement.textContent = metrics.total_trades || '0';
+        
+        const profitableTradesElement = document.getElementById('profitable-trades');
+        if (profitableTradesElement) profitableTradesElement.textContent = metrics.profitable_trades || '0';
         
         // Update performance rings
         this.updatePerformanceRings(metrics);
@@ -723,11 +741,12 @@ class TradingDashboard {
     
     updateTradingInterface(data) {
         // Update position display
-        document.querySelector('.current-position')?.textContent = data.position || '0';
+        const positionElement = document.querySelector('.current-position');
+        if (positionElement) positionElement.textContent = data.position || '0';
         
         // Update P&L display
-        document.querySelector('.unrealized-pnl')?.textContent = 
-            (data.unrealized_pnl || 0).toFixed(2);
+        const pnlElement = document.querySelector('.unrealized-pnl');
+        if (pnlElement) pnlElement.textContent = (data.unrealized_pnl || 0).toFixed(2);
         
         // Update trade history
         this.addTradeToHistory(data);
@@ -912,8 +931,11 @@ class TradingDashboard {
                 this.tradingEnabled = prefs.tradingEnabled || false;
                 
                 // Apply preferences to UI
-                document.getElementById('risk-level')?.value = this.riskLevel;
-                document.getElementById('position-size')?.value = this.positionSize;
+                const riskLevelElement = document.getElementById('risk-level');
+                if (riskLevelElement) riskLevelElement.value = this.riskLevel;
+                
+                const positionSizeElement = document.getElementById('position-size');
+                if (positionSizeElement) positionSizeElement.value = this.positionSize;
                 
                 this.updateRiskParameters();
                 this.updatePositionSizeDisplay();
