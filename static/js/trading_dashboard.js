@@ -73,21 +73,10 @@
  * @class TradingCharts
  */
 
-// Declare global instances
-/**
- * @type {NeuralNetworkViz}
- */
-let neuralNetworkViz;
-
-/**
- * @type {TradingCharts}
- */
-let tradingCharts;
-
-/**
- * @type {Portfolio3D}
- */
-let portfolio3D;
+// Initialize global instances that will be created after page load
+let neuralNetworkViz = null;
+let tradingCharts = null;
+let portfolio3D = null;
 
 /**
  * @typedef {Object} SessionData
@@ -140,6 +129,30 @@ class TradingDashboard {
     }
     
     init() {
+        // Initialize global visualization instances
+        if (typeof TradingCharts !== 'undefined') {
+            tradingCharts = new TradingCharts('price-chart');
+            window.tradingCharts = tradingCharts;
+        }
+        
+        if (typeof NeuralNetworkVisualization !== 'undefined') {
+            const nnContainer = document.getElementById('neural-network-viz');
+            if (nnContainer) {
+                neuralNetworkViz = new NeuralNetworkVisualization('neural-network-viz');
+                neuralNetworkViz.init();
+                window.neuralNetworkViz = neuralNetworkViz;
+            }
+        }
+        
+        if (typeof Portfolio3DVisualization !== 'undefined') {
+            const p3dContainer = document.getElementById('portfolio-3d');
+            if (p3dContainer) {
+                portfolio3D = new Portfolio3DVisualization('portfolio-3d');
+                portfolio3D.init();
+                window.portfolio3D = portfolio3D;
+            }
+        }
+        
         this.loadInitialData();
         this.loadRecentTrades();
         this.startRealTimeUpdates();
@@ -546,11 +559,13 @@ class TradingDashboard {
             // Update session progress
             this.updateSessionProgress(data);
             
-            // Update performance metrics
-            this.updatePerformanceMetrics(data.metrics);
+            // Update performance metrics if metrics are provided
+            if (data.metrics) {
+                this.updatePerformanceMetrics(data.metrics);
+            }
             
-            // Update neural network visualization
-            if (window.neuralNetworkViz) {
+            // Update neural network visualization if network state is provided
+            if (window.neuralNetworkViz && data.network_state) {
                 window.neuralNetworkViz.updateWeights(data.network_state);
             }
         }
