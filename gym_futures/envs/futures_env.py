@@ -1,16 +1,14 @@
-import gym
-import json
 import datetime
-import pandas as pd
-import numpy as np
-import math
 import logging
 from pathlib import Path
-from typing import List, Tuple, Sequence, Union, Dict, Optional
-from gym import error, spaces, utils
-from gym.utils import seeding
-from .utils import round_to_nearest_increment, TimeSeriesState, monotonicity
+from typing import List, Tuple, Sequence, Optional
 from uuid import uuid4
+
+import gym
+import numpy as np
+from gym import spaces
+
+from .utils import round_to_nearest_increment, TimeSeriesState
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +18,58 @@ trading_handler = logging.FileHandler('logs/trading.log')
 trading_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 trading_logger.addHandler(trading_handler)
 trading_logger.setLevel(logging.DEBUG)
+
+
+def calculate_reward(timestamp, action, position_before, position_after, entry_price, exit_price, position_type,
+                     value_per_tick, execution_cost, session_id, tick_size):
+    """
+    Calculate the reward for a trading action.
+
+    Parameters:
+    - timestamp: The timestamp of the action
+    - action: 'EXIT' for closing a position, 'HOLD' for holding
+    - position_before: Position before the action (1 long, -1 short, 0 none)
+    - position_after: Position after the action
+    - entry_price: Entry price of the position
+    - exit_price: Exit price for exit, current price for hold
+    - position_type: 'long' or 'short'
+    - value_per_tick: Value per tick movement
+    - execution_cost: Execution cost (full for exit, 0 for hold typically)
+    - session_id: Session ID
+    - tick_size: The tick size for the instrument
+
+    Returns:
+    - reward: The calculated reward
+    """
+    if entry_price is None or exit_price is None:
+        return 0.0
+
+    if action == 'EXIT':
+        if position_type == 'long':
+            profit_ticks = (exit_price - entry_price) / tick_size
+        elif position_type == 'short':
+            profit_ticks = (entry_price - exit_price) / tick_size
+        else:
+            return 0.0
+        net_profit = profit_ticks * value_per_tick - execution_cost
+        # Log the reward calculation if needed
+        trading_logger.debug(
+            f"REWARD CALC: timestamp={timestamp}, action={action}, position_type={position_type}, entry={entry_price}, exit={exit_price}, profit_ticks={profit_ticks}, net_profit={net_profit}"
+        )
+        return net_profit
+    elif action == 'HOLD' and position_after != 0:
+        # Unrealized profit with no execution cost
+        if position_type == 'long':
+            unrealized_ticks = (exit_price - entry_price) / tick_size
+        elif position_type == 'short':
+            unrealized_ticks = (entry_price - exit_price) / tick_size
+        else:
+            return 0.0
+        unrealized = unrealized_ticks * value_per_tick
+        # Perhaps scale it down for hold rewards
+        return unrealized * 0.1  # Adjust factor as needed
+    else:
+        return 0.0
 
 
 class FuturesEnv(gym.Env):
@@ -111,7 +161,7 @@ class FuturesEnv(gym.Env):
                  short_probabilities: List[float] = None, execution_cost_per_order=0.,
                  add_current_position_to_state: bool = False,
                  log_dir: str = f"logs/futures_env/{datetime.datetime.strftime(datetime.datetime.now(), '%Y%m%d_%H%M%S')}",
-                 enable_trading_logger: bool = True):
+                 enable_trading_logger: bool = True, session_id: Optional[int] = None):
 
         self.states = states
         self.limit = len(self.states)
@@ -129,6 +179,7 @@ class FuturesEnv(gym.Env):
         self.log_dir = log_dir
         self.done = False
         self.current_index = 0
+        self.session_id = session_id
 
         self.current_price = None
         # attributes to maintain the current position
@@ -331,20 +382,6 @@ class FuturesEnv(gym.Env):
                     price=self.entry_price
                 )
 
-    def calculate_reward(self, position, entry_price, exit_price, current_price, execution_cost=5.0):
-        if exit_price is None:
-            exit_price = current_price  # Use current market price if no explicit exit
-        price_diff = exit_price - entry_price if position == 1 else entry_price - exit_price
-        n_ticks = math.ceil(price_diff / self.tick_size)  # Use ceil for consistency; pull from self.tick_size
-        gross_profit = n_ticks * self.value_per_tick  # Pull from self.value_per_tick
-        net_profit = gross_profit - execution_cost
-        return {
-            'net_profit': net_profit,
-            'price_diff': price_diff,
-            'n_ticks': n_ticks,
-            'gross_profit': gross_profit
-        }
-
     def get_reward(self, state: TimeSeriesState) -> float:
         """
         This environments default reward function. Override this class and method for a custom reward function
@@ -356,18 +393,23 @@ class FuturesEnv(gym.Env):
             # No reward for no action taken or opening a position (unless you want unrealized for holds)
             if self.current_position != 0 and self.entry_price is not None:
                 # Optional: Reward unrealized profit for open positions
-                reward_details = self.calculate_reward(
-                    self.current_position,
-                    self.entry_price,
-                    None,  # No explicit exit
-                    state.price,  # Pass current price from state
-                    execution_cost=self.execution_cost_per_order  # Only charge one side for unrealized?
+                position_type = 'long' if self.current_position == 1 else 'short'
+                net_profit = calculate_reward(
+                    timestamp=state.ts,
+                    action='HOLD',
+                    position_before=self.current_position,
+                    position_after=self.current_position,
+                    entry_price=self.entry_price,
+                    exit_price=state.price,
+                    position_type=position_type,
+                    value_per_tick=self.value_per_tick,
+                    execution_cost=0,  # No cost for hold
+                    session_id=self.session_id,
+                    tick_size=self.tick_size
                 )
-                net_profit = reward_details['net_profit']
             return net_profit
 
         else:
-            reward_details = None
             if all([self.current_position == 0, self.last_position == 1]):
                 # closed a long
                 # Use stored prices if current prices are None (after position was closed)
@@ -376,14 +418,19 @@ class FuturesEnv(gym.Env):
 
                 if exit_price is not None and entry_price is not None:
                     # Call the function here for closed trade
-                    reward_details = self.calculate_reward(
-                        self.last_position,
-                        entry_price,
-                        exit_price,
-                        state.price,  # Not used since exit_price is provided
-                        execution_cost=2 * self.execution_cost_per_order  # Full round-trip cost
+                    net_profit = calculate_reward(
+                        timestamp=state.ts,
+                        action='EXIT',
+                        position_before=self.last_position,
+                        position_after=self.current_position,
+                        entry_price=entry_price,
+                        exit_price=exit_price,
+                        position_type='long',
+                        value_per_tick=self.value_per_tick,
+                        execution_cost=2 * self.execution_cost_per_order,
+                        session_id=self.session_id,
+                        tick_size=self.tick_size
                     )
-                    net_profit = reward_details['net_profit']
                 else:
                     logger.warning(f"Missing price data: exit_price={exit_price}, entry_price={entry_price}")
                     # Log error to trading logger
@@ -410,14 +457,19 @@ class FuturesEnv(gym.Env):
 
                 if exit_price is not None and entry_price is not None:
                     # Call the function here for closed trade
-                    reward_details = self.calculate_reward(
-                        self.last_position,
-                        entry_price,
-                        exit_price,
-                        state.price,  # Not used since exit_price is provided
-                        execution_cost=2 * self.execution_cost_per_order  # Full round-trip cost
+                    net_profit = calculate_reward(
+                        timestamp=state.ts,
+                        action='EXIT',
+                        position_before=self.last_position,
+                        position_after=self.current_position,
+                        entry_price=entry_price,
+                        exit_price=exit_price,
+                        position_type='short',
+                        value_per_tick=self.value_per_tick,
+                        execution_cost=2 * self.execution_cost_per_order,
+                        session_id=self.session_id,
+                        tick_size=self.tick_size
                     )
-                    net_profit = reward_details['net_profit']
                 else:
                     logger.warning(f"Missing price data: exit_price={exit_price}, entry_price={entry_price}")
                     # Log error to trading logger
@@ -439,35 +491,10 @@ class FuturesEnv(gym.Env):
             else:
                 return net_profit
 
-            # Log reward calculation to file
-            log_entry_price = entry_price if 'entry_price' in locals() else self.entry_price
-            log_exit_price = exit_price if 'exit_price' in locals() else self.exit_price
-            if reward_details:
-                trading_logger.debug(
-                    f"REWARD: timestamp={state.ts if state else datetime.datetime.now()}, reward={net_profit}, position={self.last_position}, entry_price={log_entry_price}, exit_price={log_exit_price}, calculation_details={{'price_difference': {reward_details['price_diff']}, 'n_ticks': {reward_details['n_ticks']}, 'gross_profit': {reward_details['gross_profit']}, 'execution_cost': {2 * self.execution_cost_per_order}, 'net_profit': {net_profit}}}"
-                )
-
-                if self.trading_logger:
-                    # Use stored prices for logging if current prices are None
-                    self.trading_logger.log_reward_calculation(
-                        timestamp=state.ts if state else datetime.datetime.now(),
-                        reward=net_profit,
-                        position=self.last_position,
-                        entry_price=log_entry_price,
-                        exit_price=log_exit_price,
-                        calculation_details={
-                            'price_difference': reward_details['price_diff'],
-                            'n_ticks': reward_details['n_ticks'],
-                            'gross_profit': reward_details['gross_profit'],
-                            'execution_cost': 2 * self.execution_cost_per_order,
-                            'net_profit': net_profit
-                        }
-                    )
-
-        # Ensure net_profit is not None before adding
-        if net_profit is not None:
-            self.total_reward += net_profit
-        return net_profit
+            # Ensure net_profit is not None before adding
+            if net_profit is not None:
+                self.total_reward += net_profit
+            return net_profit
 
     def generate_random_fill_differential(self, intended_price: float, side: int) -> float:
         """
@@ -501,8 +528,22 @@ class FuturesEnv(gym.Env):
 
         """
         _s, s = self._get_next_state()
+
         if self.done:
-            return (None, None, self.done, None)
+            if self.current_position != 0:
+                # Force close position at last price
+                if self.current_position == 1:
+                    self.sell(s)
+                    position_type = 'long'
+                elif self.current_position == -1:
+                    self.buy(s)
+                    position_type = 'short'
+                reward = self.get_reward(s)
+                info = {"message": f"episode end - forced close {position_type} position"}
+            else:
+                reward = 0.0
+                info = {"message": "episode end"}
+            return None, reward, True, info
 
         current_state_price = s.price if s else None
         next_state_price = _s.price if _s else current_state_price

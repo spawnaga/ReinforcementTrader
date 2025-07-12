@@ -1,4 +1,5 @@
 import datetime
+import logging
 from typing import List, Tuple, Sequence, Union, Dict
 import math
 import pandas as pd
@@ -154,3 +155,49 @@ class TimeSeriesState:
         This depends on how your agent operates
         """
         pass
+
+logger = logging.getLogger('trading.rewards')
+
+def calculate_reward(timestamp, action, position_before, position_after, entry_price, exit_price, position_type,
+                     value_per_tick, execution_cost, session_id=None):
+    if action != 'EXIT' or position_before == 0:
+        return 0.0  # No reward/log for non-exits or exits without position
+
+    if entry_price is None or exit_price is None:
+        logger.error(
+            f"None price in reward calc at {timestamp}. State info: position={position_before}, type={position_type}. Forcing reward to 0.")
+        return 0.0  # Safeguard for None cases
+
+    price_diff = exit_price - entry_price if position_type == 'long' else entry_price - exit_price
+    n_ticks = price_diff / 0.25  # Assuming tick_size=0.25
+    gross_profit = n_ticks * value_per_tick
+    net_profit = gross_profit - execution_cost
+
+    if n_ticks == 0:
+        net_profit -= 1.0  # Small penalty for flat trades
+
+    reward = net_profit
+
+    reward_details = {
+        'timestamp': str(timestamp),
+        'action': action,
+        'position_before': position_before,
+        'position_after': position_after,
+        'entry_price': entry_price,
+        'exit_price': exit_price,
+        'position_type': position_type,
+        'price_diff': price_diff,
+        'n_ticks': n_ticks,
+        'gross_profit': gross_profit,
+        'execution_cost': execution_cost,
+        'net_profit': net_profit,
+        'session_id': session_id  # No longer null
+    }
+
+    try:
+        logger.info(f"REWARD: {reward_details}")
+    except Exception as e:
+        logger.error(f"Logging failed: {e}. Partial data: {reward_details}")
+
+    return reward
+
