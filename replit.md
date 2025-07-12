@@ -137,6 +137,10 @@ Preferred communication style: Simple, everyday language.
 - **ANE-PPO Dimension Error Fix**: Fixed "Dimension out of range" error by ensuring all state tensors are 3D (batch_size, sequence_length, features) instead of 2D. The network expects sequential data, not flattened states.
 - **Tuple Mean Error**: Fixed critical error where transformer_attention module was returning a tuple (output, attention_weights) instead of just the output tensor. Added proper tuple handling to extract the output tensor before calling .mean() for global average pooling.
 - **Database Permissions**: Fixed readonly database errors by removing conflicting SQLite connection and setting proper file permissions (chmod 666) on all database files including WAL and SHM files
+- **Tensor Dimension Mismatch Fix** (July 12, 2025): Fixed RuntimeError "The size of tensor a (60) must match the size of tensor b (512)" in PositionalEncoding by:
+  - Updated the forward method in PositionalEncoding class to properly handle the transposed tensor dimensions
+  - The fix ensures positional encoding correctly works with tensors after input projection from 60 features to 512 dimensions
+  - Tested and verified with test_tensor_fix.py - DQN model now works correctly with 60 input features
 
 ### Known Issues
 - **WebSocket Timeouts**: Fixed by:
