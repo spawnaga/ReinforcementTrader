@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 from flask import current_app
 
+from extensions import db
 from models import TradingSession, Trade, MarketData, TrainingMetrics
 from gym_futures.envs.futures_env import FuturesEnv
 from gym_futures.envs.utils import TimeSeriesState
@@ -154,23 +155,23 @@ class TradingEngine:
                 # Update session status
                 self.active_sessions[session_id]['status'] = 'running'
 
-                # Load market data
-                logger.info(f"Loading NQ market data for session {session_id}")
-                market_data = self.data_manager.load_nq_data()
+                # Load market data with strict limits
+                logger.info(f"Loading limited NQ market data for session {session_id}")
+                
+                # Only load last 500 rows to prevent memory issues
+                from sqlalchemy import text
+                with db.engine.connect() as conn:
+                    query = text("SELECT * FROM market_data WHERE symbol = 'NQ' ORDER BY timestamp DESC LIMIT 500")
+                    market_data = pd.read_sql(query, conn)
+                    
                 if market_data is None or len(market_data) == 0:
                     logger.error(f"No market data available for session {session_id}")
                     self._end_session(session_id, 'error')
                     return
-
-                logger.info(f"Market data loaded, shape: {market_data.shape}")
-                
-                # Limit data for reasonable training time
-                original_size = len(market_data)
-                max_rows = 1000  # Reduced to 1000 rows for faster testing
-                if len(market_data) > max_rows:
-                    logger.info(f"Limiting data from {original_size:,} to {max_rows:,} rows for training")
-                    market_data = market_data.tail(max_rows)
-                    logger.info(f"Data limited successfully")
+                    
+                # Sort by timestamp ascending after limiting
+                market_data = market_data.sort_values('timestamp')
+                logger.info(f"Loaded {len(market_data)} rows of limited market data")
 
                 logger.info(f"Using {len(market_data):,} rows of market data for session {session_id}")
                 logger.debug(f"Market data columns: {list(market_data.columns)}")
@@ -272,11 +273,14 @@ class TradingEngine:
             max_states = min(10, len(market_data) - window_size)  # Reduced to 10 states for faster testing
 
             logger.info(f"Will create {max_states} states from the data")
+            
+            # Use evenly spaced indices instead of sequential to cover more of the data
+            indices = np.linspace(window_size, len(market_data) - 1, max_states, dtype=int)
 
-            for i in range(window_size, window_size + max_states):
-                if i % 5 == 0:  # Log progress every 5 states
+            for idx, i in enumerate(indices):
+                if idx % 5 == 0:  # Log progress every 5 states
                     logger.info(
-                        f"Creating state {i - window_size + 1}/{max_states} (progress: {((i - window_size + 1) / max_states) * 100:.1f}%)")
+                        f"Creating state {idx + 1}/{max_states} (progress: {((idx + 1) / max_states) * 100:.1f}%)")
 
                 # Get window of data
                 window_data = market_data.iloc[i - window_size:i].copy()
