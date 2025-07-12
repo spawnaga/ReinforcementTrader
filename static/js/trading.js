@@ -22,6 +22,35 @@ class TradingDashboard {
         this.subscribeToUpdates();
     }
     
+    loadSession(sessionId) {
+        this.sessionId = sessionId;
+        console.log('Loading session:', sessionId);
+        
+        // Load session details
+        fetch(`/api/session_status/${sessionId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Session not found:', data.error);
+                    this.showAlert('Session not found', 'danger');
+                    return;
+                }
+                
+                // Update session display
+                this.updateSessionInfo(data);
+                
+                // Load trades for this session
+                this.loadRecentTrades(sessionId);
+                
+                // Start listening for updates
+                this.subscribeToSessionUpdates(sessionId);
+            })
+            .catch(error => {
+                console.error('Error loading session:', error);
+                this.showAlert('Failed to load session', 'danger');
+            });
+    }
+    
     initializeEventListeners() {
         // Session management
         document.getElementById('startNewSession')?.addEventListener('click', () => this.showNewSessionModal());
@@ -233,6 +262,73 @@ class TradingDashboard {
         this.updateAlgorithmParameters('ane_ppo');
     }
     
+    showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.container-fluid').prepend(alertDiv);
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+    
+    subscribeToSessionUpdates(sessionId) {
+        // Subscribe to specific session updates
+        this.socket.on(`session_update_${sessionId}`, (data) => {
+            this.updateSessionInfo(data);
+        });
+        
+        this.socket.on(`trade_update_${sessionId}`, (trade) => {
+            this.addNewTrade(trade);
+        });
+    }
+    
+    addNewTrade(trade) {
+        const tradesContainer = document.getElementById('recent-trades-list');
+        if (!tradesContainer) return;
+        
+        // Create new trade element
+        const tradeElement = document.createElement('div');
+        tradeElement.className = 'list-group-item list-group-item-action bg-dark text-white border-secondary';
+        tradeElement.innerHTML = `
+            <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">
+                    <span class="badge bg-${trade.position_type === 'long' ? 'success' : 'danger'}">
+                        ${trade.position_type.toUpperCase()}
+                    </span>
+                </h6>
+                <small class="${trade.profit_loss >= 0 ? 'text-success' : 'text-danger'}">
+                    ${trade.profit_loss >= 0 ? '+' : ''}$${trade.profit_loss.toFixed(2)}
+                </small>
+            </div>
+            <p class="mb-1">
+                Entry: $${trade.entry_price.toFixed(2)} → Exit: $${trade.exit_price ? trade.exit_price.toFixed(2) : 'Open'}
+            </p>
+            <small class="text-muted">
+                ${new Date(trade.entry_time).toLocaleString()}
+            </small>
+        `;
+        
+        // Add to top of list
+        tradesContainer.prepend(tradeElement);
+        
+        // Remove oldest trade if more than 10
+        const trades = tradesContainer.querySelectorAll('.list-group-item');
+        if (trades.length > 10) {
+            trades[trades.length - 1].remove();
+        }
+        
+        // Hide no trades message
+        const noTradesMessage = document.getElementById('no-trades-message');
+        if (noTradesMessage) {
+            noTradesMessage.style.display = 'none';
+        }
+    }
+    
     updateAlgorithmParameters(algorithm) {
         const paramsDiv = document.getElementById('algorithmParameters');
         if (!paramsDiv) return;
@@ -413,10 +509,15 @@ class TradingDashboard {
         }
     }
     
-    async loadRecentTrades() {
+    async loadRecentTrades(sessionId = null) {
         console.log('📊 Loading recent trades...');
         try {
-            const response = await fetch('/api/recent_trades?limit=10');
+            let url = '/api/recent_trades?limit=10';
+            if (sessionId) {
+                url += `&session_id=${sessionId}`;
+            }
+            
+            const response = await fetch(url);
             console.log('Response status:', response.status);
             if (response.ok) {
                 const trades = await response.json();

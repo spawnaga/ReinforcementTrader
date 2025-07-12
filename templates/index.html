@@ -239,7 +239,13 @@
                         <div>
                             <strong>{{ trade.position_type|title }}</strong>
                             <br>
-                            <small class="text-muted">{{ trade.entry_time.strftime('%H:%M:%S') }}</small>
+                            <small class="text-muted">
+                                {% if trade.entry_time %}
+                                    {{ trade.entry_time.strftime('%H:%M:%S') }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </small>
                         </div>
                         <span class="badge bg-{{ 'success' if trade.profit_loss > 0 else 'danger' }} rounded-pill">
                             ${{ "%.2f"|format(trade.profit_loss) }}
