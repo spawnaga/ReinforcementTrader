@@ -568,16 +568,24 @@ class TradingEngine:
             with app.app_context():
                 # Check if env has a trading_logger with trades
                 if hasattr(env, 'trading_logger') and env.trading_logger:
+                    trade_count = 0
+                    current_episode = self.current_episode
                     for trade_info in env.trading_logger.trades:
                         # Only save completed trades (exits)
                         if trade_info.get('action') == 'EXIT' and trade_info.get('entry_price') and trade_info.get('exit_price'):
+                            trade_count += 1
                             trade = Trade(
                                 session_id=session_id,
-                                timestamp=trade_info.get('timestamp'),
+                                trade_id=f"T{session_id}_{current_episode}_{trade_count}",
+                                entry_time=trade_info.get('timestamp', datetime.now()),
+                                exit_time=trade_info.get('timestamp', datetime.now()),
                                 position_type=trade_info.get('position_type', '').lower(),
                                 entry_price=float(trade_info.get('entry_price', 0)),
                                 exit_price=float(trade_info.get('exit_price', 0)),
-                                profit_loss=float(trade_info.get('profit_loss', 0)) if trade_info.get('profit_loss') else None
+                                quantity=trade_info.get('quantity', 1),
+                                profit_loss=float(trade_info.get('profit_loss', 0)) if trade_info.get('profit_loss') else None,
+                                status='closed',
+                                episode_number=current_episode
                             )
                             db.session.add(trade)
                     
