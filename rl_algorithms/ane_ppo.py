@@ -316,6 +316,11 @@ class ANEPPO:
                 q_action = q_values.argmax(dim=-1)
 
                 # Adaptive action selection based on confidence
+                # Ensure action_probs is a tensor, not a tuple
+                if isinstance(action_probs, tuple):
+                    logger.warning("action_probs is a tuple, extracting first element")
+                    action_probs = action_probs[0]
+                
                 policy_confidence = action_probs.max()
                 q_confidence = F.softmax(q_values, dim=-1).max()
 
@@ -328,6 +333,9 @@ class ANEPPO:
 
         except Exception as e:
             logger.error(f"Error getting action: {e}")
+            # Add more detailed error logging
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return np.random.choice(3)  # Random fallback
 
     def _state_to_tensor(self, state) -> torch.Tensor:
