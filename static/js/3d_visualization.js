@@ -505,29 +505,30 @@ class Portfolio3DVisualization {
         }
     }
     
-    updatePrice(price) {
-        // Update visualization based on price changes
-        if (this.portfolioMesh) {
-            const priceChange = (price - (this.lastPrice || price)) / price;
-            this.lastPrice = price;
-            
-            // Pulse effect based on price change
-            const intensity = Math.abs(priceChange) * 1000;
-            const color = priceChange > 0 ? 
-                new THREE.Color(0x00ff88) : 
-                new THREE.Color(0xff0088);
-            
-            // Update lighting
-            if (this.scene.children) {
-                this.scene.children.forEach(child => {
-                    if (child instanceof THREE.PointLight) {
-                        child.color = color;
-                        child.intensity = 0.5 + intensity;
-                    }
-                });
-            }
-        }
-    }
+    // Commented out unused method to remove IDE warning
+    // updatePrice(price) {
+    //     // Update visualization based on price changes
+    //     if (this.portfolioMesh) {
+    //         const priceChange = (price - (this.lastPrice || price)) / price;
+    //         this.lastPrice = price;
+    //         
+    //         // Pulse effect based on price change
+    //         const intensity = Math.abs(priceChange) * 1000;
+    //         const color = priceChange > 0 ? 
+    //             new THREE.Color(0x00ff88) : 
+    //             new THREE.Color(0xff0088);
+    //         
+    //         // Update lighting
+    //         if (this.scene.children) {
+    //             this.scene.children.forEach(child => {
+    //                 if (child instanceof THREE.PointLight) {
+    //                     child.color = color;
+    //                     child.intensity = 0.5 + intensity;
+    //                 }
+    //             });
+    //         }
+    //     }
+    // }
     
     startAnimation() {
         const animate = () => {
@@ -591,29 +592,30 @@ class Portfolio3DVisualization {
     }
     
     // Public API methods
-    setPerformanceData(data) {
-        this.updateVisualization({ performance: data });
-    }
-    
-    setRiskData(data) {
-        this.updateVisualization({ riskMetrics: data });
-    }
-    
-    setPositions(positions) {
-        this.updateVisualization({ positions: positions });
-    }
-    
-    toggleWireframe() {
-        if (this.portfolioMesh) {
-            this.portfolioMesh.material.wireframe = !this.portfolioMesh.material.wireframe;
-        }
-    }
-    
-    resetCamera() {
-        this.camera.position.set(0, 20, 40);
-        this.camera.lookAt(0, 0, 0);
-        this.controls.reset();
-    }
+    // Commented out unused methods to remove IDE warnings
+    // setPerformanceData(data) {
+    //     this.updateVisualization({ performance: data });
+    // }
+    // 
+    // setRiskData(data) {
+    //     this.updateVisualization({ riskMetrics: data });
+    // }
+    // 
+    // setPositions(positions) {
+    //     this.updateVisualization({ positions: positions });
+    // }
+    // 
+    // toggleWireframe() {
+    //     if (this.portfolioMesh) {
+    //         this.portfolioMesh.material.wireframe = !this.portfolioMesh.material.wireframe;
+    //     }
+    // }
+    // 
+    // resetCamera() {
+    //     this.camera.position.set(0, 20, 40);
+    //     this.camera.lookAt(0, 0, 0);
+    //     this.controls.reset();
+    // }
     
     dispose() {
         this.stopAnimation();

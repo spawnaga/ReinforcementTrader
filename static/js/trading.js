@@ -4,6 +4,8 @@
 // - NeuralNetworkVisualization from neural_network_viz.js  
 // - TradingCharts from charts.js
 
+/* global Chart, io, bootstrap */
+
 class TradingDashboard {
     constructor() {
         this.sessionId = null;

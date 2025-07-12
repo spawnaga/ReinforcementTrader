@@ -27,12 +27,12 @@ declare class Portfolio3DVisualization {
     constructor(containerId: string);
     init(): void;
     updateVisualization(data: any): void;
-    updatePrice(price: number): void;
-    setPerformanceData(data: any): void;
-    setRiskData(data: any): void;
-    setPositions(positions: any[]): void;
-    toggleWireframe(): void;
-    resetCamera(): void;
+    // updatePrice(price: number): void;
+    // setPerformanceData(data: any): void;
+    // setRiskData(data: any): void;
+    // setPositions(positions: any[]): void;
+    // toggleWireframe(): void;
+    // resetCamera(): void;
     dispose(): void;
 }
 
@@ -41,11 +41,11 @@ declare class TradingCharts {
     initPriceChart(canvasId: string): void;
     updatePriceChart(data: any[]): void;
     updateIndicators(data: any): void;
-    addTradeMarker(trade: any): void;
-    highlightRegime(regime: string): void;
-    exportChart(chartType?: string): void;
+    // addTradeMarker(trade: any): void;
+    // highlightRegime(regime: string): void;
+    // exportChart(chartType?: string): void;
     clear(): void;
-    destroy(): void;
+    // destroy(): void;
     updateSMA(data: any[], period?: number): void;
     updateBollingerBands(data: any[]): void;
     updateRSI(data: any[]): void;

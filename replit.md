@@ -123,6 +123,12 @@ Preferred communication style: Simple, everyday language.
   - Added fallback handling for OrbitControls which may be under THREE.OrbitControls or window.OrbitControls
   - Commented out unused variables in charts.js (volumeChart, performanceChart, chartData) to remove IDE warnings
   - Updated globals.d.ts with comprehensive type definitions for all global classes and functions
+- **Final JavaScript Warning Resolution (July 12, 2025)**:
+  - Commented out unused methods in 3d_visualization.js (setPerformanceData, setRiskData, setPositions, toggleWireframe, resetCamera)
+  - Commented out unused methods in charts.js (addTradeMarker, highlightRegime, exportChart, destroy)
+  - Updated globals.d.ts to remove references to commented-out methods
+  - Added /* global Chart, io, bootstrap */ to trading.js to inform IDE about external libraries
+  - All functions in main.js, neural_network_viz.js, strategy_builder.js, and trading.js verified as properly defined
 - **Remaining IDE Issues**: Some warnings are false positives from the IDE not recognizing:
   - CDN-loaded libraries (Chart.js, Socket.IO, Three.js)
   - Dynamically created properties on window object

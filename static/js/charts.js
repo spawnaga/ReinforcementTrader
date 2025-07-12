@@ -789,67 +789,70 @@ class TradingCharts {
         return timeframes[this.timeframe] || 60 * 1000;
     }
     
-    addTradeMarker(trade) {
-        if (!this.priceChart) return;
-        
-        const annotation = {
-            type: 'point',
-            xValue: new Date(trade.timestamp),
-            yValue: trade.price,
-            backgroundColor: trade.action === 'buy' ? this.colors.bullish : this.colors.bearish,
-            borderColor: '#ffffff',
-            borderWidth: 2,
-            radius: 8,
-            label: {
-                content: trade.action.toUpperCase(),
-                enabled: true,
-                position: 'top'
-            }
-        };
-        
-        if (!this.priceChart.options.plugins.annotation) {
-            this.priceChart.options.plugins.annotation = {
-                annotations: {}
-            };
-        }
-        
-        this.priceChart.options.plugins.annotation.annotations[trade.id] = annotation;
-        this.priceChart.update();
-    }
+    // Commented out unused method to remove IDE warning
+    // addTradeMarker(trade) {
+    //     if (!this.priceChart) return;
+    //     
+    //     const annotation = {
+    //         type: 'point',
+    //         xValue: new Date(trade.timestamp),
+    //         yValue: trade.price,
+    //         backgroundColor: trade.action === 'buy' ? this.colors.bullish : this.colors.bearish,
+    //         borderColor: '#ffffff',
+    //         borderWidth: 2,
+    //         radius: 8,
+    //         label: {
+    //             content: trade.action.toUpperCase(),
+    //             enabled: true,
+    //             position: 'top'
+    //         }
+    //     };
+    //     
+    //     if (!this.priceChart.options.plugins.annotation) {
+    //         this.priceChart.options.plugins.annotation = {
+    //             annotations: {}
+    //         };
+    //     }
+    //     
+    //     this.priceChart.options.plugins.annotation.annotations[trade.id] = annotation;
+    //     this.priceChart.update();
+    // }
     
-    highlightRegime(regime) {
-        // Add background color zones based on market regime
-        const regimeColors = {
-            bull: 'rgba(0, 255, 136, 0.1)',
-            bear: 'rgba(255, 0, 136, 0.1)',
-            sideways: 'rgba(255, 255, 255, 0.05)',
-            volatile: 'rgba(255, 136, 0, 0.1)'
-        };
-        
-        // Implementation would depend on having regime detection data
-        console.log(`Market regime: ${regime}`);
-    }
+    // Commented out unused method to remove IDE warning
+    // highlightRegime(regime) {
+    //     // Add background color zones based on market regime
+    //     const regimeColors = {
+    //         bull: 'rgba(0, 255, 136, 0.1)',
+    //         bear: 'rgba(255, 0, 136, 0.1)',
+    //         sideways: 'rgba(255, 255, 255, 0.05)',
+    //         volatile: 'rgba(255, 136, 0, 0.1)'
+    //     };
+    //     
+    //     // Implementation would depend on having regime detection data
+    //     console.log(`Market regime: ${regime}`);
+    // }
     
-    exportChart(chartType = 'price') {
-        let chart = this.priceChart;
-        
-        switch (chartType) {
-            case 'rsi':
-                chart = this.rsiChart;
-                break;
-            case 'macd':
-                chart = this.macdChart;
-                break;
-        }
-        
-        if (chart) {
-            const url = chart.toBase64Image();
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${chartType}_chart_${Date.now()}.png`;
-            a.click();
-        }
-    }
+    // Commented out unused method to remove IDE warning
+    // exportChart(chartType = 'price') {
+    //     let chart = this.priceChart;
+    //     
+    //     switch (chartType) {
+    //         case 'rsi':
+    //             chart = this.rsiChart;
+    //             break;
+    //         case 'macd':
+    //             chart = this.macdChart;
+    //             break;
+    //     }
+    //     
+    //     if (chart) {
+    //         const url = chart.toBase64Image();
+    //         const a = document.createElement('a');
+    //         a.href = url;
+    //         a.download = `${chartType}_chart_${Date.now()}.png`;
+    //         a.click();
+    //     }
+    // }
     
     addSampleData() {
         // Generate sample data for testing
@@ -873,17 +876,18 @@ class TradingCharts {
         console.log('📊 Sample data added to chart');
     }
     
-    destroy() {
-        if (this.priceChart) {
-            this.priceChart.destroy();
-        }
-        if (this.rsiChart) {
-            this.rsiChart.destroy();
-        }
-        if (this.macdChart) {
-            this.macdChart.destroy();
-        }
-    }
+    // Commented out unused method to remove IDE warning
+    // destroy() {
+    //     if (this.priceChart) {
+    //         this.priceChart.destroy();
+    //     }
+    //     if (this.rsiChart) {
+    //         this.rsiChart.destroy();
+    //     }
+    //     if (this.macdChart) {
+    //         this.macdChart.destroy();
+    //     }
+    // }
 }
 
 // Export for global use
