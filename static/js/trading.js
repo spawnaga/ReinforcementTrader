@@ -171,14 +171,26 @@ class TradingDashboard {
         }
         
         // Price chart
-        const priceCtx = document.getElementById('priceChart')?.getContext('2d');
+        const priceCtx = document.getElementById('price-chart')?.getContext('2d');
         if (priceCtx) {
+            console.log('Initializing price chart...');
+            
+            // Add sample data for testing
+            const now = new Date();
+            const sampleData = [];
+            for (let i = 0; i < 20; i++) {
+                sampleData.push({
+                    x: new Date(now.getTime() - (20 - i) * 60000), // 1 minute intervals
+                    y: 15000 + Math.random() * 100 - 50 // Random price around 15000
+                });
+            }
+            
             this.priceChart = new Chart(priceCtx, {
                 type: 'line',
                 data: {
                     datasets: [{
                         label: 'NQ Futures',
-                        data: [],
+                        data: sampleData,
                         borderColor: '#00e676',
                         backgroundColor: 'rgba(0, 230, 118, 0.1)',
                         tension: 0.1
@@ -221,6 +233,9 @@ class TradingDashboard {
                     }
                 }
             });
+            console.log('Price chart created successfully');
+        } else {
+            console.error('Price chart canvas not found!');
         }
     }
     
