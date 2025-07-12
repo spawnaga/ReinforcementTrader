@@ -2,10 +2,11 @@ from flask import render_template, request, jsonify, redirect, url_for, flash
 from app import app, trading_engine
 from extensions import db, socketio
 from models import TradingSession, Trade, MarketData, TrainingMetrics, AlgorithmConfig
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import logging
 from db_utils import retry_on_db_error
+import pandas as pd
 
 # Import websocket handlers to register them
 import websocket_handler
@@ -180,7 +181,7 @@ def stop_training():
         session = TradingSession.query.get(session_id)
         if session:
             session.status = 'stopped'
-            session.end_time = datetime.utcnow()
+            session.end_time = datetime.now(timezone.utc)
             db.session.commit()
             
             trading_engine.stop_training(session_id)
@@ -483,8 +484,10 @@ def system_test():
             results["details"]["database_error"] = str(e)
         
         # Test 2: Data loading
+        data = None
         try:
-            data = data_manager.load_nq_data()
+            # Use load_futures_data instead of load_nq_data
+            data = data_manager.load_futures_data('NQ')
             if data is not None:
                 results["data_loading"] = True
                 results["details"]["data_rows"] = len(data)
@@ -494,7 +497,8 @@ def system_test():
             results["details"]["data_error"] = str(e)
         
         # Test 3: State creation
-        if results["data_loading"]:
+        state = None
+        if results["data_loading"] and data is not None:
             try:
                 test_data = data.head(100)
                 # Add time column
@@ -513,7 +517,8 @@ def system_test():
                 results["details"]["state_error"] = str(e)
         
         # Test 4: Environment
-        if results["state_creation"]:
+        env = None
+        if results["state_creation"] and state is not None:
             try:
                 from gym_futures.envs.futures_env import FuturesEnv
                 env = FuturesEnv(states=[state], value_per_tick=5.0, tick_size=0.25)
@@ -523,7 +528,7 @@ def system_test():
                 results["details"]["env_error"] = str(e)
         
         # Test 5: Algorithm
-        if results["environment"]:
+        if results["environment"] and env is not None:
             try:
                 from rl_algorithms.ane_ppo import ANEPPO
                 import torch
