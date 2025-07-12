@@ -414,12 +414,18 @@ class TradingDashboard {
     }
     
     async loadRecentTrades() {
+        console.log('📊 Loading recent trades...');
         try {
             const response = await fetch('/api/recent_trades?limit=10');
+            console.log('Response status:', response.status);
             if (response.ok) {
                 const trades = await response.json();
+                console.log('Received trades:', trades.length);
                 const tradesContainer = document.getElementById('recent-trades-list');
                 const noTradesMessage = document.getElementById('no-trades-message');
+                
+                console.log('Trades container:', tradesContainer);
+                console.log('No trades message:', noTradesMessage);
                 
                 if (tradesContainer && noTradesMessage) {
                     if (trades.length > 0) {
@@ -445,14 +451,20 @@ class TradingDashboard {
                             </div>
                         `).join('');
                         tradesContainer.style.display = 'block';
+                        console.log('✅ Trades displayed successfully');
                     } else {
                         tradesContainer.style.display = 'none';
                         noTradesMessage.style.display = 'block';
+                        console.log('📭 No trades to display');
                     }
+                } else {
+                    console.error('❌ Could not find trade containers in DOM');
                 }
+            } else {
+                console.error('❌ Failed to fetch trades:', response.status);
             }
         } catch (error) {
-            console.error('Error fetching recent trades:', error);
+            console.error('❌ Error fetching recent trades:', error);
         }
     }
     
