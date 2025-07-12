@@ -1,5 +1,7 @@
 // Revolutionary AI Trading Dashboard
 
+/* global NeuralNetworkViz, Portfolio3D, TradingCharts, io, showAlert, showNotification, performanceMetrics */
+
 /**
  * @typedef {Object} PerformanceMetrics
  * @property {number} totalReturn
@@ -60,16 +62,32 @@
  */
 
 /**
- * @var {NeuralNetworkViz} neuralNetworkViz - Neural network visualization instance
+ * @class NeuralNetworkViz
  */
 
 /**
- * @var {TradingCharts} tradingCharts - Trading charts instance
+ * @class Portfolio3D
  */
 
 /**
- * @var {Portfolio3D} portfolio3D - 3D portfolio visualization instance
+ * @class TradingCharts
  */
+
+// Declare global instances
+/**
+ * @type {NeuralNetworkViz}
+ */
+let neuralNetworkViz;
+
+/**
+ * @type {TradingCharts}
+ */
+let tradingCharts;
+
+/**
+ * @type {Portfolio3D}
+ */
+let portfolio3D;
 
 /**
  * @typedef {Object} SessionData
