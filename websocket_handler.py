@@ -601,6 +601,32 @@ def broadcast_trade_execution(trade_data: Dict[str, Any]):
             **trade_data
         })
         
+        # Also broadcast recent trades update
+        session_id = trade_data.get('session_id')
+        if session_id:
+            # Fetch recent trades for this session
+            from models import Trade
+            recent_trades = Trade.query.filter_by(session_id=session_id).order_by(Trade.entry_time.desc()).limit(10).all()
+            
+            trades_data = []
+            for trade in recent_trades:
+                trades_data.append({
+                    'id': trade.id,
+                    'position_type': trade.position_type,
+                    'entry_price': trade.entry_price,
+                    'exit_price': trade.exit_price,
+                    'profit_loss': trade.profit_loss,
+                    'entry_time': trade.entry_time.isoformat() if trade.entry_time else None,
+                    'exit_time': trade.exit_time.isoformat() if trade.exit_time else None,
+                    'quantity': trade.quantity,
+                    'session_id': trade.session_id
+                })
+            
+            socketio.emit('recent_trades_update', {
+                'session_id': session_id,
+                'trades': trades_data
+            })
+        
     except Exception as e:
         logger.error(f"Error broadcasting trade execution: {str(e)}")
 

@@ -7,6 +7,7 @@ import time
 import logging
 from functools import wraps
 from sqlalchemy.exc import OperationalError
+from sqlalchemy import text
 from flask import current_app
 
 logger = logging.getLogger(__name__)
@@ -161,7 +162,7 @@ def ensure_db_writable():
         from app import db
         
         # Test write operation
-        db.session.execute("SELECT 1")
+        db.session.execute(text("SELECT 1"))
         db.session.commit()
         
         return True
@@ -178,7 +179,7 @@ def ensure_db_writable():
                 if check_and_fix_db_permissions(db_path):
                     # Try again after fixing permissions
                     try:
-                        db.session.execute("SELECT 1")
+                        db.session.execute(text("SELECT 1"))
                         db.session.commit()
                         return True
                     except:

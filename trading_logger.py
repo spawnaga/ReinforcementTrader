@@ -15,6 +15,30 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 import pandas as pd
 from pathlib import Path
+import numpy as np
+
+def json_serializable(obj):
+    """Convert non-serializable objects to JSON-serializable format"""
+    if isinstance(obj, (pd.Timestamp, datetime)):
+        return obj.isoformat() if hasattr(obj, 'isoformat') else str(obj)
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif hasattr(obj, '__dict__'):
+        return str(obj)
+    return obj
+
+def make_json_serializable(data):
+    """Recursively convert all non-serializable objects in a dictionary"""
+    if isinstance(data, dict):
+        return {k: make_json_serializable(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [make_json_serializable(item) for item in data]
+    else:
+        return json_serializable(data)
 
 class TradingLogger:
     """
@@ -131,10 +155,10 @@ class TradingLogger:
             trade_info['error'] = 'Entry price is None'
         
         self.trades.append(trade_info)
-        self.trade_logger.info(f"TRADE ENTRY: {json.dumps(trade_info, indent=2)}")
+        self.trade_logger.info(f"TRADE ENTRY: {json.dumps(make_json_serializable(trade_info), indent=2)}")
         
         # Also log to debug
-        self.debug_logger.debug(f"Detailed state at entry: {json.dumps(state_info or {}, indent=2)}")
+        self.debug_logger.debug(f"Detailed state at entry: {json.dumps(make_json_serializable(state_info or {}), indent=2)}")
         
     def log_trade_exit(self,
                       timestamp: datetime,
@@ -165,7 +189,7 @@ class TradingLogger:
             trade_info['error'] = 'Missing price data'
         
         self.trades.append(trade_info)
-        self.trade_logger.info(f"TRADE EXIT: {json.dumps(trade_info, indent=2)}")
+        self.trade_logger.info(f"TRADE EXIT: {json.dumps(make_json_serializable(trade_info), indent=2)}")
         
     def log_position_change(self,
                            timestamp: datetime,
@@ -184,7 +208,7 @@ class TradingLogger:
         }
         
         self.positions.append(position_info)
-        self.position_logger.info(f"POSITION CHANGE: {json.dumps(position_info, indent=2)}")
+        self.position_logger.info(f"POSITION CHANGE: {json.dumps(make_json_serializable(position_info), indent=2)}")
         
     def log_reward_calculation(self,
                               timestamp: datetime,
@@ -212,7 +236,7 @@ class TradingLogger:
             reward_info['warning'] = 'Calculated with None prices'
         
         self.rewards.append(reward_info)
-        self.reward_logger.info(f"REWARD: {json.dumps(reward_info, indent=2)}")
+        self.reward_logger.info(f"REWARD: {json.dumps(make_json_serializable(reward_info), indent=2)}")
         
     def log_error(self, error_type: str, error_message: str, context: Optional[Dict] = None):
         """Log trading errors"""
@@ -225,7 +249,7 @@ class TradingLogger:
         }
         
         self.errors.append(error_info)
-        self.error_logger.error(f"ERROR: {json.dumps(error_info, indent=2)}")
+        self.error_logger.error(f"ERROR: {json.dumps(make_json_serializable(error_info), indent=2)}")
         
     def log_state_debug(self, state_type: str, state_data: Any):
         """Log detailed state information for debugging"""
@@ -236,7 +260,7 @@ class TradingLogger:
             'state_data': str(state_data)
         }
         
-        self.debug_logger.debug(f"STATE DEBUG: {json.dumps(debug_info, indent=2)}")
+        self.debug_logger.debug(f"STATE DEBUG: {json.dumps(make_json_serializable(debug_info), indent=2)}")
         
     def generate_trading_report(self) -> Dict[str, Any]:
         """Generate a comprehensive trading report"""
@@ -267,9 +291,9 @@ class TradingLogger:
         # Save report
         report_path = self.log_dir / f'report_{self.session_timestamp}.json'
         with open(report_path, 'w') as f:
-            json.dump(report, f, indent=2)
+            json.dump(make_json_serializable(report), f, indent=2)
         
-        self.trade_logger.info(f"REPORT GENERATED: {json.dumps(report, indent=2)}")
+        self.trade_logger.info(f"REPORT GENERATED: {json.dumps(make_json_serializable(report), indent=2)}")
         
         return report
     

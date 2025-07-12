@@ -28,6 +28,7 @@ class TradingDashboard {
     
     init() {
         this.loadInitialData();
+        this.loadRecentTrades();
         this.startRealTimeUpdates();
         this.setupKeyboardShortcuts();
         this.initializeAIAssistant();
@@ -53,6 +54,10 @@ class TradingDashboard {
         
         this.socket.on('risk_alert', (data) => {
             this.handleRiskAlert(data);
+        });
+        
+        this.socket.on('recent_trades_update', (data) => {
+            this.updateRecentTrades(data);
         });
     }
     
@@ -142,6 +147,7 @@ class TradingDashboard {
             .then(data => {
                 this.updateSessionDisplay(data);
                 this.loadSessionMetrics(sessionId);
+                this.loadRecentTrades();  // Load recent trades for this session
             })
             .catch(error => {
                 console.error('Error loading session:', error);
@@ -159,6 +165,86 @@ class TradingDashboard {
             .catch(error => {
                 console.error('Error loading metrics:', error);
             });
+    }
+    
+    loadRecentTrades() {
+        // Load recent trades for the current session
+        if (this.currentSession) {
+            fetch(`/api/recent_trades?session_id=${this.currentSession}`)
+                .then(response => response.json())
+                .then(trades => {
+                    this.displayRecentTrades(trades);
+                })
+                .catch(error => {
+                    console.error('Error loading recent trades:', error);
+                });
+        }
+    }
+    
+    displayRecentTrades(trades) {
+        const tradesContainer = document.getElementById('recent-trades-list');
+        const noTradesMessage = document.getElementById('no-trades-message');
+        
+        if (!tradesContainer || !noTradesMessage) return;
+        
+        if (trades && trades.length > 0) {
+            // Hide no trades message
+            noTradesMessage.style.display = 'none';
+            
+            // Clear existing trades
+            tradesContainer.innerHTML = '';
+            
+            // Display trades
+            trades.forEach((trade, index) => {
+                const tradeItem = document.createElement('div');
+                tradeItem.className = `list-group-item list-group-item-action ${index === 0 ? 'active' : ''}`;
+                
+                const profitClass = trade.profit_loss > 0 ? 'text-success' : 'text-danger';
+                const profitPrefix = trade.profit_loss > 0 ? '+' : '';
+                
+                tradeItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${trade.position_type || 'Unknown'}</h6>
+                            <small class="text-muted">
+                                Entry: $${trade.entry_price ? trade.entry_price.toFixed(2) : 'N/A'} | 
+                                Exit: $${trade.exit_price ? trade.exit_price.toFixed(2) : 'N/A'}
+                            </small>
+                            <br>
+                            <small class="text-muted">${this.formatTime(trade.entry_time)}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="${profitClass} fw-bold">
+                                ${profitPrefix}$${Math.abs(trade.profit_loss || 0).toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                
+                tradesContainer.appendChild(tradeItem);
+            });
+        } else {
+            // Show no trades message
+            noTradesMessage.style.display = 'block';
+            tradesContainer.innerHTML = '';
+        }
+    }
+    
+    updateRecentTrades(data) {
+        // Handle real-time trade updates
+        if (data.trades) {
+            this.displayRecentTrades(data.trades);
+        }
+    }
+    
+    formatTime(timestamp) {
+        if (!timestamp) return 'N/A';
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit' 
+        });
     }
     
     placeTrade(action) {
