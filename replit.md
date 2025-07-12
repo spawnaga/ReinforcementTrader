@@ -136,6 +136,7 @@ Preferred communication style: Simple, everyday language.
 - **Recent Trades API**: Verified `/api/recent_trades` endpoint returning proper JSON data
 - **ANE-PPO Dimension Error Fix**: Fixed "Dimension out of range" error by ensuring all state tensors are 3D (batch_size, sequence_length, features) instead of 2D. The network expects sequential data, not flattened states.
 - **Tuple Mean Error**: Fixed critical error where transformer_attention module was returning a tuple (output, attention_weights) instead of just the output tensor. Added proper tuple handling to extract the output tensor before calling .mean() for global average pooling.
+- **Database Permissions**: Fixed readonly database errors by removing conflicting SQLite connection and setting proper file permissions (chmod 666) on all database files including WAL and SHM files
 
 ### Known Issues
 - **WebSocket Timeouts**: Fixed by:
