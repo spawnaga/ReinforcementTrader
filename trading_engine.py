@@ -158,20 +158,44 @@ class TradingEngine:
                 # Load market data with strict limits
                 logger.info(f"Loading limited NQ market data for session {session_id}")
                 
-                # Only load last 500 rows to prevent memory issues
-                from sqlalchemy import text
-                with db.engine.connect() as conn:
-                    query = text("SELECT * FROM market_data WHERE symbol = 'NQ' ORDER BY timestamp DESC LIMIT 500")
-                    market_data = pd.read_sql(query, conn)
+                # Load from database which has 7,406 records
+                try:
+                    from sqlalchemy import text
+                    with db.engine.connect() as conn:
+                        # First check how many records we have
+                        count_query = text("SELECT COUNT(*) FROM market_data WHERE symbol = 'NQ'")
+                        total_count = conn.execute(count_query).scalar()
+                        logger.info(f"Database has {total_count} total NQ records")
+                        
+                        # Load available data - use what we have
+                        if total_count < 500:
+                            # If we have less than 500 rows, use all
+                            limit = total_count
+                        else:
+                            # Otherwise limit to 500 for memory efficiency
+                            limit = 500
+                            
+                        query = text(f"""
+                            SELECT * FROM market_data 
+                            WHERE symbol = 'NQ' 
+                            ORDER BY timestamp DESC 
+                            LIMIT {limit}
+                        """)
+                        market_data = pd.read_sql(query, conn)
+                        
+                    if market_data is None or len(market_data) == 0:
+                        logger.error(f"No market data available in database for session {session_id}")
+                        self._end_session(session_id, 'error')
+                        return
+                        
+                    # Sort by timestamp ascending after limiting
+                    market_data = market_data.sort_values('timestamp')
+                    logger.info(f"Loaded {len(market_data)} rows from database")
                     
-                if market_data is None or len(market_data) == 0:
-                    logger.error(f"No market data available for session {session_id}")
+                except Exception as e:
+                    logger.error(f"Error loading market data: {str(e)}")
                     self._end_session(session_id, 'error')
                     return
-                    
-                # Sort by timestamp ascending after limiting
-                market_data = market_data.sort_values('timestamp')
-                logger.info(f"Loaded {len(market_data)} rows of limited market data")
 
                 logger.info(f"Using {len(market_data):,} rows of market data for session {session_id}")
                 logger.debug(f"Market data columns: {list(market_data.columns)}")
