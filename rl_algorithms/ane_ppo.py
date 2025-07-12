@@ -10,7 +10,6 @@ from collections import deque
 import math
 
 from .genetic_optimizer import GeneticOptimizer
-from .q_learning import DQN
 from .transformer_attention import TransformerAttention
 
 logger = logging.getLogger(__name__)
@@ -54,6 +53,9 @@ class ActorCritic(nn.Module):
                 nn.Dropout(0.2)
             )
         ])
+        
+        # Projection layer to combine multi-scale features
+        self.feature_projection = nn.Linear(hidden_dim * 3, hidden_dim)
 
         # Transformer attention for market regime detection
         self.transformer_attention = TransformerAttention(
@@ -101,8 +103,15 @@ class ActorCritic(nn.Module):
             nn.Linear(hidden_dim // 4, 1)
         )
 
-        # Q-network for hybrid approach
-        self.q_network = DQN(hidden_dim, 3)
+        # Q-network for hybrid approach (simplified for 2D input)
+        self.q_network = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(hidden_dim // 2, hidden_dim // 4),
+            nn.ReLU(),
+            nn.Linear(hidden_dim // 4, 3)  # 3 actions: buy, sell, hold
+        )
 
         # Initialize weights
         self.apply(self._init_weights)
@@ -166,7 +175,8 @@ class ActorCritic(nn.Module):
         # Combine multi-scale features
         if x.dim() == 3:
             combined_features = torch.cat(features, dim=-1)
-            # Don't average here - keep 3D shape for transformer
+            # Project from 1536 (3*512) to 512 dimensions
+            combined_features = self.feature_projection(combined_features)
         else:
             combined_features = torch.stack(features, dim=1).mean(dim=1)
 

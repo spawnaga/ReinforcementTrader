@@ -145,6 +145,10 @@ Preferred communication style: Simple, everyday language.
   - Added dimension checking in PositionalEncoding.forward() to handle both 2D and 3D tensors
   - Fixed ANE-PPO's feature combination to keep 3D shape for transformer input (removed incorrect .mean(dim=-1))
   - Transformer now properly handles sequential data from the trading environment
+- **ANE-PPO Feature Projection Fix** (July 12, 2025): Fixed "The size of tensor a (1536) must match the size of tensor b (512)" error by:
+  - Added feature_projection layer to combine 3 feature extractors (3×512=1536 dims) back to 512 dims
+  - Replaced complex DQN Q-network with simplified Sequential network that handles 2D input properly
+  - All tests now pass successfully with correct tensor dimensions throughout the network
 
 ### Known Issues
 - **WebSocket Timeouts**: Fixed by:
