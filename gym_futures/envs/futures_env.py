@@ -263,11 +263,19 @@ class FuturesEnv(gym.Env):
                 f"TRADE EXIT: timestamp={state.ts}, position_type=SHORT, entry_price={self.entry_price}, exit_price={self.exit_price}, state_info={{'current_price': {state.price}, 'position_before': -1, 'position_after': 0}}")
 
             if self.trading_logger:
+                # Calculate profit/loss for the trade
+                profit_loss = None
+                if self.entry_price and self.exit_price:
+                    profit_ticks = (self.entry_price - self.exit_price) / self.tick_size
+                    profit_loss = profit_ticks * self.value_per_tick - (2 * self.execution_cost_per_order)
+                
                 self.trading_logger.log_trade_exit(
                     timestamp=state.ts,
                     position_type='SHORT',
                     entry_price=self.entry_price,
                     exit_price=self.exit_price,
+                    profit_loss=profit_loss,
+                    session_id=self.session_id,
                     state_info={'current_price': state.price, 'position_before': -1, 'position_after': 0}
                 )
                 self.trading_logger.log_position_change(
@@ -304,6 +312,7 @@ class FuturesEnv(gym.Env):
                     position_type='LONG',
                     entry_price=self.entry_price,
                     target_price=state.price,
+                    session_id=self.session_id,
                     state_info={'current_price': state.price, 'position_before': 0, 'position_after': 1}
                 )
                 self.trading_logger.log_position_change(
@@ -333,11 +342,19 @@ class FuturesEnv(gym.Env):
                 f"TRADE EXIT: timestamp={state.ts}, position_type=LONG, entry_price={self.entry_price}, exit_price={self.exit_price}, state_info={{'current_price': {state.price}, 'position_before': 1, 'position_after': 0}}")
 
             if self.trading_logger:
+                # Calculate profit/loss for the trade
+                profit_loss = None
+                if self.entry_price and self.exit_price:
+                    profit_ticks = (self.exit_price - self.entry_price) / self.tick_size
+                    profit_loss = profit_ticks * self.value_per_tick - (2 * self.execution_cost_per_order)
+                
                 self.trading_logger.log_trade_exit(
                     timestamp=state.ts,
                     position_type='LONG',
                     entry_price=self.entry_price,
                     exit_price=self.exit_price,
+                    profit_loss=profit_loss,
+                    session_id=self.session_id,
                     state_info={'current_price': state.price, 'position_before': 1, 'position_after': 0}
                 )
                 self.trading_logger.log_position_change(
@@ -374,6 +391,7 @@ class FuturesEnv(gym.Env):
                     position_type='SHORT',
                     entry_price=self.entry_price,
                     target_price=state.price,
+                    session_id=self.session_id,
                     state_info={'current_price': state.price, 'position_before': 0, 'position_after': -1}
                 )
                 self.trading_logger.log_position_change(

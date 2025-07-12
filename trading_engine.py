@@ -238,7 +238,8 @@ class TradingEngine:
                     long_probabilities=self.market_params['long_probabilities'],
                     short_values=self.market_params['short_values'],
                     short_probabilities=self.market_params['short_probabilities'],
-                    execution_cost_per_order=self.market_params['execution_cost_per_order']
+                    execution_cost_per_order=self.market_params['execution_cost_per_order'],
+                    session_id=session_id
                 )
                 logger.info(f"FuturesEnv created successfully for session {session_id}")
 
@@ -544,6 +545,9 @@ class TradingEngine:
                 'average_trade_profit': np.mean([t[6] for t in env.trades]) if env.trades else 0
             }
 
+            # Save trades from the episode to database
+            self._save_episode_trades(session_id, env)
+            
             # Save training metrics to database
             self._save_training_metrics(session_id, episode, episode_reward, episode_loss, episode_metrics)
 
@@ -552,6 +556,37 @@ class TradingEngine:
         except Exception as e:
             logger.error(f"Error training episode {episode}: {str(e)}")
             return 0, 0, {}
+
+    @retry_on_db_error(max_retries=3, delay=1.0)
+    def _save_episode_trades(self, session_id: int, env):
+        """Save trades from the episode to database"""
+        from extensions import db
+        from app import app
+        from models import Trade
+        
+        try:
+            with app.app_context():
+                # Check if env has a trading_logger with trades
+                if hasattr(env, 'trading_logger') and env.trading_logger:
+                    for trade_info in env.trading_logger.trades:
+                        # Only save completed trades (exits)
+                        if trade_info.get('action') == 'EXIT' and trade_info.get('entry_price') and trade_info.get('exit_price'):
+                            trade = Trade(
+                                session_id=session_id,
+                                timestamp=trade_info.get('timestamp'),
+                                position_type=trade_info.get('position_type', '').lower(),
+                                entry_price=float(trade_info.get('entry_price', 0)),
+                                exit_price=float(trade_info.get('exit_price', 0)),
+                                profit_loss=float(trade_info.get('profit_loss', 0)) if trade_info.get('profit_loss') else None
+                            )
+                            db.session.add(trade)
+                    
+                    db.session.commit()
+                    logger.info(f"Saved {len(env.trading_logger.trades)} trades for session {session_id}")
+                    
+        except Exception as e:
+            logger.error(f"Error saving episode trades: {str(e)}")
+            raise  # Re-raise to trigger retry
 
     @retry_on_db_error(max_retries=3, delay=1.0)
     def _save_training_metrics(self, session_id: int, episode: int, reward: float, loss: float, metrics: Dict):
