@@ -7,16 +7,18 @@ const Chart = window.Chart;
 class TradingCharts {
     constructor(canvasId) {
         this.priceChart = null;
-        this.volumeChart = null;
-        this.performanceChart = null;
-        this.rsiChart = null;
-        this.macdChart = null;
+        // Future charts can be added here
+        // this.volumeChart = null;
+        // this.performanceChart = null;
+        // this.rsiChart = null;
+        // this.macdChart = null;
         
-        this.chartData = {
-            prices: [],
-            volumes: [],
-            indicators: {}
-        };
+        // Chart data storage - used internally
+        // this.chartData = {
+        //     prices: [],
+        //     volumes: [],
+        //     indicators: {}
+        // };
         
         this.timeframe = '1m';
         this.indicators = {

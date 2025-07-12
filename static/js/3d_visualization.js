@@ -4,6 +4,10 @@
 /** @type {Object} */
 const THREE = window.THREE;
 
+// Tell IDE about TWEEN.js if available
+/** @type {Object} */
+const TWEEN = window.TWEEN || null;
+
 class Portfolio3DVisualization {
     constructor(containerId) {
         this.containerId = containerId;
@@ -76,7 +80,7 @@ class Portfolio3DVisualization {
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.renderer.outputEncoding = THREE.sRGBEncoding;
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace; // Updated for newer Three.js
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.2;
         
@@ -84,7 +88,14 @@ class Portfolio3DVisualization {
     }
     
     setupControls() {
-        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+        // OrbitControls might be under THREE.OrbitControls or window.OrbitControls depending on the version
+        const OrbitControls = THREE.OrbitControls || window.OrbitControls;
+        if (OrbitControls) {
+            this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        } else {
+            console.warn('OrbitControls not available, camera controls disabled');
+            return;
+        }
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.05;
         this.controls.screenSpacePanning = false;
@@ -437,15 +448,17 @@ class Portfolio3DVisualization {
         object.material.opacity = 1;
         object.scale.setScalar(1.5);
         
-        // Add pulsing animation
-        const originalScale = object.scale.clone();
-        const pulseTween = new TWEEN.Tween(object.scale)
-            .to({ x: originalScale.x * 1.2, y: originalScale.y * 1.2, z: originalScale.z * 1.2 }, 500)
-            .easing(TWEEN.Easing.Quadratic.InOut)
-            .yoyo(true)
-            .repeat(3);
-        
-        pulseTween.start();
+        // Add pulsing animation if TWEEN is available
+        if (TWEEN) {
+            const originalScale = object.scale.clone();
+            const pulseTween = new TWEEN.Tween(object.scale)
+                .to({ x: originalScale.x * 1.2, y: originalScale.y * 1.2, z: originalScale.z * 1.2 }, 500)
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .yoyo(true)
+                .repeat(3);
+            
+            pulseTween.start();
+        }
     }
     
     updateVisualization(data) {
@@ -560,7 +573,7 @@ class Portfolio3DVisualization {
             }
             
             // Update TWEEN animations
-            if (typeof TWEEN !== 'undefined') {
+            if (TWEEN && TWEEN.update) {
                 TWEEN.update();
             }
             

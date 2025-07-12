@@ -116,8 +116,15 @@ Preferred communication style: Simple, everyday language.
   - Created globals.d.ts TypeScript definition file for better IDE support of cross-file dependencies
   - Added /* global */ comment at top of file to inform linters about external dependencies
   - Fixed slider value assignment by converting numeric values to strings
+- **Additional JavaScript Fixes (July 12, 2025 - Latest Session)**:
+  - Fixed duplicate TradingDashboard class definition conflict by removing trading_dashboard.js from script loading
+  - Updated 3d_visualization.js to handle missing TWEEN library gracefully with conditional checks
+  - Fixed Three.js deprecated `outputEncoding` to use `outputColorSpace = THREE.SRGBColorSpace`
+  - Added fallback handling for OrbitControls which may be under THREE.OrbitControls or window.OrbitControls
+  - Commented out unused variables in charts.js (volumeChart, performanceChart, chartData) to remove IDE warnings
+  - Updated globals.d.ts with comprehensive type definitions for all global classes and functions
 - **Remaining IDE Issues**: Some warnings are false positives from the IDE not recognizing:
-  - CDN-loaded libraries (Chart.js, Socket.IO)
+  - CDN-loaded libraries (Chart.js, Socket.IO, Three.js)
   - Dynamically created properties on window object
   - Classes defined in other JavaScript files loaded via script tags
 
