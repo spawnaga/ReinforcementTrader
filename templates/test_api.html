@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>Testing Recent Trades API</h1>
+    <pre id="result"></pre>
+    <script>
+        fetch('/api/recent_trades?limit=10')
+            .then(response => {
+                document.getElementById('result').textContent = 'Status: ' + response.status + '\n';
+                return response.text();
+            })
+            .then(data => {
+                document.getElementById('result').textContent += data;
+            })
+            .catch(error => {
+                document.getElementById('result').textContent = 'Error: ' + error;
+            });
+    </script>
+</body>
+</html>

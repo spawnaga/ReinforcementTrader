@@ -68,6 +68,11 @@ def trading_dashboard():
     """Advanced trading dashboard with real-time charts"""
     return render_template('trading_dashboard.html')
 
+@app.route('/test_trades')
+def test_trades():
+    """Test page for API endpoints"""
+    return render_template('test_trades.html')
+
 @app.route('/strategy_builder')
 def strategy_builder():
     """Interactive strategy builder interface"""

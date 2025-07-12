@@ -569,7 +569,9 @@ class TradingEngine:
                 # Check if env has a trading_logger with trades
                 if hasattr(env, 'trading_logger') and env.trading_logger:
                     trade_count = 0
-                    current_episode = self.current_episode
+                    # Get current episode from session
+                    session = TradingSession.query.get(session_id)
+                    current_episode = session.current_episode if session else 1
                     for trade_info in env.trading_logger.trades:
                         # Only save completed trades (exits)
                         if trade_info.get('action') == 'EXIT' and trade_info.get('entry_price') and trade_info.get('exit_price'):
