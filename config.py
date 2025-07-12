@@ -8,29 +8,20 @@ class Config:
     # Flask Configuration
     SECRET_KEY = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
     
-    # Database Configuration
-    # Use PostgreSQL for better concurrent access with multi-threading and multi-GPU
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///trading_system.db')
-    if 'sqlite' in SQLALCHEMY_DATABASE_URI:
-        # SQLite specific settings to handle concurrent access
-        SQLALCHEMY_ENGINE_OPTIONS = {
-            'pool_pre_ping': True,
-            'pool_size': 1,  # SQLite only allows one writer at a time
-            'max_overflow': 0,  # Don't create extra connections
-            'connect_args': {
-                'check_same_thread': False,
-                'timeout': 30,  # Increase timeout to 30 seconds
-                'isolation_level': None  # Use autocommit mode
-            }
-        }
-    else:
-        # PostgreSQL/MySQL settings
-        SQLALCHEMY_ENGINE_OPTIONS = {
-            'pool_recycle': 300,
-            'pool_pre_ping': True,
-            'pool_size': 20,
-            'max_overflow': 0
-        }
+    # Database Configuration - PostgreSQL only
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    if not SQLALCHEMY_DATABASE_URI:
+        raise ValueError("DATABASE_URL environment variable must be set for PostgreSQL connection")
+    
+    # PostgreSQL settings optimized for multi-GPU concurrent access
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_recycle': 300,
+        'pool_pre_ping': True,
+        'pool_size': 30,  # Increased for multi-GPU training
+        'max_overflow': 20,  # Allow overflow connections
+        'pool_timeout': 30,
+        'echo_pool': False
+    }
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Session Configuration
@@ -251,8 +242,9 @@ class TestingConfig(Config):
     TESTING = True
     DEBUG = True
     
-    # Use in-memory database for testing
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    # Use test PostgreSQL database for testing
+    # Override with a test-specific PostgreSQL database URL
+    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL', os.environ.get('DATABASE_URL'))
     
     # Disable CSRF for testing
     WTF_CSRF_ENABLED = False
