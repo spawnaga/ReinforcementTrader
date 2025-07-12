@@ -144,11 +144,14 @@ class TradingDashboard {
         const priceCtx = document.getElementById('priceChart')?.getContext('2d');
         if (priceCtx) {
             this.priceChart = new Chart(priceCtx, {
-                type: 'candlestick',
+                type: 'line',
                 data: {
                     datasets: [{
                         label: 'NQ Futures',
-                        data: []
+                        data: [],
+                        borderColor: '#00e676',
+                        backgroundColor: 'rgba(0, 230, 118, 0.1)',
+                        tension: 0.1
                     }]
                 },
                 options: {

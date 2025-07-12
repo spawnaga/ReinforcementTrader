@@ -5,6 +5,7 @@ from models import TradingSession, Trade, MarketData, TrainingMetrics, Algorithm
 from datetime import datetime
 import json
 import logging
+from db_utils import retry_on_db_error
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ def strategy_builder():
     return render_template('strategy_builder.html', algorithms=algorithms)
 
 @app.route('/start_training', methods=['POST'])
+@retry_on_db_error()
 def start_training():
     """Start a new training session"""
     try:
@@ -74,6 +76,7 @@ def start_training():
         }), 500
 
 @app.route('/test_training', methods=['GET'])
+@retry_on_db_error()
 def test_training():
     """Test training with default parameters"""
     try:
@@ -124,6 +127,7 @@ def test_training():
         }), 500
 
 @app.route('/stop_training', methods=['POST'])
+@retry_on_db_error()
 def stop_training():
     """Stop a training session"""
     try:
