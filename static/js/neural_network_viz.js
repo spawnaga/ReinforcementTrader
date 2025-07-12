@@ -68,7 +68,7 @@ class NeuralNetworkVisualization {
     }
     
     calculateLayout() {
-        const width = this.canvas.width;
+        // const width = this.canvas.width; // Not used currently
         const height = this.canvas.height;
         
         this.layers.forEach((layer, layerIndex) => {

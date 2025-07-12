@@ -130,7 +130,7 @@ class StrategyBuilder {
     
     makeNodeDraggable(node, componentId) {
         let isDragging = false;
-        let startX, startY, offsetX, offsetY;
+        let offsetX, offsetY;
         
         node.addEventListener('mousedown', (e) => {
             if (e.target.classList.contains('input-port') || e.target.classList.contains('output-port')) {

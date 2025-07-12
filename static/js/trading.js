@@ -15,8 +15,8 @@ class TradingDashboard {
         
         this.initializeEventListeners();
         this.initializeCharts();
-        this.updateSessionsList();
-        this.loadRecentTrades();  // Load recent trades on page load
+        this.updateSessionsList().catch(err => console.error('Failed to update sessions:', err));
+        this.loadRecentTrades().catch(err => console.error('Failed to load trades:', err));  // Load recent trades on page load
         
         // Subscribe to real-time updates
         this.subscribeToUpdates();

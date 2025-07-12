@@ -48,7 +48,7 @@ function initializeApp() {
 function setupEventListeners() {
     // Navigation links
     document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function() {
             // Add loading state
             if (this.getAttribute('href') && !this.getAttribute('href').startsWith('#')) {
                 this.classList.add('loading');
