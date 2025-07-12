@@ -1,5 +1,9 @@
 // Revolutionary 3D Portfolio Visualization using Three.js
 
+// Tell IDE about Three.js from CDN
+/** @type {Object} */
+const THREE = window.THREE;
+
 class Portfolio3DVisualization {
     constructor(containerId) {
         this.containerId = containerId;

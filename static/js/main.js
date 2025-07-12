@@ -287,6 +287,20 @@ function updateConnectionStatus(connected) {
     });
 }
 
+/**
+ * @typedef {Object} TrainingUpdateData
+ * @property {string} session_id - Session ID
+ * @property {number} episode - Current episode
+ * @property {number} total_episodes - Total episodes
+ * @property {Object} metrics - Training metrics
+ * @property {number} metrics.reward - Reward value
+ * @property {number} metrics.loss - Loss value
+ * @property {number} metrics.epsilon - Epsilon value
+ */
+
+/**
+ * @param {TrainingUpdateData} data
+ */
 function handleTrainingUpdate(data) {
     console.log('Training update received:', data);
     
@@ -325,6 +339,17 @@ function handleMarketDataUpdate(data) {
     }
 }
 
+/**
+ * @typedef {Object} PerformanceMetrics
+ * @property {number} gpu_usage - GPU usage percentage
+ * @property {number} memory_usage - Memory usage percentage
+ * @property {number} network_io - Network I/O in MB/s
+ * @property {number} cpu_usage - CPU usage percentage
+ */
+
+/**
+ * @param {PerformanceMetrics} data
+ */
 function updatePerformanceMetrics(data) {
     console.log('📊 Performance metrics received:', data);
     

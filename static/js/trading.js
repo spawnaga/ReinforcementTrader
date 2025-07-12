@@ -302,6 +302,22 @@ class TradingDashboard {
         });
     }
     
+    /**
+     * @typedef {Object} Trade
+     * @property {string} position_type - Position type (long/short)
+     * @property {number} profit_loss - Profit/loss amount
+     * @property {number} entry_price - Entry price
+     * @property {number} exit_price - Exit price
+     * @property {string} entry_time - Entry timestamp
+     * @property {number} win_rate - Win rate percentage
+     * @property {number} sharpe_ratio - Sharpe ratio
+     * @property {number} total_trades - Total trades
+     * @property {string} total_profit - Total profit
+     */
+
+    /**
+     * @param {Trade} trade
+     */
     addNewTrade(trade) {
         const tradesContainer = document.getElementById('recent-trades-list');
         if (!tradesContainer) return;

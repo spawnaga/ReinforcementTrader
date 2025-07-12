@@ -1,5 +1,9 @@
 // Revolutionary Trading Charts with Advanced Technical Analysis
 
+// Tell IDE about Chart.js from CDN
+/** @type {typeof Chart} */
+const Chart = window.Chart;
+
 class TradingCharts {
     constructor(canvasId) {
         this.priceChart = null;
