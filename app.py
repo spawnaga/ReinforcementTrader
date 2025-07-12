@@ -3,10 +3,6 @@ import logging
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 from extensions import db, socketio
-import sqlite3
-
-conn = sqlite3.connect('instance/trading_system.db', check_same_thread=False)
-conn.execute("PRAGMA journal_mode=WAL;")
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
