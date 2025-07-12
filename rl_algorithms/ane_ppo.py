@@ -335,7 +335,7 @@ class ANEPPO:
         try:
             # Handle None state
             if state is None:
-                return torch.zeros(1, self.input_dim).to(self.device)
+                return torch.zeros(1, 1, self.input_dim).to(self.device)
 
             # Handle memoryview objects directly
             if isinstance(state, memoryview):
@@ -353,7 +353,8 @@ class ANEPPO:
                     # Pad with zeros if too small
                     current_state = np.zeros(self.input_dim, dtype=np.float32)
                     current_state[:data.size] = data
-                return torch.FloatTensor(current_state).unsqueeze(0).to(self.device)
+                # Return with shape (1, 1, input_dim) for single timestep
+                return torch.FloatTensor(current_state).reshape(1, 1, -1).to(self.device)
 
             elif hasattr(state, 'data'):
                 # Check if state.data is a memoryview
@@ -421,19 +422,23 @@ class ANEPPO:
                 elif data.ndim > 2:
                     data = data.reshape(data.shape[0], -1)
 
-                # Take last row as current state
+                # For sequential data, we need to preserve the full sequence
+                # The network expects (batch_size, sequence_length, features)
                 if data.shape[0] > 0:
-                    current_state = data[-1]
+                    # Ensure the features dimension matches input_dim
+                    if data.shape[1] < self.input_dim:
+                        # Pad features
+                        padding = np.zeros((data.shape[0], self.input_dim - data.shape[1]), dtype=np.float32)
+                        data = np.concatenate([data, padding], axis=1)
+                    elif data.shape[1] > self.input_dim:
+                        # Truncate features
+                        data = data[:, :self.input_dim]
+                    
+                    # Add batch dimension: (sequence_length, features) -> (1, sequence_length, features)
+                    return torch.FloatTensor(data).unsqueeze(0).to(self.device)
                 else:
-                    current_state = np.zeros(self.input_dim, dtype=np.float32)
-
-                # Pad or truncate to match input dimension
-                if len(current_state) < self.input_dim:
-                    current_state = np.pad(current_state, (0, self.input_dim - len(current_state)), constant_values=0)
-                elif len(current_state) > self.input_dim:
-                    current_state = current_state[:self.input_dim]
-
-                return torch.FloatTensor(current_state).unsqueeze(0).to(self.device)
+                    # Return zeros with proper shape: (1, 1, input_dim)
+                    return torch.zeros(1, 1, self.input_dim).to(self.device)
 
             # Handle numpy arrays directly
             elif isinstance(state, np.ndarray):
@@ -442,30 +447,43 @@ class ANEPPO:
                         state = state.astype(np.float32)
                     except:
                         logger.error(f"Cannot convert numpy object array to float32")
-                        return torch.zeros(1, self.input_dim).to(self.device)
+                        return torch.zeros(1, 1, self.input_dim).to(self.device)
                 else:
                     state = state.astype(np.float32)
 
-                # Flatten if needed
-                if state.ndim > 1:
-                    state = state.flatten()
+                # Handle different array shapes to ensure 3D output
+                if state.ndim == 1:
+                    # 1D array: (features,) -> (1, 1, features)
+                    state = state.reshape(1, 1, -1)
+                elif state.ndim == 2:
+                    # 2D array: (sequence, features) -> (1, sequence, features)
+                    state = np.expand_dims(state, 0)
+                elif state.ndim == 3:
+                    # Already 3D, assume it's (batch, sequence, features)
+                    pass
+                else:
+                    logger.error(f"Unexpected state shape: {state.shape}")
+                    return torch.zeros(1, 1, self.input_dim).to(self.device)
 
-                # Pad or truncate
-                if len(state) < self.input_dim:
-                    state = np.pad(state, (0, self.input_dim - len(state)), constant_values=0)
-                elif len(state) > self.input_dim:
-                    state = state[:self.input_dim]
+                # Ensure features dimension matches input_dim
+                if state.shape[-1] < self.input_dim:
+                    # Pad features
+                    pad_width = [(0, 0)] * (state.ndim - 1) + [(0, self.input_dim - state.shape[-1])]
+                    state = np.pad(state, pad_width, constant_values=0)
+                elif state.shape[-1] > self.input_dim:
+                    # Truncate features
+                    state = state[..., :self.input_dim]
 
-                return torch.FloatTensor(state).unsqueeze(0).to(self.device)
+                return torch.FloatTensor(state).to(self.device)
 
             else:
                 # Fallback: create dummy state
                 logger.warning(f"Unknown state type: {type(state)}")
-                return torch.zeros(1, self.input_dim).to(self.device)
+                return torch.zeros(1, 1, self.input_dim).to(self.device)
 
         except Exception as e:
             logger.error(f"Error converting state to tensor: {e}")
-            return torch.zeros(1, self.input_dim).to(self.device)
+            return torch.zeros(1, 1, self.input_dim).to(self.device)
 
     def store_experience(self, state, action: int, reward: float, next_state, done: bool):
         """Store experience in buffer"""

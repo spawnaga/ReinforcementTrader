@@ -133,7 +133,8 @@ Preferred communication style: Simple, everyday language.
 - **Missing API Routes**: Added `/api/session_status/<status>` route that was causing 404 errors
 - **Service Worker**: Disabled service worker registration (sw.js not implemented) to eliminate console errors
 - **Sample Data**: Successfully populated database with sample trading session and 10 realistic trades
-- **Recent Trades API**: Verified `/api/recent_trades` endpoint returning proper JSON data with all trades
+- **Recent Trades API**: Verified `/api/recent_trades` endpoint returning proper JSON data
+- **ANE-PPO Dimension Error Fix**: Fixed "Dimension out of range" error by ensuring all state tensors are 3D (batch_size, sequence_length, features) instead of 2D. The network expects sequential data, not flattened states. with all trades
 
 ### Known Issues
 - **WebSocket Timeouts**: Fixed by:
