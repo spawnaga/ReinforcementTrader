@@ -311,17 +311,18 @@ def get_recent_trades():
         
         trades_data = []
         for trade in trades:
-            trades_data.append({
-                'id': trade.id,
-                'position_type': trade.position_type,
-                'entry_price': trade.entry_price,
-                'exit_price': trade.exit_price,
-                'profit_loss': trade.profit_loss,
-                'entry_time': trade.entry_time.isoformat() if trade.entry_time else None,
-                'exit_time': trade.exit_time.isoformat() if trade.exit_time else None,
-                'quantity': trade.quantity,
-                'session_id': trade.session_id
-            })
+            if trade:  # Add null check
+                trades_data.append({
+                    'id': trade.id,
+                    'position_type': trade.position_type,
+                    'entry_price': trade.entry_price,
+                    'exit_price': trade.exit_price,
+                    'profit_loss': trade.profit_loss,
+                    'entry_time': trade.entry_time.isoformat() if trade.entry_time else None,
+                    'exit_time': trade.exit_time.isoformat() if trade.exit_time else None,
+                    'quantity': trade.quantity,
+                    'session_id': trade.session_id
+                })
         
         return jsonify(trades_data), 200
     except Exception as e:
