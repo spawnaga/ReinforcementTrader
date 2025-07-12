@@ -173,6 +173,9 @@ class ActorCritic(nn.Module):
         # Apply transformer attention for temporal patterns
         if x.dim() == 3:
             attended_features = self.transformer_attention(combined_features)
+            # Handle case where transformer returns tuple (output, attention_weights)
+            if isinstance(attended_features, tuple):
+                attended_features = attended_features[0]  # Extract just the output tensor
             attended_features = attended_features.mean(dim=1)  # Global average pooling
         else:
             # For single timestep, use the combined features directly
