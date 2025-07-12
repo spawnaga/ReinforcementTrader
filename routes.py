@@ -417,3 +417,100 @@ def disconnect_interactive_brokers():
             'success': False,
             'error': str(e)
         }), 500
+
+
+@app.route("/api/system_test")
+def system_test():
+    """Test the training system setup"""
+    try:
+        results = {
+            "database": False,
+            "data_loading": False,
+            "state_creation": False,
+            "environment": False,
+            "algorithm": False,
+            "details": {}
+        }
+        
+        # Test 1: Database connection
+        from models import MarketData
+        try:
+            count = MarketData.query.count()
+            results["database"] = True
+            results["details"]["market_data_count"] = count
+        except Exception as e:
+            results["details"]["database_error"] = str(e)
+        
+        # Test 2: Data loading
+        try:
+            data = data_manager.load_nq_data()
+            if data is not None:
+                results["data_loading"] = True
+                results["details"]["data_rows"] = len(data)
+            else:
+                results["details"]["data_error"] = "No data loaded"
+        except Exception as e:
+            results["details"]["data_error"] = str(e)
+        
+        # Test 3: State creation
+        if results["data_loading"]:
+            try:
+                test_data = data.head(100)
+                # Add time column
+                if "time" not in test_data.columns:
+                    if test_data.index.name == "timestamp":
+                        test_data = test_data.reset_index()
+                        test_data.rename(columns={"timestamp": "time"}, inplace=True)
+                    else:
+                        test_data["time"] = pd.date_range(start="2025-01-01", periods=len(test_data), freq="1min")
+                
+                from gym_futures.envs.utils import TimeSeriesState
+                state = TimeSeriesState(test_data)
+                results["state_creation"] = True
+                results["details"]["state_created"] = True
+            except Exception as e:
+                results["details"]["state_error"] = str(e)
+        
+        # Test 4: Environment
+        if results["state_creation"]:
+            try:
+                from gym_futures.envs.futures_env import FuturesEnv
+                env = FuturesEnv(states=[state], value_per_tick=5.0, tick_size=0.25)
+                results["environment"] = True
+                results["details"]["env_created"] = True
+            except Exception as e:
+                results["details"]["env_error"] = str(e)
+        
+        # Test 5: Algorithm
+        if results["environment"]:
+            try:
+                from rl_algorithms.ane_ppo import ANEPPO
+                import torch
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                algo = ANEPPO(env=env, device=device)
+                results["algorithm"] = True
+                results["details"]["device"] = str(device)
+            except Exception as e:
+                results["details"]["algorithm_error"] = str(e)
+        
+        # Overall status
+        all_passed = all([
+            results["database"], 
+            results["data_loading"], 
+            results["state_creation"],
+            results["environment"],
+            results["algorithm"]
+        ])
+        
+        return jsonify({
+            "success": all_passed,
+            "tests": results,
+            "message": "All systems operational!" if all_passed else "Some tests failed"
+        })
+        
+    except Exception as e:
+        logger.error(f"System test error: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500

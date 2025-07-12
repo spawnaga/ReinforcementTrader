@@ -162,17 +162,27 @@ class TradingEngine:
                     self._end_session(session_id, 'error')
                     return
 
+                logger.info(f"Market data loaded, shape: {market_data.shape}")
+                
                 # Limit data for reasonable training time
                 original_size = len(market_data)
-                max_rows = 50000
+                max_rows = 10000  # Reduced from 50000 to prevent memory issues
                 if len(market_data) > max_rows:
+                    logger.info(f"Limiting data from {original_size:,} to {max_rows:,} rows for training")
                     market_data = market_data.tail(max_rows)
-                    logger.info(f"Limited data from {original_size:,} to {max_rows:,} rows for training")
+                    logger.info(f"Data limited successfully")
 
                 logger.info(f"Using {len(market_data):,} rows of market data for session {session_id}")
                 logger.debug(f"Market data columns: {list(market_data.columns)}")
                 logger.debug(f"Market data shape: {market_data.shape}")
                 logger.debug(f"First few rows:\n{market_data.head()}")
+                
+                # Force garbage collection to free memory
+                import gc
+                gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                logger.info(f"Memory cleaned up before state creation")
 
                 # Create time series states
                 logger.info(f"Creating time series states for session {session_id}")
@@ -253,13 +263,18 @@ class TradingEngine:
 
             logger.info(f"Creating states from {len(market_data):,} rows with window size {window_size}")
 
+            # Check if we have enough data
+            if len(market_data) < window_size + 1:
+                logger.error(f"Not enough data to create states. Need at least {window_size + 1} rows, have {len(market_data)}")
+                return []
+
             # Limit the number of states for testing
-            max_states = min(100, len(market_data) - window_size)  # Only create 100 states for testing
+            max_states = min(20, len(market_data) - window_size)  # Reduced to 20 states for faster testing
 
             logger.info(f"Will create {max_states} states from the data")
 
             for i in range(window_size, window_size + max_states):
-                if i % 10 == 0:  # Log progress every 10 states
+                if i % 5 == 0:  # Log progress every 5 states
                     logger.info(
                         f"Creating state {i - window_size + 1}/{max_states} (progress: {((i - window_size + 1) / max_states) * 100:.1f}%)")
 
@@ -269,6 +284,16 @@ class TradingEngine:
                 # Add technical indicators
                 logger.debug(f"Adding technical indicators to window {i - window_size + 1}")
                 window_data = self._add_technical_indicators(window_data)
+                
+                # Ensure we have a 'time' column for TimeSeriesState
+                if 'time' not in window_data.columns:
+                    if window_data.index.name == 'timestamp':
+                        # Reset index to make timestamp a column named 'time'
+                        window_data = window_data.reset_index()
+                        window_data.rename(columns={'timestamp': 'time'}, inplace=True)
+                    else:
+                        # Create a time column from the index
+                        window_data['time'] = window_data.index
 
                 # Ensure numeric columns are properly typed
                 numeric_columns = ['open', 'high', 'low', 'close', 'volume']
