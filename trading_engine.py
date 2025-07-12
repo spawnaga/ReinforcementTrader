@@ -138,110 +138,105 @@ class TradingEngine:
     
     def _training_loop(self, session_id: int, config: Dict):
         """Main training loop for a session"""
-        try:
-            logger.info(f"Starting training loop for session {session_id}")
-            # Update session status
-            self.active_sessions[session_id]['status'] = 'running'
-            
-            # Load market data
-            logger.info(f"Loading NQ market data for session {session_id}")
-            # Emit loading status - we don't have Flask context in thread, but that's ok
-            # We'll emit status updates through the main thread instead
-            
-            market_data = self.data_manager.load_nq_data()
-            if market_data is None or len(market_data) == 0:
-                logger.error(f"No market data available for session {session_id}")
-                self._end_session(session_id, 'error')
-                return
-            
-            # Limit data for reasonable training time (last 30 days or 50k rows max)
-            original_size = len(market_data)
-            max_rows = 50000  # Limit to 50k rows for manageable training
-            if len(market_data) > max_rows:
-                market_data = market_data.tail(max_rows)
-                logger.info(f"Limited data from {original_size:,} to {max_rows:,} rows for training")
-            
-            logger.info(f"Using {len(market_data):,} rows of market data for session {session_id}")
-            logger.debug(f"Market data columns: {list(market_data.columns)}")
-            logger.debug(f"Market data shape: {market_data.shape}")
-            logger.debug(f"First few rows:\n{market_data.head()}")
-            
-            # Create time series states
-            logger.info(f"Creating time series states for session {session_id}")
+        from app import app
+        
+        # Create app context for the entire training thread
+        with app.app_context():
             try:
+                logger.info(f"Starting training loop for session {session_id}")
+                # Update session status
+                self.active_sessions[session_id]['status'] = 'running'
+                
+                # Load market data
+                logger.info(f"Loading NQ market data for session {session_id}")
+                market_data = self.data_manager.load_nq_data()
+                if market_data is None or len(market_data) == 0:
+                    logger.error(f"No market data available for session {session_id}")
+                    self._end_session(session_id, 'error')
+                    return
+                
+                # Limit data for reasonable training time
+                original_size = len(market_data)
+                max_rows = 50000
+                if len(market_data) > max_rows:
+                    market_data = market_data.tail(max_rows)
+                    logger.info(f"Limited data from {original_size:,} to {max_rows:,} rows for training")
+                
+                logger.info(f"Using {len(market_data):,} rows of market data for session {session_id}")
+                logger.debug(f"Market data columns: {list(market_data.columns)}")
+                logger.debug(f"Market data shape: {market_data.shape}")
+                logger.debug(f"First few rows:\n{market_data.head()}")
+                
+                # Create time series states
+                logger.info(f"Creating time series states for session {session_id}")
                 states = self._create_time_series_states(market_data)
                 if not states:
                     logger.error(f"Failed to create any time series states for session {session_id}")
                     self._end_session(session_id, 'error')
                     return
                 logger.info(f"Created {len(states)} time series states for session {session_id}")
-            except Exception as e:
-                logger.error(f"Error creating time series states for session {session_id}: {str(e)}")
-                logger.exception(e)
-                self._end_session(session_id, 'error')
-                return
-            
-            # Create trading environment
-            logger.info(f"Creating FuturesEnv for session {session_id}")
-            env = FuturesEnv(
-                states=states,
-                value_per_tick=self.market_params['value_per_tick'],
-                tick_size=self.market_params['tick_size'],
-                fill_probability=self.market_params['fill_probability'],
-                long_values=self.market_params['long_values'],
-                long_probabilities=self.market_params['long_probabilities'],
-                short_values=self.market_params['short_values'],
-                short_probabilities=self.market_params['short_probabilities'],
-                execution_cost_per_order=self.market_params['execution_cost_per_order']
-            )
-            logger.info(f"FuturesEnv created successfully for session {session_id}")
-            
-            # Initialize algorithm
-            algorithm_type = config.get('algorithm_type', 'ANE_PPO')
-            logger.info(f"Creating {algorithm_type} algorithm for session {session_id}")
-            algorithm = self._create_algorithm(algorithm_type, env, config)
-            logger.info(f"Algorithm created successfully for session {session_id}")
-            
-            # Training parameters
-            total_episodes = config.get('total_episodes', 1000)
-            save_interval = config.get('save_interval', 100)
-            
-            # Training loop
-            for episode in range(total_episodes):
-                if self.active_sessions[session_id]['status'] == 'stopping':
-                    break
                 
-                # Train one episode
-                episode_reward, episode_loss, episode_metrics = self._train_episode(
-                    env, algorithm, episode, session_id
+                # Create trading environment
+                logger.info(f"Creating FuturesEnv for session {session_id}")
+                env = FuturesEnv(
+                    states=states,
+                    value_per_tick=self.market_params['value_per_tick'],
+                    tick_size=self.market_params['tick_size'],
+                    fill_probability=self.market_params['fill_probability'],
+                    long_values=self.market_params['long_values'],
+                    long_probabilities=self.market_params['long_probabilities'],
+                    short_values=self.market_params['short_values'],
+                    short_probabilities=self.market_params['short_probabilities'],
+                    execution_cost_per_order=self.market_params['execution_cost_per_order']
                 )
+                logger.info(f"FuturesEnv created successfully for session {session_id}")
                 
-                # Update session statistics
-                self._update_session_stats(session_id, episode, episode_reward, episode_metrics)
+                # Initialize algorithm
+                algorithm_type = config.get('algorithm_type', 'ANE_PPO')
+                logger.info(f"Creating {algorithm_type} algorithm for session {session_id}")
+                algorithm = self._create_algorithm(algorithm_type, env, config)
+                logger.info(f"Algorithm created successfully for session {session_id}")
                 
-                # Save model periodically
-                if episode % save_interval == 0:
-                    self._save_model(session_id, algorithm, episode)
+                # Training parameters
+                total_episodes = config.get('total_episodes', 1000)
+                save_interval = config.get('save_interval', 100)
                 
-                # Emit real-time updates
-                from extensions import socketio
-                socketio.emit('training_update', {
-                    'session_id': session_id,
-                    'episode': episode,
-                    'reward': episode_reward,
-                    'loss': episode_loss,
-                    'metrics': episode_metrics
-                })
+                # Training loop
+                for episode in range(total_episodes):
+                    if self.active_sessions[session_id]['status'] == 'stopping':
+                        break
+                    
+                    # Train one episode
+                    episode_reward, episode_loss, episode_metrics = self._train_episode(
+                        env, algorithm, episode, session_id
+                    )
+                    
+                    # Update session statistics
+                    self._update_session_stats(session_id, episode, episode_reward, episode_metrics)
+                    
+                    # Save model periodically
+                    if episode % save_interval == 0:
+                        self._save_model(session_id, algorithm, episode)
+                    
+                    # Emit real-time updates
+                    from extensions import socketio
+                    socketio.emit('training_update', {
+                        'session_id': session_id,
+                        'episode': episode,
+                        'reward': episode_reward,
+                        'loss': episode_loss,
+                        'metrics': episode_metrics
+                    })
+                    
+                    # Small delay to prevent overwhelming the system
+                    time.sleep(0.01)
                 
-                # Small delay to prevent overwhelming the system
-                time.sleep(0.01)
-            
-            # End session
-            self._end_session(session_id, 'completed')
-            
-        except Exception as e:
-            logger.error(f"Error in training loop for session {session_id}: {str(e)}")
-            self._end_session(session_id, 'error')
+                # End session
+                self._end_session(session_id, 'completed')
+                
+            except Exception as e:
+                logger.error(f"Error in training loop for session {session_id}: {str(e)}")
+                self._end_session(session_id, 'error')
     
     def _create_time_series_states(self, market_data: pd.DataFrame) -> List[TimeSeriesState]:
         """Create time series states from market data"""
