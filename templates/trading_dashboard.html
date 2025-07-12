@@ -587,16 +587,83 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize charts
     try {
-        charts = new TradingCharts('price-chart');
-        console.log('✅ TradingCharts initialized successfully');
-        
-        // Force a chart update to display sample data
-        if (charts && charts.priceChart) {
-            console.log('📈 Price chart is available, updating...');
-            charts.priceChart.update();
-        }
+        // Wait a bit for DOM to be ready
+        setTimeout(() => {
+            const priceCanvas = document.getElementById('price-chart');
+            if (priceCanvas) {
+                console.log('Found price-chart canvas, initializing...');
+                
+                // Create a simple chart directly
+                const ctx = priceCanvas.getContext('2d');
+                const now = new Date();
+                const sampleData = [];
+                
+                // Generate sample data
+                for (let i = 20; i >= 0; i--) {
+                    sampleData.push({
+                        x: new Date(now.getTime() - i * 60000),
+                        y: 15000 + Math.random() * 100 - 50
+                    });
+                }
+                
+                window.priceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'NQ Futures Price',
+                            data: sampleData,
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'time',
+                                grid: {
+                                    color: 'rgba(255,255,255,0.1)'
+                                },
+                                ticks: {
+                                    color: 'white'
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: 'rgba(255,255,255,0.1)'
+                                },
+                                ticks: {
+                                    color: 'white'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'white'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                console.log('✅ Price chart created successfully');
+                
+                // Also try TradingCharts for other features
+                try {
+                    charts = new TradingCharts('price-chart');
+                    console.log('✅ TradingCharts initialized successfully');
+                } catch (e) {
+                    console.log('TradingCharts initialization failed, but basic chart is working');
+                }
+            } else {
+                console.error('Price chart canvas not found!');
+            }
+        }, 500);
     } catch (chartError) {
-        console.error('❌ Error initializing TradingCharts:', chartError);
+        console.error('❌ Error initializing charts:', chartError);
     }
     
     // Manual trading controls

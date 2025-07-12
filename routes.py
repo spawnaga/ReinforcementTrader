@@ -556,4 +556,9 @@ def system_test():
             "error": str(e)
         }), 500
 
+@app.route('/chart_debug')
+def chart_debug():
+    """Chart debug page"""
+    return render_template('chart_debug.html')
+
 
