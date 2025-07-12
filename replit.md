@@ -137,4 +137,7 @@ Preferred communication style: Simple, everyday language.
 - **Reward Calculation**: Fixed NoneType subtraction errors by adding null checks for entry/exit prices
 - **Type Safety**: Ensured all data types are properly converted to float32 before tensor conversion
 
+### Version Control Configuration
+- **Added .gitignore**: Comprehensive ignore patterns for models/, logs/, attached_assets/, database files, cache directories, and ML checkpoints to prevent merge conflicts
+
 The system is designed to be highly scalable, with the ability to add multiple trading algorithms, extend to different financial instruments, and integrate with various data sources and brokers.
