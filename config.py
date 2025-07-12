@@ -39,12 +39,12 @@ class Config:
     SESSION_COOKIE_SAMESITE = 'Lax'
     
     # WebSocket Configuration
-    SOCKETIO_ASYNC_MODE = None  # Let Flask-SocketIO auto-detect the best mode
+    SOCKETIO_ASYNC_MODE = 'threading'  # Use threading mode for sync workers
     SOCKETIO_CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ORIGINS', '*')
     SOCKETIO_LOGGER = False
     SOCKETIO_ENGINEIO_LOGGER = False
-    SOCKETIO_PING_TIMEOUT = 600  # 10 minutes
-    SOCKETIO_PING_INTERVAL = 300  # 5 minutes
+    SOCKETIO_PING_TIMEOUT = 20  # Reduce to 20 seconds
+    SOCKETIO_PING_INTERVAL = 10  # Reduce to 10 seconds
     
     # Trading Configuration
     DEFAULT_SYMBOL = 'NQ'

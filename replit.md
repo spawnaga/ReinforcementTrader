@@ -117,9 +117,16 @@ Preferred communication style: Simple, everyday language.
 - **Session Management**: Added automatic cleanup for stale training sessions
 
 ### Known Issues
-- **WebSocket Timeouts**: Fixed by updating SocketIO configuration to auto-detect async mode and adding longer timeout settings
+- **WebSocket Timeouts**: Fixed by:
+  - Setting SOCKETIO_ASYNC_MODE to 'threading' for sync workers
+  - Reducing ping timeout to 20s and ping interval to 10s
+  - This prevents the 30-second worker timeout issue
 - **GPU Access**: System running in CPU-only mode in Replit environment despite detecting GPUs
-- **UI Updates**: Performance metrics being broadcast successfully to frontend
-- **Worker Configuration**: Gunicorn using sync worker (workflow limitation) but WebSocket handling improved with proper configuration
+- **UI Updates**: Performance metrics being broadcast successfully to frontend every 5 seconds
+- **Worker Configuration**: Gunicorn using sync worker (workflow limitation) but WebSocket handling improved with threading mode
+- **Database Locking**: Fixed by:
+  - Enabling SQLite WAL mode for better concurrent access
+  - Setting pool_size to 1 for SQLite
+  - Adding retry logic with exponential backoff
 
 The system is designed to be highly scalable, with the ability to add multiple trading algorithms, extend to different financial instruments, and integrate with various data sources and brokers.
