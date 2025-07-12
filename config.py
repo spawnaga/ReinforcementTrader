@@ -9,6 +9,7 @@ class Config:
     SECRET_KEY = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
     
     # Database Configuration
+    # Use PostgreSQL for better concurrent access with multi-threading and multi-GPU
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///trading_system.db')
     if 'sqlite' in SQLALCHEMY_DATABASE_URI:
         # SQLite specific settings to handle concurrent access

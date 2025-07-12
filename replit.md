@@ -108,6 +108,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 12, 2025)
 
+### PostgreSQL Migration (July 12, 2025 - Latest)
+- **Database Migration**: Successfully migrated from SQLite to PostgreSQL to solve concurrent access issues with multi-GPU training
+  - SQLite limitations: Only one writer at a time, causing "readonly database" errors with 4 GPU processes + threads
+  - PostgreSQL benefits: True concurrent write support, better suited for multi-GPU distributed training
+  - Created migrate_to_postgresql.py and auto_migrate_to_postgresql.py scripts for data migration
+  - Updated app.py with PostgreSQL-optimized connection pooling (30 connections + 20 overflow)
+  - System now uses PostgreSQL database provisioned by Replit
+  - Migrated data: 7,406 rows of market data and 10 trades successfully transferred
+  - Removed SQLite-specific workarounds from trading_engine.py (db_connection_manager, ensure_db_writable calls)
+
+## Previous Updates (July 12, 2025)
+
 ### Bug Fixes and Improvements
 - **Training System**: Fixed training stall issue by improving TimeSeriesState creation with automatic timestamp column detection
 - **Performance Monitoring**: Confirmed WebSocket broadcasting working correctly, UI elements properly configured with IDs (gpu-progress, memory-progress, network-progress, speed-progress)

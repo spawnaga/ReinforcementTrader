@@ -35,12 +35,16 @@ if 'sqlite' in database_uri:
         }
     }
 else:
+    # PostgreSQL configuration optimized for multi-GPU training
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         "pool_recycle": 300,
         "pool_pre_ping": True,
-        "pool_size": 20,
-        "max_overflow": 0
+        "pool_size": 30,        # Increased for 4 GPUs + threads
+        "max_overflow": 20,     # Allow overflow connections
+        "pool_timeout": 30,     # Connection timeout
+        "echo_pool": True       # Log pool events for debugging
     }
+    logging.info("PostgreSQL configured for high-concurrency multi-GPU training")
 
 # Initialize extensions
 db.init_app(app)

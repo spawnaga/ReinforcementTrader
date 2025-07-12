@@ -18,8 +18,7 @@ from rl_algorithms.genetic_optimizer import GeneticOptimizer
 from data_manager import DataManager
 from ib_integration import IBIntegration
 from risk_manager import RiskManager
-from db_utils import retry_on_db_error, check_and_fix_db_permissions, ensure_db_writable
-from db_connection_manager import get_db_connection
+from db_utils import retry_on_db_error
 
 logger = logging.getLogger(__name__)
 
@@ -499,9 +498,6 @@ class TradingEngine:
         from app import app
         try:
             with app.app_context():
-                # Ensure database is writable
-                ensure_db_writable()
-
                 metric = TrainingMetrics(
                     session_id=session_id,
                     episode=episode,
@@ -525,9 +521,6 @@ class TradingEngine:
         from app import app
         try:
             with app.app_context():
-                # Ensure database is writable
-                ensure_db_writable()
-
                 session = TradingSession.query.get(session_id)
                 if session:
                     session.current_episode = episode
