@@ -3,6 +3,10 @@ import logging
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 from extensions import db, socketio
+import sqlite3
+
+conn = sqlite3.connect('instance/trading_system.db', check_same_thread=False)
+conn.execute("PRAGMA journal_mode=WAL;")
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -31,22 +35,18 @@ socketio.init_app(app)
 
 # Initialize trading engine before importing routes to avoid circular imports
 from trading_engine import TradingEngine
+
 trading_engine = TradingEngine()
 
 with app.app_context():
-    # Import models and routes
-    import models
-    import routes
-    import websocket_handler
-    # import test_routes  # Commented out - test_training already exists
-    
     # Create all tables
     db.create_all()
-    
+
     # Enable WAL mode for SQLite to handle concurrent access better
     if 'sqlite' in app.config['SQLALCHEMY_DATABASE_URI']:
         try:
             from sqlalchemy import text
+
             with db.engine.connect() as conn:
                 conn.execute(text("PRAGMA journal_mode=WAL"))
                 conn.execute(text("PRAGMA busy_timeout=30000"))  # 30 seconds
@@ -55,3 +55,6 @@ with app.app_context():
                 logging.info("SQLite WAL mode enabled for better concurrent access")
         except Exception as e:
             logging.warning(f"Could not enable WAL mode: {e}")
+
+# Import routes after all setup (this registers them with the app)
+from routes import *
