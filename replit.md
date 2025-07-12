@@ -116,7 +116,8 @@ Preferred communication style: Simple, everyday language.
 - **Debug Logging**: Set log level to DEBUG for better diagnostics during training
 - **Session Management**: Added automatic cleanup for stale training sessions
 - **Data Type Fixes**: Added numeric type conversion for OHLCV columns to fix numpy object dtype tensor conversion errors
-- **ANE-PPO Algorithm**: Updated state-to-tensor conversion to handle DataFrames with mixed types by extracting only numeric columns
+- **ANE-PPO Algorithm**: Enhanced state-to-tensor conversion with robust type handling for memoryview, DataFrames, and numpy arrays
+- **Environment Consistency**: Fixed futures_env reset method to return TimeSeriesState objects instead of flattened arrays
 
 ### Known Issues
 - **WebSocket Timeouts**: Fixed by:

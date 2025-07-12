@@ -433,18 +433,12 @@ class FuturesEnv(gym.Env):
         self.feature_data = []
 
         if self.states:
+            # Return the first state object directly for consistency with step()
             initial_state = self.states[0]
-            if hasattr(initial_state, 'data'):
-                if hasattr(initial_state.data, 'values'):
-                    return initial_state.data.values.flatten()
-                elif hasattr(initial_state.data, '__array__'):
-                    return np.array(initial_state.data).flatten()
-                else:
-                    return np.array([initial_state.price])
-            else:
-                return np.array([initial_state.price])
+            return initial_state
         
-        return np.array([0.0])
+        # Return empty state if no states available
+        return None
 
     def render(self, mode='human'):
         """Render the environment"""

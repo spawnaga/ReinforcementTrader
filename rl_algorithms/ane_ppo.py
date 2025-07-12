@@ -285,12 +285,17 @@ class ANEPPO:
             return np.random.choice(3)  # Random fallback
     
     def _state_to_tensor(self, state) -> torch.Tensor:
-        """Convert state to tensor"""
+        """Convert state to tensor with robust type handling"""
         try:
             # Handle memoryview objects
             if isinstance(state, memoryview):
                 # Convert memoryview to numpy array
-                data = np.frombuffer(state, dtype=np.float32)
+                try:
+                    data = np.frombuffer(state, dtype=np.float32)
+                except:
+                    # If float32 fails, try converting as bytes first
+                    data = np.frombuffer(state, dtype=np.uint8).astype(np.float32)
+                
                 # Reshape to match input dimension
                 if data.size >= self.input_dim:
                     current_state = data[:self.input_dim]
@@ -305,12 +310,18 @@ class ANEPPO:
                     # DataFrame - extract only numeric columns
                     import pandas as pd
                     df = state.data
+                    
+                    # First convert all columns to proper numeric types
+                    numeric_cols = ['open', 'high', 'low', 'close', 'volume']
+                    for col in numeric_cols:
+                        if col in df.columns:
+                            df[col] = pd.to_numeric(df[col], errors='coerce')
+                    
+                    # Select numeric columns
                     numeric_df = df.select_dtypes(include=[np.number])
                     
-                    # If no numeric columns, try to extract from specific columns
+                    # If no numeric columns, try specific columns
                     if numeric_df.empty:
-                        # Try common numeric column names
-                        numeric_cols = ['open', 'high', 'low', 'close', 'volume']
                         available_cols = [col for col in numeric_cols if col in df.columns]
                         if available_cols:
                             numeric_df = df[available_cols]
@@ -318,13 +329,29 @@ class ANEPPO:
                             logger.error(f"No numeric columns found in state data")
                             return torch.zeros(1, self.input_dim).to(self.device)
                     
+                    # Fill NaN values with 0
+                    numeric_df = numeric_df.fillna(0)
+                    
+                    # Convert to float32 numpy array
                     data = numeric_df.values.astype(np.float32)
                 elif hasattr(state.data, 'shape'):
-                    # NumPy array
-                    data = state.data.astype(np.float32)
+                    # NumPy array - ensure it's numeric
+                    if state.data.dtype == np.object:
+                        # Try to convert object array to float
+                        try:
+                            data = np.array(state.data, dtype=np.float32)
+                        except:
+                            logger.error(f"Cannot convert object array to float32")
+                            return torch.zeros(1, self.input_dim).to(self.device)
+                    else:
+                        data = state.data.astype(np.float32)
                 else:
-                    # List or other
-                    data = np.array(state.data, dtype=np.float32)
+                    # List or other - convert to numpy array
+                    try:
+                        data = np.array(state.data, dtype=np.float32)
+                    except:
+                        logger.error(f"Cannot convert state data to numpy array")
+                        return torch.zeros(1, self.input_dim).to(self.device)
                 
                 # Ensure 2D shape
                 if data.ndim == 1:
@@ -345,8 +372,33 @@ class ANEPPO:
                     current_state = current_state[:self.input_dim]
                 
                 return torch.FloatTensor(current_state).unsqueeze(0).to(self.device)
+            
+            # Handle numpy arrays directly
+            elif isinstance(state, np.ndarray):
+                if state.dtype == np.object:
+                    try:
+                        state = state.astype(np.float32)
+                    except:
+                        logger.error(f"Cannot convert numpy object array to float32")
+                        return torch.zeros(1, self.input_dim).to(self.device)
+                else:
+                    state = state.astype(np.float32)
+                
+                # Flatten if needed
+                if state.ndim > 1:
+                    state = state.flatten()
+                
+                # Pad or truncate
+                if len(state) < self.input_dim:
+                    state = np.pad(state, (0, self.input_dim - len(state)), constant_values=0)
+                elif len(state) > self.input_dim:
+                    state = state[:self.input_dim]
+                
+                return torch.FloatTensor(state).unsqueeze(0).to(self.device)
+            
             else:
                 # Fallback: create dummy state
+                logger.warning(f"Unknown state type: {type(state)}")
                 return torch.zeros(1, self.input_dim).to(self.device)
                 
         except Exception as e:
