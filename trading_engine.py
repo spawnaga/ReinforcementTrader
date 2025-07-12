@@ -190,6 +190,15 @@ class TradingEngine:
                         
                     # Sort by timestamp ascending after limiting
                     market_data = market_data.sort_values('timestamp')
+                    
+                    # Rename columns to match what the rest of the code expects
+                    market_data = market_data.rename(columns={
+                        'open_price': 'open',
+                        'high_price': 'high',
+                        'low_price': 'low',
+                        'close_price': 'close'
+                    })
+                    
                     logger.info(f"Loaded {len(market_data)} rows from database")
                     
                 except Exception as e:

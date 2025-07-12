@@ -110,10 +110,10 @@ def main():
                     record = MarketData(
                         symbol='NQ',
                         timestamp=pd.to_datetime(row['timestamp']),
-                        open=float(row['open']),
-                        high=float(row['high']),
-                        low=float(row['low']),
-                        close=float(row['close']),
+                        open_price=float(row['open']),
+                        high_price=float(row['high']),
+                        low_price=float(row['low']),
+                        close_price=float(row['close']),
                         volume=int(row['volume'])
                     )
                     records.append(record)

@@ -108,7 +108,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 12, 2025)
 
-### Training Hang Fix (July 12, 2025 - Latest)
+### Database Field Name Fix (July 12, 2025 - Latest)
+- **Fixed Database Schema Mismatch**: Resolved critical issue where CSV data columns (open, high, low, close) didn't match MarketData model fields (open_price, high_price, low_price, close_price)
+  - Updated load_user_data.py, quick_fix_training.py, and migrate_local_data.py to use correct field mappings
+  - Added column renaming in trading_engine.py to map database fields to expected names for technical indicators
+  - User's CSV data format confirmed: timestamp,open,high,low,close,volume
+  - All data loading scripts now properly map CSV columns to database schema
+  - Training system now correctly processes data without field name errors
+
+### Training Hang Fix (July 12, 2025)
 - **Fixed Training Hang Issue**: Resolved the issue where training would hang when processing 5.3M rows of data
   - Modified data loading to use SQL LIMIT query instead of loading all data into memory
   - Reduced initial load to 500 rows for immediate testing
