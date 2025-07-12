@@ -27,7 +27,7 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <h5 class="card-title">Total Trades</h5>
-                        <h2 class="mb-0">{{ recent_trades|length }}</h2>
+                        <h2 class="mb-0">{{ total_trades_count }}</h2>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-chart-line fa-2x"></i>
@@ -247,8 +247,12 @@
                                 {% endif %}
                             </small>
                         </div>
-                        <span class="badge bg-{{ 'success' if trade.profit_loss > 0 else 'danger' }} rounded-pill">
-                            ${{ "%.2f"|format(trade.profit_loss) }}
+                        <span class="badge bg-{{ 'success' if trade.profit_loss and trade.profit_loss > 0 else 'danger' if trade.profit_loss and trade.profit_loss < 0 else 'secondary' }} rounded-pill">
+                            {% if trade.profit_loss %}
+                                ${{ "%.2f"|format(trade.profit_loss) }}
+                            {% else %}
+                                N/A
+                            {% endif %}
                         </span>
                     </div>
                     {% endfor %}

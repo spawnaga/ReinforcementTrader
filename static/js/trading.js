@@ -600,14 +600,41 @@ class TradingDashboard {
     }
     
     updateSessionInfo(session) {
-        document.getElementById('currentSessionName').textContent = session.session_name;
-        document.getElementById('sessionProfit').textContent = `$${session.total_profit.toFixed(2)}`;
-        document.getElementById('sessionWinRate').textContent = `${(session.win_rate * 100).toFixed(1)}%`;
-        document.getElementById('sessionSharpe').textContent = session.sharpe_ratio.toFixed(2);
-        document.getElementById('sessionDrawdown').textContent = `${(session.max_drawdown * 100).toFixed(1)}%`;
+        // Update session name if element exists
+        const sessionNameEl = document.getElementById('currentSessionName');
+        if (sessionNameEl) {
+            sessionNameEl.textContent = session.session_name;
+        }
+        
+        // Update profit if element exists
+        const profitEl = document.getElementById('sessionProfit');
+        if (profitEl) {
+            profitEl.textContent = `$${session.total_profit.toFixed(2)}`;
+        }
+        
+        // Update win rate if element exists
+        const winRateEl = document.getElementById('sessionWinRate');
+        if (winRateEl) {
+            winRateEl.textContent = `${(session.win_rate * 100).toFixed(1)}%`;
+        }
+        
+        // Update sharpe ratio if element exists
+        const sharpeEl = document.getElementById('sessionSharpe');
+        if (sharpeEl) {
+            sharpeEl.textContent = session.sharpe_ratio.toFixed(2);
+        }
+        
+        // Update drawdown if element exists
+        const drawdownEl = document.getElementById('sessionDrawdown');
+        if (drawdownEl) {
+            drawdownEl.textContent = `${(session.max_drawdown * 100).toFixed(1)}%`;
+        }
         
         this.isTraining = session.status === 'active';
-        document.getElementById('stopTraining').disabled = !this.isTraining;
+        const stopButton = document.getElementById('stopTraining');
+        if (stopButton) {
+            stopButton.disabled = !this.isTraining;
+        }
     }
     
     updateTrainingMetrics(data) {

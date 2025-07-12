@@ -17,10 +17,12 @@ def index():
     """Main dashboard page"""
     active_sessions = TradingSession.query.filter_by(status='active').all()
     recent_trades = Trade.query.order_by(Trade.entry_time.desc()).limit(10).all()
+    total_trades_count = Trade.query.count()
     
     return render_template('index.html', 
                          active_sessions=active_sessions,
-                         recent_trades=recent_trades)
+                         recent_trades=recent_trades,
+                         total_trades_count=total_trades_count)
 
 @app.route('/trading_dashboard')
 def trading_dashboard():
