@@ -267,6 +267,32 @@ def get_sessions():
         logger.error(f"Error fetching sessions: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/session_status/<status>')
+def get_sessions_by_status(status):
+    """Get trading sessions by status"""
+    try:
+        sessions = TradingSession.query.filter_by(status=status).order_by(TradingSession.start_time.desc()).all()
+        result = []
+        
+        for session in sessions:
+            result.append({
+                'id': session.id,
+                'name': session.session_name,
+                'algorithm_type': session.algorithm_type,
+                'status': session.status,
+                'start_time': session.start_time.isoformat() if session.start_time else None,
+                'end_time': session.end_time.isoformat() if session.end_time else None,
+                'total_episodes': session.total_episodes,
+                'current_episode': session.current_episode,
+                'total_profit': session.total_profit
+            })
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Error fetching sessions by status: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/recent_trades')
 def get_recent_trades():
     """Get recent trades for a session or all sessions"""
