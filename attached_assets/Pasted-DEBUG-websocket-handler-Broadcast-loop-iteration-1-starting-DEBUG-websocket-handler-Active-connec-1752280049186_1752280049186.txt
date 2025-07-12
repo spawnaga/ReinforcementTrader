@@ -1,0 +1,68 @@
+DEBUG:websocket_handler:Broadcast loop iteration 1 starting...
+DEBUG:websocket_handler:Active connections found: 2
+DEBUG:websocket_handler:Collecting system performance metrics...
+INFO:websocket_handler:Background broadcast thread started
+DEBUG:websocket_handler:CPU usage collected: 4.1%
+DEBUG:websocket_handler:CPU usage collected: 4.0%
+DEBUG:websocket_handler:Memory usage collected: 11.7%
+DEBUG:websocket_handler:Memory usage collected: 11.7%
+DEBUG:websocket_handler:GPU usage collected: 4%
+DEBUG:websocket_handler:GPU usage collected: 4%
+DEBUG:websocket_handler:Network I/O collected: 3995.39 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 4.1%, Memory: 11.7%, GPU: 4.0%, Network: 3995.39 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 1 active training sessions
+DEBUG:websocket_handler:Getting real-time data for session 20
+DEBUG:websocket_handler:Network I/O collected: 3995.39 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 4.0%, Memory: 11.7%, GPU: 4.0%, Network: 3995.39 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 1 active training sessions
+DEBUG:websocket_handler:Getting real-time data for session 20
+DEBUG:websocket_handler:Broadcasting update for session 20
+DEBUG:websocket_handler:Broadcast loop iteration 1 complete, sleeping for 5 seconds
+DEBUG:websocket_handler:Broadcasting update for session 20
+DEBUG:websocket_handler:Broadcast loop iteration 1 complete, sleeping for 5 seconds
+DEBUG:websocket_handler:Broadcast loop iteration 2 starting...
+DEBUG:websocket_handler:Active connections found: 2
+DEBUG:websocket_handler:Collecting system performance metrics...
+DEBUG:websocket_handler:Broadcast loop iteration 2 starting...
+DEBUG:websocket_handler:Active connections found: 2
+DEBUG:websocket_handler:Collecting system performance metrics...
+DEBUG:websocket_handler:CPU usage collected: 8.9%
+DEBUG:websocket_handler:Memory usage collected: 11.7%
+DEBUG:websocket_handler:CPU usage collected: 8.9%
+DEBUG:websocket_handler:Memory usage collected: 11.7%
+DEBUG:websocket_handler:GPU usage collected: 6%
+DEBUG:websocket_handler:GPU usage collected: 6%
+DEBUG:websocket_handler:Network I/O collected: 3995.93 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 8.9%, Memory: 11.7%, GPU: 6.0%, Network: 3995.93 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 1 active training sessions
+DEBUG:websocket_handler:Getting real-time data for session 20
+DEBUG:websocket_handler:Network I/O collected: 3995.93 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 8.9%, Memory: 11.7%, GPU: 6.0%, Network: 3995.93 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 1 active training sessions
+DEBUG:websocket_handler:Getting real-time data for session 20
+WARNING:websocket_handler:Database locked, retrying in 0.1s (attempt 1/3)
+WARNING:websocket_handler:Database locked, retrying in 0.1s (attempt 1/3)
+WARNING:websocket_handler:Database locked, retrying in 0.2s (attempt 2/3)
+WARNING:websocket_handler:Database locked, retrying in 0.2s (attempt 2/3)
+ERROR:websocket_handler:Error getting session real-time data after 3 attempts: (sqlite3.OperationalError) database is locked
+[SQL: SELECT trading_session.id AS trading_session_id, trading_session.session_name AS trading_session_session_name, trading_session.algorithm_type AS trading_session_algorithm_type, trading_session.parameters AS trading_session_parameters, trading_session.start_time AS trading_session_start_time, trading_session.end_time AS trading_session_end_time, trading_session.status AS trading_session_status, trading_session.total_episodes AS trading_session_total_episodes, trading_session.current_episode AS trading_session_current_episode, trading_session.total_profit AS trading_session_total_profit, trading_session.total_trades AS trading_session_total_trades, trading_session.win_rate AS trading_session_win_rate, trading_session.sharpe_ratio AS trading_session_sharpe_ratio, trading_session.max_drawdown AS trading_session_max_drawdown 
+FROM trading_session 
+WHERE trading_session.id = ?]
+[parameters: (20,)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+DEBUG:websocket_handler:Broadcast loop iteration 2 complete, sleeping for 5 seconds
+ERROR:websocket_handler:Error getting session real-time data after 3 attempts: (sqlite3.OperationalError) database is locked
+[SQL: SELECT trading_session.id AS trading_session_id, trading_session.session_name AS trading_session_session_name, trading_session.algorithm_type AS trading_session_algorithm_type, trading_session.parameters AS trading_session_parameters, trading_session.start_time AS trading_session_start_time, trading_session.end_time AS trading_session_end_time, trading_session.status AS trading_session_status, trading_session.total_episodes AS trading_session_total_episodes, trading_session.current_episode AS trading_session_current_episode, trading_session.total_profit AS trading_session_total_profit, trading_session.total_trades AS trading_session_total_trades, trading_session.win_rate AS trading_session_win_rate, trading_session.sharpe_ratio AS trading_session_sharpe_ratio, trading_session.max_drawdown AS trading_session_max_drawdown 
+FROM trading_session 
+WHERE trading_session.id = ?]
+[parameters: (20,)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+DEBUG:websocket_handler:Broadcast loop iteration 2 complete, sleeping for 5 seconds

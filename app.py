@@ -41,3 +41,16 @@ with app.app_context():
     
     # Create all tables
     db.create_all()
+    
+    # Enable WAL mode for SQLite to handle concurrent access better
+    if 'sqlite' in app.config['SQLALCHEMY_DATABASE_URI']:
+        try:
+            from sqlalchemy import text
+            with db.engine.connect() as conn:
+                conn.execute(text("PRAGMA journal_mode=WAL"))
+                conn.execute(text("PRAGMA busy_timeout=30000"))  # 30 seconds
+                conn.execute(text("PRAGMA synchronous=NORMAL"))
+                conn.commit()
+                logging.info("SQLite WAL mode enabled for better concurrent access")
+        except Exception as e:
+            logging.warning(f"Could not enable WAL mode: {e}")

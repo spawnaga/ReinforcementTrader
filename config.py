@@ -14,9 +14,12 @@ class Config:
         # SQLite specific settings to handle concurrent access
         SQLALCHEMY_ENGINE_OPTIONS = {
             'pool_pre_ping': True,
+            'pool_size': 1,  # SQLite only allows one writer at a time
+            'max_overflow': 0,  # Don't create extra connections
             'connect_args': {
                 'check_same_thread': False,
-                'timeout': 15
+                'timeout': 30,  # Increase timeout to 30 seconds
+                'isolation_level': None  # Use autocommit mode
             }
         }
     else:

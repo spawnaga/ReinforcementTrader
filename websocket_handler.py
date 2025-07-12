@@ -412,55 +412,92 @@ def get_system_status() -> Dict[str, Any]:
 def get_session_real_time_data(session_id: int) -> Optional[Dict[str, Any]]:
     """Get real-time data for a training session with retry logic for database locks"""
     import time
+    import random
     from sqlalchemy.exc import OperationalError
+    from sqlalchemy import text
     
-    max_retries = 3
-    retry_delay = 0.1  # Start with 100ms
+    max_retries = 5  # Increase retries
+    base_delay = 0.5  # Start with 500ms
     
     for attempt in range(max_retries):
         try:
             with app.app_context():
-                session = TradingSession.query.get(session_id)
-                if not session:
-                    return None
-                
-                # Get latest training metrics
-                latest_metrics = TrainingMetrics.query.filter_by(
-                    session_id=session_id
-                ).order_by(TrainingMetrics.episode.desc()).first()
-                
-                # Get recent trades
-                recent_trades = Trade.query.filter_by(
-                    session_id=session_id
-                ).order_by(Trade.entry_time.desc()).limit(10).all()
-                
-                return {
-                    'session_id': session_id,
-                    'current_episode': session.current_episode,
-                    'total_episodes': session.total_episodes,
-                    'total_profit': session.total_profit,
-                    'total_trades': session.total_trades,
-                    'win_rate': session.win_rate,
-                    'latest_metrics': {
-                        'episode': latest_metrics.episode if latest_metrics else 0,
-                        'reward': latest_metrics.reward if latest_metrics else 0,
-                        'loss': latest_metrics.loss if latest_metrics else 0,
-                        'timestamp': latest_metrics.timestamp.isoformat() if latest_metrics else None
-                    } if latest_metrics else None,
-                    'recent_trades': [{
-                        'trade_id': trade.trade_id,
-                        'entry_time': trade.entry_time.isoformat(),
-                        'position_type': trade.position_type,
-                        'profit_loss': trade.profit_loss,
-                        'status': trade.status
+                # Use a read-only transaction with shorter timeout
+                with db.session.begin():
+                    # Set SQLite to read-only mode for this query
+                    if 'sqlite' in app.config['SQLALCHEMY_DATABASE_URI']:
+                        db.session.execute(text("PRAGMA query_only = ON"))
+                    
+                    session = TradingSession.query.get(session_id)
+                    if not session:
+                        return None
+                    
+                    # Store basic session data
+                    session_data = {
+                        'session_id': session_id,
+                        'current_episode': session.current_episode,
+                        'total_episodes': session.total_episodes,
+                        'total_profit': session.total_profit,
+                        'total_trades': session.total_trades,
+                        'win_rate': session.win_rate
+                    }
+                    
+                    # Get latest training metrics with a simpler query
+                    latest_metrics = db.session.execute(
+                        text("""
+                            SELECT episode, reward, loss, timestamp 
+                            FROM training_metrics 
+                            WHERE session_id = :session_id 
+                            ORDER BY episode DESC 
+                            LIMIT 1
+                        """),
+                        {'session_id': session_id}
+                    ).first()
+                    
+                    if latest_metrics:
+                        session_data['latest_metrics'] = {
+                            'episode': latest_metrics[0],
+                            'reward': latest_metrics[1],
+                            'loss': latest_metrics[2],
+                            'timestamp': latest_metrics[3].isoformat() if latest_metrics[3] else None
+                        }
+                    else:
+                        session_data['latest_metrics'] = None
+                    
+                    # Get recent trades with a simpler query
+                    recent_trades = db.session.execute(
+                        text("""
+                            SELECT trade_id, entry_time, position_type, profit_loss, status 
+                            FROM trade 
+                            WHERE session_id = :session_id 
+                            ORDER BY entry_time DESC 
+                            LIMIT 10
+                        """),
+                        {'session_id': session_id}
+                    ).fetchall()
+                    
+                    session_data['recent_trades'] = [{
+                        'trade_id': trade[0],
+                        'entry_time': trade[1].isoformat() if trade[1] else None,
+                        'position_type': trade[2],
+                        'profit_loss': trade[3],
+                        'status': trade[4]
                     } for trade in recent_trades]
-                }
+                    
+                    # Reset query_only mode
+                    if 'sqlite' in app.config['SQLALCHEMY_DATABASE_URI']:
+                        db.session.execute(text("PRAGMA query_only = OFF"))
+                    
+                    return session_data
                 
         except OperationalError as e:
             if 'database is locked' in str(e) and attempt < max_retries - 1:
-                logger.warning(f"Database locked, retrying in {retry_delay}s (attempt {attempt + 1}/{max_retries})")
-                time.sleep(retry_delay)
-                retry_delay *= 2  # Exponential backoff
+                # Add random jitter to prevent thundering herd
+                jitter = random.uniform(0, 0.3)
+                sleep_time = base_delay + jitter
+                logger.warning(f"Database locked, retrying in {sleep_time:.2f}s (attempt {attempt + 1}/{max_retries})")
+                time.sleep(sleep_time)
+                base_delay *= 1.5  # Less aggressive exponential backoff
                 continue
             else:
                 logger.error(f"Error getting session real-time data after {attempt + 1} attempts: {str(e)}")
