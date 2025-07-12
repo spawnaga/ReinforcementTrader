@@ -4,12 +4,15 @@ import datetime
 import pandas as pd
 import numpy as np
 import math
+import logging
 from pathlib import Path
 from typing import List, Tuple, Sequence, Union, Dict
 from gym import error, spaces, utils
 from gym.utils import seeding
 from .utils import round_to_nearest_increment, TimeSeriesState, monotonicity 
 from uuid import uuid4
+
+logger = logging.getLogger(__name__)
 
 class FuturesEnv(gym.Env):
     """
@@ -214,12 +217,21 @@ class FuturesEnv(gym.Env):
             return net_profit
 
         else:
+            dif = 0  # Initialize dif to avoid unbound variable error
             if all([self.current_position == 0, self.last_position == 1]):
                 # closed a long
-                dif =  round((self.exit_price - self.entry_price),2)
+                if self.exit_price is not None and self.entry_price is not None:
+                    dif = round((self.exit_price - self.entry_price), 2)
+                else:
+                    logger.warning(f"Missing price data: exit_price={self.exit_price}, entry_price={self.entry_price}")
+                    return 0
             elif all([self.current_position == 0, self.last_position == -1]):
                 # closed a short
-                dif = - round((self.exit_price - self.entry_price),2)
+                if self.exit_price is not None and self.entry_price is not None:
+                    dif = -round((self.exit_price - self.entry_price), 2)
+                else:
+                    logger.warning(f"Missing price data: exit_price={self.exit_price}, entry_price={self.entry_price}")
+                    return 0
             else:
                 return net_profit
                 
@@ -227,7 +239,9 @@ class FuturesEnv(gym.Env):
             gross_profit = n_ticks * self.value_per_tick
             net_profit = gross_profit - (2*self.execution_cost_per_order)
         
-        self.total_reward += net_profit
+        # Ensure net_profit is not None before adding
+        if net_profit is not None:
+            self.total_reward += net_profit
         return net_profit
 
     def generate_random_fill_differential(self, intended_price: float, side: int) -> float:

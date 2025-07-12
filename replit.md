@@ -132,4 +132,9 @@ Preferred communication style: Simple, everyday language.
   - Setting pool_size to 1 for SQLite
   - Adding retry logic with exponential backoff
 
+### Critical Fixes Applied
+- **Memoryview Handling**: Added robust handling for memoryview objects in ANE-PPO state conversion
+- **Reward Calculation**: Fixed NoneType subtraction errors by adding null checks for entry/exit prices
+- **Type Safety**: Ensured all data types are properly converted to float32 before tensor conversion
+
 The system is designed to be highly scalable, with the ability to add multiple trading algorithms, extend to different financial instruments, and integrate with various data sources and brokers.

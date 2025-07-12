@@ -416,6 +416,11 @@ class TradingEngine:
                 # Step environment
                 next_state, reward, done, info = env.step(action)
                 
+                # Ensure reward is not None
+                if reward is None:
+                    logger.warning(f"Received None reward in episode {episode}, step {step_count}")
+                    reward = 0
+                
                 # Store experience
                 algorithm.store_experience(state, action, reward, next_state, done)
                 

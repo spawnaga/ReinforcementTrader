@@ -287,7 +287,11 @@ class ANEPPO:
     def _state_to_tensor(self, state) -> torch.Tensor:
         """Convert state to tensor with robust type handling"""
         try:
-            # Handle memoryview objects
+            # Handle None state
+            if state is None:
+                return torch.zeros(1, self.input_dim).to(self.device)
+            
+            # Handle memoryview objects directly
             if isinstance(state, memoryview):
                 # Convert memoryview to numpy array
                 try:
@@ -301,15 +305,27 @@ class ANEPPO:
                     current_state = data[:self.input_dim]
                 else:
                     # Pad with zeros if too small
-                    current_state = np.zeros(self.input_dim)
+                    current_state = np.zeros(self.input_dim, dtype=np.float32)
                     current_state[:data.size] = data
                 return torch.FloatTensor(current_state).unsqueeze(0).to(self.device)
             
             elif hasattr(state, 'data'):
-                if hasattr(state.data, 'values'):
+                # Check if state.data is a memoryview
+                if isinstance(state.data, memoryview):
+                    try:
+                        data = np.frombuffer(state.data, dtype=np.float32)
+                    except:
+                        # If float32 fails, try converting as bytes first
+                        data = np.frombuffer(state.data, dtype=np.uint8).astype(np.float32)
+                    
+                    # Ensure 2D shape
+                    if data.ndim == 1:
+                        data = data.reshape(1, -1)
+                        
+                elif hasattr(state.data, 'values'):
                     # DataFrame - extract only numeric columns
                     import pandas as pd
-                    df = state.data
+                    df = state.data.copy()  # Create a copy to avoid modifying original
                     
                     # First convert all columns to proper numeric types
                     numeric_cols = ['open', 'high', 'low', 'close', 'volume']
