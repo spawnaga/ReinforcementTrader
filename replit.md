@@ -149,6 +149,16 @@ Preferred communication style: Simple, everyday language.
   - Added feature_projection layer to combine 3 feature extractors (3×512=1536 dims) back to 512 dims
   - Replaced complex DQN Q-network with simplified Sequential network that handles 2D input properly
   - All tests now pass successfully with correct tensor dimensions throughout the network
+- **SQLite Concurrent Access Fix** (July 12, 2025): Fixed "attempt to write a readonly database" errors by:
+  - Updated app.py to use proper SQLite configuration (pool_size=1, timeout=30s, autocommit mode)
+  - Created db_connection_manager.py with thread-safe connection pooling and write locks
+  - SQLite WAL mode and PRAGMA settings already configured for better concurrent access
+  - Issue was NOT tensor dimensions - training runs successfully, only database writes were failing
+- **Multi-GPU Support Added** (July 12, 2025): Enhanced system to utilize all 4 RTX 3090 GPUs:
+  - Modified trading_engine.py to detect and log all available GPUs
+  - Added enable_multi_gpu() method to ANE-PPO algorithm
+  - System uses PyTorch DataParallel for distributed training across all GPUs
+  - Local system already shows GPU processing enabled with 4 GPUs
 
 ### Known Issues
 - **WebSocket Timeouts**: Fixed by:

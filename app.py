@@ -19,11 +19,28 @@ os.makedirs(instance_path, exist_ok=True)
 
 # Set database URI with absolute path
 default_db_path = os.path.join(instance_path, 'trading_system.db')
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", f"sqlite:///{default_db_path}")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
+database_uri = os.environ.get("DATABASE_URL", f"sqlite:///{default_db_path}")
+app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
+
+# Use proper SQLite configuration for concurrent access
+if 'sqlite' in database_uri:
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        'pool_pre_ping': True,
+        'pool_size': 1,  # SQLite only allows one writer at a time
+        'max_overflow': 0,  # Don't create extra connections
+        'connect_args': {
+            'check_same_thread': False,
+            'timeout': 30,  # Increase timeout to 30 seconds
+            'isolation_level': None  # Use autocommit mode
+        }
+    }
+else:
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+        "pool_size": 20,
+        "max_overflow": 0
+    }
 
 # Initialize extensions
 db.init_app(app)

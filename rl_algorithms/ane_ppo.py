@@ -299,7 +299,20 @@ class ANEPPO:
         self.performance_window = deque(maxlen=100)
 
         logger.info(f"ANEPPO initialized with input_dim={self.input_dim}, device={device}")
+        
+        # Multi-GPU support flag
+        self.multi_gpu_enabled = False
 
+    def enable_multi_gpu(self, gpu_count: int):
+        """Enable multi-GPU training using DataParallel"""
+        if gpu_count > 1 and torch.cuda.is_available():
+            try:
+                self.policy_network = nn.DataParallel(self.policy_network)
+                self.multi_gpu_enabled = True
+                logger.info(f"Multi-GPU training enabled with {gpu_count} GPUs")
+            except Exception as e:
+                logger.error(f"Failed to enable multi-GPU: {e}")
+    
     def _get_input_dimension(self) -> int:
         """Determine input dimension from environment"""
         try:

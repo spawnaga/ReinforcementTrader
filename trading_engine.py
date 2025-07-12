@@ -35,10 +35,15 @@ class TradingEngine:
         self.ib_integration = IBIntegration()
         self.risk_manager = RiskManager()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.gpu_count = 0
         if torch.cuda.is_available():
-            torch.cuda.set_device(0)  # Use first GPU
-            logger.info(f"CUDA available: {torch.cuda.device_count()} GPU(s) detected")
-            logger.info(f"Using GPU: {torch.cuda.get_device_name(0)}")
+            self.gpu_count = torch.cuda.device_count()
+            logger.info(f"CUDA available: {self.gpu_count} GPU(s) detected")
+            for i in range(self.gpu_count):
+                logger.info(f"GPU {i}: {torch.cuda.get_device_name(i)}")
+            # Use all GPUs by default with DataParallel
+            if self.gpu_count > 1:
+                logger.info(f"Multi-GPU training enabled with {self.gpu_count} GPUs")
 
         logger.info(f"Trading Engine initialized with device: {self.device}")
 
@@ -395,20 +400,27 @@ class TradingEngine:
             return data
 
     def _create_algorithm(self, algorithm_type: str, env, config: Dict):
-        """Create the specified algorithm"""
+        """Create the specified algorithm with multi-GPU support"""
         try:
             if algorithm_type == 'ANE_PPO':
-                return ANEPPO(
+                algorithm = ANEPPO(
                     env=env,
                     device=self.device,
                     **config.get('parameters', {})
                 )
+                # Enable multi-GPU training if available
+                if self.gpu_count > 1:
+                    algorithm.enable_multi_gpu(self.gpu_count)
+                return algorithm
             else:
                 logger.warning(f"Unknown algorithm type: {algorithm_type}, defaulting to ANE_PPO")
-                return ANEPPO(
+                algorithm = ANEPPO(
                     env=env,
                     device=self.device,
                     **config.get('parameters', {}))
+                if self.gpu_count > 1:
+                    algorithm.enable_multi_gpu(self.gpu_count)
+                return algorithm
 
         except Exception as e:
             logger.error(f"Error creating algorithm: {str(e)}")
