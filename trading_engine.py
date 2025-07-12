@@ -166,7 +166,7 @@ class TradingEngine:
                 
                 # Limit data for reasonable training time
                 original_size = len(market_data)
-                max_rows = 10000  # Reduced from 50000 to prevent memory issues
+                max_rows = 1000  # Reduced to 1000 rows for faster testing
                 if len(market_data) > max_rows:
                     logger.info(f"Limiting data from {original_size:,} to {max_rows:,} rows for training")
                     market_data = market_data.tail(max_rows)
@@ -269,7 +269,7 @@ class TradingEngine:
                 return []
 
             # Limit the number of states for testing
-            max_states = min(20, len(market_data) - window_size)  # Reduced to 20 states for faster testing
+            max_states = min(10, len(market_data) - window_size)  # Reduced to 10 states for faster testing
 
             logger.info(f"Will create {max_states} states from the data")
 

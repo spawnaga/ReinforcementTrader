@@ -60,4 +60,7 @@ def main():
         print("\n\n✓ Server stopped gracefully")
 
 if __name__ == "__main__":
+    # Set debug logging
+    import logging
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     main()
