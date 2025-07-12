@@ -154,11 +154,17 @@ class TradingEngine:
                 return
             
             logger.info(f"Loaded {len(market_data)} rows of market data for session {session_id}")
+            logger.debug(f"Market data columns: {list(market_data.columns)}")
+            logger.debug(f"Market data shape: {market_data.shape}")
+            logger.debug(f"First few rows:\n{market_data.head()}")
             
             # Create time series states
+            logger.info(f"Creating time series states for session {session_id}")
             states = self._create_time_series_states(market_data)
+            logger.info(f"Created {len(states)} time series states for session {session_id}")
             
             # Create trading environment
+            logger.info(f"Creating FuturesEnv for session {session_id}")
             env = FuturesEnv(
                 states=states,
                 value_per_tick=self.market_params['value_per_tick'],
@@ -170,10 +176,13 @@ class TradingEngine:
                 short_probabilities=self.market_params['short_probabilities'],
                 execution_cost_per_order=self.market_params['execution_cost_per_order']
             )
+            logger.info(f"FuturesEnv created successfully for session {session_id}")
             
             # Initialize algorithm
             algorithm_type = config.get('algorithm_type', 'ANE_PPO')
+            logger.info(f"Creating {algorithm_type} algorithm for session {session_id}")
             algorithm = self._create_algorithm(algorithm_type, env, config)
+            logger.info(f"Algorithm created successfully for session {session_id}")
             
             # Training parameters
             total_episodes = config.get('total_episodes', 1000)
@@ -222,7 +231,15 @@ class TradingEngine:
             states = []
             window_size = 60  # 1 hour of 1-minute data
             
-            for i in range(window_size, len(market_data)):
+            logger.debug(f"Creating states from {len(market_data)} rows with window size {window_size}")
+            
+            # Limit the number of states for testing
+            max_states = min(100, len(market_data) - window_size)  # Only create 100 states for testing
+            
+            for i in range(window_size, window_size + max_states):
+                if i % 20 == 0:  # Log progress every 20 states
+                    logger.debug(f"Creating state {i-window_size+1}/{max_states}")
+                
                 # Get window of data
                 window_data = market_data.iloc[i-window_size:i].copy()
                 
@@ -230,12 +247,34 @@ class TradingEngine:
                 window_data = self._add_technical_indicators(window_data)
                 
                 # Create state
-                state = TimeSeriesState(
-                    data=window_data,
-                    close_price_identifier='close',
-                    timestamp_identifier='timestamp',
-                    timestamp_format='%Y-%m-%d %H:%M:%S'
-                )
+                try:
+                    # Check if timestamp column exists, otherwise try other common names
+                    if 'timestamp' in window_data.columns:
+                        ts_col = 'timestamp'
+                    elif 'time' in window_data.columns:
+                        ts_col = 'time'
+                    elif 'date' in window_data.columns:
+                        ts_col = 'date'
+                    else:
+                        # Use index if it's a datetime index
+                        if isinstance(window_data.index, pd.DatetimeIndex):
+                            window_data['timestamp'] = window_data.index
+                            ts_col = 'timestamp'
+                        else:
+                            logger.error(f"No timestamp column found in data. Columns: {list(window_data.columns)}")
+                            continue
+                    
+                    state = TimeSeriesState(
+                        data=window_data,
+                        close_price_identifier='close',
+                        timestamp_identifier=ts_col,
+                        timestamp_format='%Y-%m-%d %H:%M:%S'
+                    )
+                except Exception as e:
+                    logger.error(f"Error creating TimeSeriesState: {str(e)}")
+                    logger.debug(f"Window data columns: {list(window_data.columns)}")
+                    logger.debug(f"Window data shape: {window_data.shape}")
+                    continue
                 
                 states.append(state)
             
@@ -244,6 +283,7 @@ class TradingEngine:
             
         except Exception as e:
             logger.error(f"Error creating time series states: {str(e)}")
+            logger.exception(e)  # Log full traceback
             return []
     
     def _add_technical_indicators(self, data: pd.DataFrame) -> pd.DataFrame:

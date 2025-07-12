@@ -98,7 +98,7 @@ class Config:
     NQ_MARGIN_REQUIREMENT = float(os.environ.get('NQ_MARGIN_REQUIREMENT', '15000.0'))
     
     # Logging Configuration
-    LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+    LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG')
     LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
     LOG_FILE = os.environ.get('LOG_FILE', 'trading_system.log')

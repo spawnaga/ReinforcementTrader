@@ -1,0 +1,75 @@
+INFO:websocket_handler:Performance metrics collected - CPU: 61.9%, Memory: 58.0%, GPU: 0.0%, Network: 30.37 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 0 active training sessions
+DEBUG:websocket_handler:Broadcast loop iteration 4 complete, sleeping for 5 seconds
+DEBUG:websocket_handler:Broadcast loop iteration 5 starting...
+DEBUG:websocket_handler:Active connections found: 1
+DEBUG:websocket_handler:Collecting system performance metrics...
+DEBUG:websocket_handler:CPU usage collected: 52.8%
+DEBUG:websocket_handler:Memory usage collected: 58.0%
+DEBUG:websocket_handler:No CUDA GPUs available
+DEBUG:websocket_handler:Network I/O collected: 30.39 MB total
+INFO:websocket_handler:Performance metrics collected - CPU: 52.8%, Memory: 58.0%, GPU: 0.0%, Network: 30.39 MB/s
+DEBUG:websocket_handler:Broadcasting performance metrics...
+DEBUG:websocket_handler:Performance metrics broadcast complete
+DEBUG:websocket_handler:Found 0 active training sessions
+DEBUG:websocket_handler:Broadcast loop iteration 5 complete, sleeping for 5 seconds
+DEBUG:websocket_handler:Broadcast loop iteration 6 starting...
+DEBUG:websocket_handler:Active connections found: 1
+DEBUG:websocket_handler:Collecting system performance metrics...
+[2025-07-12 00:14:52 +0000] [23806] [CRITICAL] WORKER TIMEOUT (pid:23817)
+[2025-07-12 00:14:52 +0000] [23817] [ERROR] Error handling request /socket.io/?EIO=4&transport=websocket
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/gunicorn/workers/sync.py", line 134, in handle
+    self.handle_request(listener, req, client, addr)
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/gunicorn/workers/sync.py", line 177, in handle_request
+    respiter = self.wsgi(environ, resp.start_response)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask_socketio/__init__.py", line 42, in __call__
+    return super().__call__(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/engineio/middleware.py", line 63, in __call__
+    return self.engineio_app.handle_request(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/socketio/server.py", line 434, in handle_request
+    return self.eio.handle_request(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/engineio/server.py", line 261, in handle_request
+    r = self._handle_connect(environ, start_response,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/engineio/server.py", line 416, in _handle_connect
+    ret = s.handle_get_request(environ, start_response)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py", line 92, in handle_get_request
+    return getattr(self, '_upgrade_' + transport)(environ,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py", line 151, in _upgrade_websocket
+    return ws(environ, start_response)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/engineio/async_drivers/_websocket_wsgi.py", line 15, in __call__
+    ret = self.app(self)
+          ^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py", line 225, in _websocket_handler
+    p = websocket_wait()
+        ^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/engineio/socket.py", line 156, in websocket_wait
+    data = ws.wait()
+           ^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/engineio/async_drivers/_websocket_wsgi.py", line 32, in wait
+    return self.ws.receive()
+           ^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/simple_websocket/ws.py", line 96, in receive
+    if not self.event.wait(timeout=timeout):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python3.11/threading.py", line 629, in wait
+    signaled = self._cond.wait(timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python3.11/threading.py", line 327, in wait
+    waiter.acquire()
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/gunicorn/workers/base.py", line 204, in handle_abort
+    sys.exit(1)
+SystemExit: 1

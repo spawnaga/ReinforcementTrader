@@ -449,7 +449,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Listen for real performance metrics from the server
     socket.on('performance_metrics', function(data) {
         console.log('📊 Performance metrics received:', data);
-        updateSystemPerformance(data);
+        // Small delay to ensure DOM is ready
+        setTimeout(function() {
+            updateSystemPerformance(data);
+        }, 100);
     });
     
     // Test training button
@@ -523,29 +526,52 @@ function updateTrainingProgress(data) {
 function updateSystemPerformance(data) {
     // Update GPU progress
     if (data.gpu_usage !== undefined) {
-        document.getElementById('gpu-progress').style.width = data.gpu_usage + '%';
-        document.getElementById('gpu-text').textContent = data.gpu_usage.toFixed(1) + '% GPU';
+        const gpuProgress = document.getElementById('gpu-progress');
+        const gpuText = document.getElementById('gpu-text');
+        if (gpuProgress && gpuText) {
+            gpuProgress.style.width = data.gpu_usage + '%';
+            gpuText.textContent = data.gpu_usage.toFixed(1) + '% GPU';
+        } else {
+            console.error('GPU elements not found');
+        }
     }
     
     // Update Memory progress
     if (data.memory_usage !== undefined) {
-        document.getElementById('memory-progress').style.width = data.memory_usage + '%';
-        document.getElementById('memory-text').textContent = data.memory_usage.toFixed(1) + '% Memory';
+        const memProgress = document.getElementById('memory-progress');
+        const memText = document.getElementById('memory-text');
+        if (memProgress && memText) {
+            memProgress.style.width = data.memory_usage + '%';
+            memText.textContent = data.memory_usage.toFixed(1) + '% Memory';
+        } else {
+            console.error('Memory elements not found');
+        }
     }
     
     // Update Network I/O
     if (data.network_io !== undefined) {
-        // Scale network IO for display (0-100 scale)
-        const networkPercent = Math.min(data.network_io / 10, 100); // Assuming 10 MB/s is max
-        document.getElementById('network-progress').style.width = networkPercent + '%';
-        document.getElementById('network-text').textContent = data.network_io.toFixed(2) + ' MB/s';
+        const netProgress = document.getElementById('network-progress');
+        const netText = document.getElementById('network-text');
+        if (netProgress && netText) {
+            // Scale network IO for display (0-100 scale)
+            const networkPercent = Math.min(data.network_io / 10, 100); // Assuming 10 MB/s is max
+            netProgress.style.width = networkPercent + '%';
+            netText.textContent = data.network_io.toFixed(2) + ' MB/s';
+        } else {
+            console.error('Network elements not found');
+        }
     }
     
     // Update CPU usage if available
     if (data.cpu_usage !== undefined) {
-        // Can use for training speed indicator as proxy
-        document.getElementById('speed-progress').style.width = data.cpu_usage + '%';
-        document.getElementById('speed-text').textContent = 'CPU: ' + data.cpu_usage.toFixed(1) + '%';
+        const cpuProgress = document.getElementById('speed-progress');
+        const cpuText = document.getElementById('speed-text');
+        if (cpuProgress && cpuText) {
+            cpuProgress.style.width = data.cpu_usage + '%';
+            cpuText.textContent = 'CPU: ' + data.cpu_usage.toFixed(1) + '%';
+        } else {
+            console.error('CPU elements not found');
+        }
     }
 }
 </script>

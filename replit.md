@@ -106,4 +106,19 @@ Preferred communication style: Simple, everyday language.
 - **System Health**: Real-time resource monitoring with detailed debug logs
 - **WebSocket Debugging**: Full broadcast loop tracking with iteration counters
 
+## Recent Updates (July 12, 2025)
+
+### Bug Fixes and Improvements
+- **Training System**: Fixed training stall issue by improving TimeSeriesState creation with automatic timestamp column detection
+- **Performance Monitoring**: Confirmed WebSocket broadcasting working correctly, UI elements properly configured with IDs (gpu-progress, memory-progress, network-progress, speed-progress)
+- **Data Loading**: Limited states to 100 for testing to prevent memory issues
+- **Error Handling**: Added comprehensive error handling in state creation with fallback timestamp detection
+- **Debug Logging**: Set log level to DEBUG for better diagnostics during training
+- **Session Management**: Added automatic cleanup for stale training sessions
+
+### Known Issues
+- **WebSocket Timeouts**: Gunicorn workers experiencing periodic timeouts with WebSocket connections
+- **GPU Access**: System running in CPU-only mode in Replit environment despite detecting GPUs
+- **UI Updates**: Performance metrics being broadcast but potential timing issues with DOM updates
+
 The system is designed to be highly scalable, with the ability to add multiple trading algorithms, extend to different financial instruments, and integrate with various data sources and brokers.
