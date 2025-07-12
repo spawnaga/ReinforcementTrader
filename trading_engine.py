@@ -153,15 +153,32 @@ class TradingEngine:
                 self._end_session(session_id, 'error')
                 return
             
-            logger.info(f"Loaded {len(market_data)} rows of market data for session {session_id}")
+            # Limit data for reasonable training time (last 30 days or 50k rows max)
+            original_size = len(market_data)
+            max_rows = 50000  # Limit to 50k rows for manageable training
+            if len(market_data) > max_rows:
+                market_data = market_data.tail(max_rows)
+                logger.info(f"Limited data from {original_size:,} to {max_rows:,} rows for training")
+            
+            logger.info(f"Using {len(market_data):,} rows of market data for session {session_id}")
             logger.debug(f"Market data columns: {list(market_data.columns)}")
             logger.debug(f"Market data shape: {market_data.shape}")
             logger.debug(f"First few rows:\n{market_data.head()}")
             
             # Create time series states
             logger.info(f"Creating time series states for session {session_id}")
-            states = self._create_time_series_states(market_data)
-            logger.info(f"Created {len(states)} time series states for session {session_id}")
+            try:
+                states = self._create_time_series_states(market_data)
+                if not states:
+                    logger.error(f"Failed to create any time series states for session {session_id}")
+                    self._end_session(session_id, 'error')
+                    return
+                logger.info(f"Created {len(states)} time series states for session {session_id}")
+            except Exception as e:
+                logger.error(f"Error creating time series states for session {session_id}: {str(e)}")
+                logger.exception(e)
+                self._end_session(session_id, 'error')
+                return
             
             # Create trading environment
             logger.info(f"Creating FuturesEnv for session {session_id}")
@@ -231,19 +248,22 @@ class TradingEngine:
             states = []
             window_size = 60  # 1 hour of 1-minute data
             
-            logger.debug(f"Creating states from {len(market_data)} rows with window size {window_size}")
+            logger.info(f"Creating states from {len(market_data):,} rows with window size {window_size}")
             
             # Limit the number of states for testing
             max_states = min(100, len(market_data) - window_size)  # Only create 100 states for testing
             
+            logger.info(f"Will create {max_states} states from the data")
+            
             for i in range(window_size, window_size + max_states):
-                if i % 20 == 0:  # Log progress every 20 states
-                    logger.debug(f"Creating state {i-window_size+1}/{max_states}")
+                if i % 10 == 0:  # Log progress every 10 states  
+                    logger.info(f"Creating state {i-window_size+1}/{max_states} (progress: {((i-window_size+1)/max_states)*100:.1f}%)")
                 
                 # Get window of data
                 window_data = market_data.iloc[i-window_size:i].copy()
                 
                 # Add technical indicators
+                logger.debug(f"Adding technical indicators to window {i-window_size+1}")
                 window_data = self._add_technical_indicators(window_data)
                 
                 # Create state
@@ -264,19 +284,24 @@ class TradingEngine:
                             logger.error(f"No timestamp column found in data. Columns: {list(window_data.columns)}")
                             continue
                     
+                    logger.debug(f"Creating TimeSeriesState with timestamp column: {ts_col}")
+                    
+                    # Create proper TimeSeriesState object
                     state = TimeSeriesState(
                         data=window_data,
                         close_price_identifier='close',
                         timestamp_identifier=ts_col,
                         timestamp_format='%Y-%m-%d %H:%M:%S'
                     )
+                    
+                    logger.debug(f"State created successfully for window {i-window_size+1}")
+                    states.append(state)
+                    
                 except Exception as e:
-                    logger.error(f"Error creating TimeSeriesState: {str(e)}")
+                    logger.error(f"Error creating state: {str(e)}")
                     logger.debug(f"Window data columns: {list(window_data.columns)}")
                     logger.debug(f"Window data shape: {window_data.shape}")
                     continue
-                
-                states.append(state)
             
             logger.info(f"Created {len(states)} time series states")
             return states

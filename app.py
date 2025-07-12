@@ -38,6 +38,7 @@ with app.app_context():
     import models
     import routes
     import websocket_handler
+    # import test_routes  # Commented out - test_training already exists
     
     # Create all tables
     db.create_all()

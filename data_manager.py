@@ -207,17 +207,25 @@ class DataManager:
                 logger.warning(f"No data downloaded for {symbol}")
                 return None
             
-            # Standardize column names
-            data.columns = data.columns.str.lower()
+            # Reset index first to convert datetime index to column
             data.reset_index(inplace=True)
             
-            # The index from yfinance is usually 'Date' or 'Datetime', check for both
+            # Debug: log the columns before standardization
+            logger.debug(f"Columns before standardization: {list(data.columns)}")
+            
+            # Standardize column names to lowercase
+            data.columns = [col.lower() for col in data.columns]
+            
+            # Debug: log the columns after standardization
+            logger.debug(f"Columns after standardization: {list(data.columns)}")
+            
+            # The index from yfinance is usually 'date' or 'datetime', check for both
             if 'date' in data.columns:
                 data.rename(columns={'date': 'timestamp'}, inplace=True)
             elif 'datetime' in data.columns:
                 data.rename(columns={'datetime': 'timestamp'}, inplace=True)
-            elif data.index.name and data.index.name.lower() in ['date', 'datetime']:
-                data['timestamp'] = data.index
+            else:
+                logger.error(f"No date/datetime column found. Columns: {list(data.columns)}")
             
             # Rename columns to match our standard
             data.rename(columns={
@@ -228,8 +236,8 @@ class DataManager:
             required_cols = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
             available_cols = [col for col in required_cols if col in data.columns]
             
-            if 'timestamp' not in available_cols:
-                logger.error(f"Timestamp column not found. Available columns: {list(data.columns)}")
+            if 'timestamp' not in data.columns:
+                logger.error(f"Timestamp column not found after rename. Available columns: {list(data.columns)}")
                 return None
                 
             data = data[available_cols]
