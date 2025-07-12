@@ -517,6 +517,13 @@ let neuralViz = null;
 let charts = null;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('❌ Chart.js is not loaded!');
+    } else {
+        console.log('✅ Chart.js is loaded, version:', Chart.version);
+    }
+    
     try {
         // Initialize Socket.IO connection
         window.socket = io();
@@ -569,7 +576,12 @@ document.addEventListener('DOMContentLoaded', function() {
     neuralViz = new NeuralNetworkVisualization('neural-network-viz');
     
     // Initialize charts
-    charts = new TradingCharts('price-chart');
+    try {
+        charts = new TradingCharts('price-chart');
+        console.log('✅ TradingCharts initialized successfully');
+    } catch (chartError) {
+        console.error('❌ Error initializing TradingCharts:', chartError);
+    }
     
     // Manual trading controls
     document.getElementById('manual-buy').addEventListener('click', function() {

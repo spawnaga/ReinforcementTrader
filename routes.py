@@ -24,6 +24,11 @@ def index():
                          recent_trades=recent_trades,
                          total_trades_count=total_trades_count)
 
+@app.route('/test_chart')
+def test_chart():
+    """Test chart page for debugging"""
+    return render_template('test_chart.html')
+
 @app.route('/trading_dashboard')
 def trading_dashboard():
     """Advanced trading dashboard with real-time charts"""
