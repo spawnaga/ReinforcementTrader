@@ -6,7 +6,7 @@ import numpy as np
 import math
 import logging
 from pathlib import Path
-from typing import List, Tuple, Sequence, Union, Dict
+from typing import List, Tuple, Sequence, Union, Dict, Optional
 from gym import error, spaces, utils
 from gym.utils import seeding
 from .utils import round_to_nearest_increment, TimeSeriesState, monotonicity 
@@ -102,7 +102,8 @@ class FuturesEnv(gym.Env):
                  long_probabilities: List[float] = None, short_values: List[float] = None, 
                  short_probabilities: List[float] = None, execution_cost_per_order=0.,
                  add_current_position_to_state: bool = False, 
-                 log_dir: str = f"logs/futures_env/{datetime.datetime.strftime(datetime.datetime.now(), '%Y%m%d_%H%M%S')}"):
+                 log_dir: str = f"logs/futures_env/{datetime.datetime.strftime(datetime.datetime.now(), '%Y%m%d_%H%M%S')}",
+                 enable_trading_logger: bool = True):
  
         self.states = states
         self.limit = len(self.states)
@@ -160,6 +161,22 @@ class FuturesEnv(gym.Env):
             )
         
         Path(self.log_dir).mkdir(parents=True, exist_ok=True)
+        
+        # Initialize trading logger
+        self.enable_trading_logger = enable_trading_logger
+        if self.enable_trading_logger:
+            try:
+                import sys
+                import os
+                sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+                from trading_logger import TradingLogger
+                self.trading_logger = TradingLogger(log_dir=self.log_dir)
+                logger.info(f"Trading logger initialized for session: {self.trading_logger.session_timestamp}")
+            except Exception as e:
+                logger.warning(f"Could not initialize trading logger: {e}")
+                self.trading_logger = None
+        else:
+            self.trading_logger = None
 
     def buy(self, state: TimeSeriesState):
         """Creates a buy order"""
@@ -174,6 +191,23 @@ class FuturesEnv(gym.Env):
             self.exit_time = state.ts
             self.exit_id = str(uuid4())
             self.orders.append([self.exit_id, str(state.ts), self.exit_price, 1, state])
+            
+            # Log trade exit
+            if self.trading_logger:
+                self.trading_logger.log_trade_exit(
+                    timestamp=state.ts,
+                    position_type='SHORT',
+                    entry_price=self.entry_price,
+                    exit_price=self.exit_price,
+                    state_info={'current_price': state.price, 'position_before': -1, 'position_after': 0}
+                )
+                self.trading_logger.log_position_change(
+                    timestamp=state.ts,
+                    old_position=-1,
+                    new_position=0,
+                    reason='Buy order closing short position',
+                    price=self.exit_price
+                )
 
         elif self.current_position == 0:
             self.last_position = self.current_position
@@ -182,6 +216,23 @@ class FuturesEnv(gym.Env):
             self.entry_time = state.ts
             self.entry_id = str(uuid4())
             self.orders.append([self.entry_id, str(state.ts), self.entry_price, 1, state])
+            
+            # Log trade entry
+            if self.trading_logger:
+                self.trading_logger.log_trade_entry(
+                    timestamp=state.ts,
+                    position_type='LONG',
+                    entry_price=self.entry_price,
+                    target_price=state.price,
+                    state_info={'current_price': state.price, 'position_before': 0, 'position_after': 1}
+                )
+                self.trading_logger.log_position_change(
+                    timestamp=state.ts,
+                    old_position=0,
+                    new_position=1,
+                    reason='Buy order opening long position',
+                    price=self.entry_price
+                )
 
     def sell(self, state: TimeSeriesState):
         """generates a sell order"""
@@ -196,6 +247,23 @@ class FuturesEnv(gym.Env):
             self.exit_time = state.ts
             self.exit_id = str(uuid4())
             self.orders.append([self.exit_id, str(state.ts), self.exit_price, -1, state])
+            
+            # Log trade exit
+            if self.trading_logger:
+                self.trading_logger.log_trade_exit(
+                    timestamp=state.ts,
+                    position_type='LONG',
+                    entry_price=self.entry_price,
+                    exit_price=self.exit_price,
+                    state_info={'current_price': state.price, 'position_before': 1, 'position_after': 0}
+                )
+                self.trading_logger.log_position_change(
+                    timestamp=state.ts,
+                    old_position=1,
+                    new_position=0,
+                    reason='Sell order closing long position',
+                    price=self.exit_price
+                )
 
         elif self.current_position == 0:
             self.last_position = self.current_position
@@ -204,6 +272,23 @@ class FuturesEnv(gym.Env):
             self.entry_time = state.ts
             self.entry_id = str(uuid4())
             self.orders.append([self.entry_id, str(state.ts), self.entry_price,-1, state])
+            
+            # Log trade entry
+            if self.trading_logger:
+                self.trading_logger.log_trade_entry(
+                    timestamp=state.ts,
+                    position_type='SHORT',
+                    entry_price=self.entry_price,
+                    target_price=state.price,
+                    state_info={'current_price': state.price, 'position_before': 0, 'position_after': -1}
+                )
+                self.trading_logger.log_position_change(
+                    timestamp=state.ts,
+                    old_position=0,
+                    new_position=-1,
+                    reason='Sell order opening short position',
+                    price=self.entry_price
+                )
 
     def get_reward(self, state: TimeSeriesState) -> float:
         """
@@ -224,6 +309,19 @@ class FuturesEnv(gym.Env):
                     dif = round((self.exit_price - self.entry_price), 2)
                 else:
                     logger.warning(f"Missing price data: exit_price={self.exit_price}, entry_price={self.entry_price}")
+                    # Log error to trading logger
+                    if self.trading_logger:
+                        self.trading_logger.log_error(
+                            error_type="MISSING_PRICE_DATA",
+                            error_message=f"Cannot calculate reward - exit_price={self.exit_price}, entry_price={self.entry_price}",
+                            context={
+                                'position': 'LONG_CLOSED',
+                                'current_position': self.current_position,
+                                'last_position': self.last_position,
+                                'state_price': state.price if state else None,
+                                'state_timestamp': state.ts if state else None
+                            }
+                        )
                     return 0
             elif all([self.current_position == 0, self.last_position == -1]):
                 # closed a short
@@ -231,6 +329,19 @@ class FuturesEnv(gym.Env):
                     dif = -round((self.exit_price - self.entry_price), 2)
                 else:
                     logger.warning(f"Missing price data: exit_price={self.exit_price}, entry_price={self.entry_price}")
+                    # Log error to trading logger
+                    if self.trading_logger:
+                        self.trading_logger.log_error(
+                            error_type="MISSING_PRICE_DATA",
+                            error_message=f"Cannot calculate reward - exit_price={self.exit_price}, entry_price={self.entry_price}",
+                            context={
+                                'position': 'SHORT_CLOSED',
+                                'current_position': self.current_position,
+                                'last_position': self.last_position,
+                                'state_price': state.price if state else None,
+                                'state_timestamp': state.ts if state else None
+                            }
+                        )
                     return 0
             else:
                 return net_profit
@@ -238,6 +349,23 @@ class FuturesEnv(gym.Env):
             n_ticks = math.ceil(dif / self.tick_size)
             gross_profit = n_ticks * self.value_per_tick
             net_profit = gross_profit - (2*self.execution_cost_per_order)
+            
+            # Log reward calculation
+            if self.trading_logger:
+                self.trading_logger.log_reward_calculation(
+                    timestamp=state.ts if state else datetime.datetime.now(),
+                    reward=net_profit,
+                    position=self.last_position,
+                    entry_price=self.entry_price,
+                    exit_price=self.exit_price,
+                    calculation_details={
+                        'price_difference': dif,
+                        'n_ticks': n_ticks,
+                        'gross_profit': gross_profit,
+                        'execution_cost': 2*self.execution_cost_per_order,
+                        'net_profit': net_profit
+                    }
+                )
         
         # Ensure net_profit is not None before adding
         if net_profit is not None:

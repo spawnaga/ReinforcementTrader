@@ -124,6 +124,45 @@ class DataManager:
             logger.error(f"Error loading data from database: {str(e)}")
             return None
     
+    def load_futures_data(self, symbol: str, filepath: Optional[str] = None,
+                         start_date: Optional[str] = None, end_date: Optional[str] = None) -> Optional[pd.DataFrame]:
+        """
+        Load futures data from a specific file or use automatic loading
+        
+        Args:
+            symbol: The futures symbol (e.g., 'NQ')
+            filepath: Optional path to specific data file
+            start_date: Start date in 'YYYY-MM-DD' format
+            end_date: End date in 'YYYY-MM-DD' format
+            
+        Returns:
+            DataFrame with OHLCV data
+        """
+        try:
+            if filepath and Path(filepath).exists():
+                # Load from specific file
+                logger.info(f"Loading futures data from specified file: {filepath}")
+                df = self.gpu_loader.load_nq_data(filepath)
+                
+                # Ensure timestamp index
+                if 'timestamp' in df.columns and df.index.name != 'timestamp':
+                    df.set_index('timestamp', inplace=True)
+                
+                # Filter by date range if provided
+                if start_date:
+                    df = df[df.index >= pd.to_datetime(start_date)]
+                if end_date:
+                    df = df[df.index <= pd.to_datetime(end_date)]
+                
+                return df
+            else:
+                # Use automatic loading logic
+                return self.load_nq_data(start_date, end_date)
+                
+        except Exception as e:
+            logger.error(f"Error in load_futures_data: {str(e)}")
+            return None
+    
     def _load_from_file(self, symbol: str) -> Optional[pd.DataFrame]:
         """Load data from CSV file using GPU-accelerated loader for large files"""
         try:

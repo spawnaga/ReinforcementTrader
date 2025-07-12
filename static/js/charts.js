@@ -1,7 +1,7 @@
 // Revolutionary Trading Charts with Advanced Technical Analysis
 
 class TradingCharts {
-    constructor() {
+    constructor(canvasId) {
         this.priceChart = null;
         this.volumeChart = null;
         this.performanceChart = null;
@@ -35,6 +35,13 @@ class TradingCharts {
         };
         
         console.log('📊 Trading Charts initialized');
+        
+        // Initialize the chart if canvas ID is provided
+        if (canvasId) {
+            this.initPriceChart(canvasId);
+            // Add some sample data to display
+            this.addSampleData();
+        }
     }
     
     initPriceChart(canvasId) {
@@ -47,14 +54,17 @@ class TradingCharts {
         const ctx = canvas.getContext('2d');
         
         this.priceChart = new Chart(ctx, {
-            type: 'candlestick',
+            type: 'line',
             data: {
                 datasets: [{
-                    label: 'NQ Futures',
+                    label: 'NQ Futures Price',
                     data: [],
-                    borderColor: this.colors.neutral,
+                    borderColor: this.colors.bullish,
                     backgroundColor: 'transparent',
-                    borderWidth: 1
+                    borderWidth: 2,
+                    tension: 0.1,
+                    pointRadius: 0,
+                    pointHoverRadius: 5
                 }]
             },
             options: {
@@ -81,17 +91,17 @@ class TradingCharts {
                         borderWidth: 1,
                         callbacks: {
                             title: function(context) {
-                                return new Date(context[0].parsed.x).toLocaleString();
+                                if (context[0] && context[0].parsed && context[0].parsed.x) {
+                                    return new Date(context[0].parsed.x).toLocaleString();
+                                }
+                                return '';
                             },
                             label: function(context) {
                                 const data = context.parsed;
-                                return [
-                                    `Open: ${data.o?.toFixed(2) || 'N/A'}`,
-                                    `High: ${data.h?.toFixed(2) || 'N/A'}`,
-                                    `Low: ${data.l?.toFixed(2) || 'N/A'}`,
-                                    `Close: ${data.c?.toFixed(2) || 'N/A'}`,
-                                    `Volume: ${data.v?.toLocaleString() || 'N/A'}`
-                                ];
+                                if (data && data.y) {
+                                    return `Price: $${data.y.toFixed(2)}`;
+                                }
+                                return 'Price: N/A';
                             }
                         }
                     }
@@ -833,6 +843,28 @@ class TradingCharts {
             a.download = `${chartType}_chart_${Date.now()}.png`;
             a.click();
         }
+    }
+    
+    addSampleData() {
+        // Generate sample data for testing
+        const now = new Date();
+        const sampleData = [];
+        const basePrice = 15000;
+        
+        for (let i = 50; i >= 0; i--) {
+            const timestamp = new Date(now.getTime() - i * 60000); // 1 minute intervals
+            const price = basePrice + (Math.random() - 0.5) * 50;
+            
+            sampleData.push({
+                x: timestamp,
+                y: price
+            });
+        }
+        
+        this.priceChart.data.datasets[0].data = sampleData;
+        this.priceChart.update();
+        
+        console.log('📊 Sample data added to chart');
     }
     
     destroy() {

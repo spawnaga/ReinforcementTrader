@@ -119,6 +119,16 @@ Preferred communication style: Simple, everyday language.
 - **ANE-PPO Algorithm**: Enhanced state-to-tensor conversion with robust type handling for memoryview, DataFrames, and numpy arrays
 - **Environment Consistency**: Fixed futures_env reset method to return TimeSeriesState objects instead of flattened arrays
 
+### Trading System Improvements (July 12, 2025)
+- **Trading Logger**: Created comprehensive trading_logger.py module that tracks all trading activities including entry/exit prices, positions, rewards, and errors
+- **Enhanced Futures Environment**: Integrated trading logger into gym_futures/envs/futures_env.py with detailed logging in buy(), sell(), and get_reward() methods
+- **Trading Dashboard Charts**: Fixed price chart implementation by:
+  - Changing from unsupported 'candlestick' type to 'line' chart
+  - Added addSampleData() method to display test data
+  - Fixed chart initialization in TradingCharts constructor
+- **Data Loading Fix**: Added load_futures_data() method to DataManager to properly load NQ futures data from CSV/TXT files
+- **Diagnostic Tools**: Created check_trading_system.py to diagnose issues with None prices in trading execution
+
 ### Known Issues
 - **WebSocket Timeouts**: Fixed by:
   - Setting SOCKETIO_ASYNC_MODE to 'threading' for sync workers
@@ -141,6 +151,7 @@ Preferred communication style: Simple, everyday language.
 - **Memoryview Handling**: Added robust handling for memoryview objects in ANE-PPO state conversion
 - **Reward Calculation**: Fixed NoneType subtraction errors by adding null checks for entry/exit prices
 - **Type Safety**: Ensured all data types are properly converted to float32 before tensor conversion
+- **Data Loading**: Fixed DataManager missing method issue by adding load_futures_data() that leverages existing GPU-accelerated loading infrastructure
 
 ### Version Control Configuration
 - **Added .gitignore**: Comprehensive ignore patterns for models/, logs/, attached_assets/, database files, cache directories, and ML checkpoints to prevent merge conflicts
