@@ -1,8 +1,9 @@
 // Revolutionary Trading Charts with Advanced Technical Analysis
 
 // Tell IDE about Chart.js from CDN
+/* global Chart */
 /** @type {typeof Chart} */
-const Chart = window.Chart;
+const Chart = typeof window !== 'undefined' && window.Chart ? window.Chart : null;
 
 class TradingCharts {
     constructor(canvasId) {

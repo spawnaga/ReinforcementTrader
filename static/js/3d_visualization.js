@@ -1,12 +1,14 @@
 // Revolutionary 3D Portfolio Visualization using Three.js
 
 // Tell IDE about Three.js from CDN
+/* global THREE */
 /** @type {Object} */
-const THREE = window.THREE;
+const THREE = typeof window !== 'undefined' && window.THREE ? window.THREE : null;
 
 // Tell IDE about TWEEN.js if available
+/* global TWEEN */
 /** @type {Object} */
-const TWEEN = window.TWEEN || null;
+const TWEEN = typeof window !== 'undefined' && window.TWEEN ? window.TWEEN : null;
 
 class Portfolio3DVisualization {
     constructor(containerId) {

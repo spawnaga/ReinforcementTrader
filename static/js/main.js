@@ -1,5 +1,7 @@
 // Revolutionary AI Trading System - Main JavaScript
 
+/* global io, bootstrap */
+
 // Global variables
 let socket = null;
 let isConnected = false;
@@ -334,7 +336,7 @@ function handleMarketDataUpdate(data) {
     });
     
     // Update charts if available
-    if (window.tradingCharts) {
+    if (typeof window.tradingCharts !== 'undefined' && window.tradingCharts) {
         window.tradingCharts.updateRealTimeData(data);
     }
 }

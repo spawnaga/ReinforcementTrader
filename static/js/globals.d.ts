@@ -7,6 +7,12 @@ declare const TWEEN: any;
 // Chart.js
 declare const Chart: any;
 
+// Socket.IO
+declare const io: any;
+
+// Bootstrap
+declare const bootstrap: any;
+
 // Classes
 declare class NeuralNetworkVisualization {
     constructor(canvasId: string);
