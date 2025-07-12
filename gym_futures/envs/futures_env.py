@@ -13,6 +13,8 @@ from .utils import round_to_nearest_increment, TimeSeriesState
 logger = logging.getLogger(__name__)
 
 # Setup detailed trading log file
+import os
+os.makedirs('logs', exist_ok=True)  # Create logs directory if it doesn't exist
 trading_logger = logging.getLogger('trading')
 trading_handler = logging.FileHandler('logs/trading.log')
 trading_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))

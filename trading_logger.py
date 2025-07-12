@@ -53,6 +53,8 @@ class TradingLogger:
             log_dir: Directory to store log files
         """
         self.log_dir = Path(log_dir)
+        # Create log directory if it doesn't exist
+        self.log_dir.mkdir(parents=True, exist_ok=True)
         self.log_dir.mkdir(parents=True, exist_ok=True)
         
         # Create timestamp for this session

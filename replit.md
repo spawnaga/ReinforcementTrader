@@ -118,6 +118,13 @@ Preferred communication style: Simple, everyday language.
   - System fully optimized for multi-GPU concurrent training without database locking issues
   - All 7,406 rows of market data and trading records are active in PostgreSQL
 
+### Log Directory Handling (July 12, 2025)
+- **Fixed Missing Logs Directory**: Added automatic log directory creation
+  - Updated gym_futures/envs/futures_env.py: Added `os.makedirs('logs', exist_ok=True)`
+  - Updated trading_logger.py: Added `self.log_dir.mkdir(parents=True, exist_ok=True)`
+  - Prevents FileNotFoundError when starting the application on fresh installations
+  - User's local system now runs successfully after these fixes
+
 ## Previous Updates (July 12, 2025)
 
 ### Bug Fixes and Improvements
