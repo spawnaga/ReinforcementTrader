@@ -211,15 +211,28 @@ class DataManager:
             data.columns = data.columns.str.lower()
             data.reset_index(inplace=True)
             
+            # The index from yfinance is usually 'Date' or 'Datetime', check for both
+            if 'date' in data.columns:
+                data.rename(columns={'date': 'timestamp'}, inplace=True)
+            elif 'datetime' in data.columns:
+                data.rename(columns={'datetime': 'timestamp'}, inplace=True)
+            elif data.index.name and data.index.name.lower() in ['date', 'datetime']:
+                data['timestamp'] = data.index
+            
             # Rename columns to match our standard
             data.rename(columns={
-                'datetime': 'timestamp',
                 'adj close': 'close'
             }, inplace=True)
             
-            # Keep only required columns
+            # Keep only required columns - check which are available
             required_cols = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
-            data = data[required_cols]
+            available_cols = [col for col in required_cols if col in data.columns]
+            
+            if 'timestamp' not in available_cols:
+                logger.error(f"Timestamp column not found. Available columns: {list(data.columns)}")
+                return None
+                
+            data = data[available_cols]
             
             # Set timestamp as index
             data.set_index('timestamp', inplace=True)
