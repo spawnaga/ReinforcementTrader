@@ -71,6 +71,30 @@
  * @var {Portfolio3D} portfolio3D - 3D portfolio visualization instance
  */
 
+/**
+ * @typedef {Object} SessionData
+ * @property {Object} session
+ * @property {string} session.name
+ * @property {string} session.algorithm_type
+ * @property {number} session.current_episode
+ * @property {number} session.total_episodes
+ */
+
+/**
+ * @typedef {Object} RiskData
+ * @property {string} level
+ * @property {number} drawdown
+ * @property {string} severity
+ * @property {string} message
+ */
+
+/**
+ * @typedef {Object} AIRecommendation
+ * @property {string} action
+ * @property {number} confidence
+ * @property {string} timestamp
+ */
+
 class TradingDashboard {
     constructor() {
         this.currentSession = null;
@@ -148,13 +172,15 @@ class TradingDashboard {
         
         // Position size control
         document.getElementById('position-size')?.addEventListener('input', (e) => {
-            this.positionSize = parseInt(e.target.value);
+            const target = /** @type {HTMLInputElement} */ (e.target);
+            this.positionSize = parseInt(target.value);
             this.updatePositionSizeDisplay();
         });
         
         // Risk level control
         document.getElementById('risk-level')?.addEventListener('change', (e) => {
-            this.riskLevel = e.target.value;
+            const target = /** @type {HTMLSelectElement} */ (e.target);
+            this.riskLevel = target.value;
             this.updateRiskParameters();
         });
         
@@ -573,6 +599,9 @@ class TradingDashboard {
         }
     }
     
+    /**
+     * @param {SessionData} sessionData
+     */
     updateSessionDisplay(sessionData) {
         // Update session info
         document.querySelector('.session-name')?.textContent = sessionData.session.name;
@@ -757,15 +786,19 @@ class TradingDashboard {
         // Update position size limits
         const positionSlider = document.getElementById('position-size');
         if (positionSlider) {
-            positionSlider.max = this.riskParams.maxPosition;
+            const slider = /** @type {HTMLInputElement} */ (positionSlider);
+            slider.max = this.riskParams.maxPosition.toString();
             if (this.positionSize > this.riskParams.maxPosition) {
                 this.positionSize = this.riskParams.maxPosition;
-                positionSlider.value = this.positionSize;
+                slider.value = this.positionSize.toString();
                 this.updatePositionSizeDisplay();
             }
         }
     }
     
+    /**
+     * @param {RiskData} riskData
+     */
     updateRiskDisplay(riskData) {
         // Update risk indicators
         const riskIndicators = document.querySelectorAll('.risk-indicator');
