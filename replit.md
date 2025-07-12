@@ -141,6 +141,10 @@ Preferred communication style: Simple, everyday language.
   - Updated the forward method in PositionalEncoding class to properly handle the transposed tensor dimensions
   - The fix ensures positional encoding correctly works with tensors after input projection from 60 features to 512 dimensions
   - Tested and verified with test_tensor_fix.py - DQN model now works correctly with 60 input features
+- **Transformer Attention Dimension Fix** (July 12, 2025): Fixed IndexError "Dimension out of range" in PositionalEncoding by:
+  - Added dimension checking in PositionalEncoding.forward() to handle both 2D and 3D tensors
+  - Fixed ANE-PPO's feature combination to keep 3D shape for transformer input (removed incorrect .mean(dim=-1))
+  - Transformer now properly handles sequential data from the trading environment
 
 ### Known Issues
 - **WebSocket Timeouts**: Fixed by:

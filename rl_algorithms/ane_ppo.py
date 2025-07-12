@@ -166,7 +166,7 @@ class ActorCritic(nn.Module):
         # Combine multi-scale features
         if x.dim() == 3:
             combined_features = torch.cat(features, dim=-1)
-            combined_features = combined_features.mean(dim=-1)  # Average across scales
+            # Don't average here - keep 3D shape for transformer
         else:
             combined_features = torch.stack(features, dim=1).mean(dim=1)
 

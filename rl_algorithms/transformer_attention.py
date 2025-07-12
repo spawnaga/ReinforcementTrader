@@ -30,7 +30,14 @@ class PositionalEncoding(nn.Module):
         """Add positional encoding to input"""
         # x should be (seq_len, batch, d_model) after transpose in transformer
         # self.pe shape is (seq_len, 1, d_model)
-        return x + self.pe[:x.size(0), :, :x.size(2)]
+        if x.dim() == 2:
+            # If x is 2D (seq_len, d_model), add batch dimension
+            x = x.unsqueeze(1)
+            result = x + self.pe[:x.size(0), :, :x.size(2)]
+            return result.squeeze(1)
+        else:
+            # If x is 3D (seq_len, batch, d_model)
+            return x + self.pe[:x.size(0), :, :x.size(2)]
 
 
 class MultiHeadAttention(nn.Module):
