@@ -131,6 +131,11 @@ Preferred communication style: Simple, everyday language.
   - Enabling SQLite WAL mode for better concurrent access
   - Setting pool_size to 1 for SQLite
   - Adding retry logic with exponential backoff
+- **Readonly Database Errors**: Fixed by:
+  - Created db_utils.py module with retry decorators for database operations
+  - Added ensure_db_writable() checks before write operations
+  - Created fix_db_permissions.py utility script for local development
+  - Updated _save_training_metrics and _update_session_stats with @retry_on_db_error decorators
 
 ### Critical Fixes Applied
 - **Memoryview Handling**: Added robust handling for memoryview objects in ANE-PPO state conversion

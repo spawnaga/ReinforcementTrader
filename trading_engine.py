@@ -18,6 +18,7 @@ from rl_algorithms.genetic_optimizer import GeneticOptimizer
 from data_manager import DataManager
 from ib_integration import IBIntegration
 from risk_manager import RiskManager
+from db_utils import retry_on_db_error, check_and_fix_db_permissions, ensure_db_writable
 
 logger = logging.getLogger(__name__)
 
@@ -461,12 +462,16 @@ class TradingEngine:
             logger.error(f"Error training episode {episode}: {str(e)}")
             return 0, 0, {}
     
+    @retry_on_db_error(max_retries=3, delay=1.0)
     def _save_training_metrics(self, session_id: int, episode: int, reward: float, loss: float, metrics: Dict):
-        """Save training metrics to database"""
+        """Save training metrics to database with retry logic"""
         from extensions import db
         from app import app
         try:
             with app.app_context():
+                # Ensure database is writable
+                ensure_db_writable()
+                
                 metric = TrainingMetrics(
                     session_id=session_id,
                     episode=episode,
@@ -481,13 +486,18 @@ class TradingEngine:
             
         except Exception as e:
             logger.error(f"Error saving training metrics: {str(e)}")
+            raise  # Re-raise to trigger retry
     
+    @retry_on_db_error(max_retries=3, delay=1.0)
     def _update_session_stats(self, session_id: int, episode: int, reward: float, metrics: Dict):
-        """Update session statistics"""
+        """Update session statistics with retry logic"""
         from extensions import db
         from app import app
         try:
             with app.app_context():
+                # Ensure database is writable
+                ensure_db_writable()
+                
                 session = TradingSession.query.get(session_id)
                 if session:
                     session.current_episode = episode
@@ -502,6 +512,7 @@ class TradingEngine:
                 
         except Exception as e:
             logger.error(f"Error updating session stats: {str(e)}")
+            raise  # Re-raise to trigger retry
     
     def _save_model(self, session_id: int, algorithm, episode: int):
         """Save model checkpoint"""

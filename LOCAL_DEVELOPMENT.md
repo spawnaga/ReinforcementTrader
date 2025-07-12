@@ -67,6 +67,28 @@ This is a WebSocket compatibility issue with Flask's development server. Use Met
 ### "sqlite3.OperationalError: database is locked"
 This happens when multiple threads access SQLite simultaneously. The application includes retry logic, but using PostgreSQL eliminates this issue.
 
+### "attempt to write a readonly database"
+This is a file permission issue. Run the fix script:
+```bash
+python fix_db_permissions.py
+```
+
+Or manually fix permissions:
+```bash
+# Fix database file permissions
+chmod 664 instance/trading_system.db
+chmod 664 instance/trading_system.db-wal
+chmod 664 instance/trading_system.db-shm
+
+# Fix directory permissions
+chmod 775 instance/
+
+# Change ownership if needed
+chown $USER:$USER instance/trading_system.db*
+```
+
+For WSL users: Move the database to the Linux filesystem (not /mnt/c/) or adjust Windows permissions.
+
 ### Socket.IO Connection Errors
 If you see repeated connection/disconnection messages, ensure you're using Gunicorn instead of Flask's development server.
 
