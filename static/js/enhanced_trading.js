@@ -9,6 +9,7 @@ class EnhancedTradingDashboard {
         this.neuralNetwork = null;
         this.trainingChart = null;
         this.dataStreamInterval = null;
+        this.selectedModel = 'ANE_PPO';
         
         this.initializeComponents();
         this.setupEventListeners();
@@ -148,6 +149,15 @@ class EnhancedTradingDashboard {
         document.getElementById('timeframeSelect')?.addEventListener('change', (e) => {
             this.updateTimeframe(e.target.value);
         });
+        
+        // Model selection
+        document.getElementById('modelSelect')?.addEventListener('change', (e) => {
+            this.selectedModel = e.target.value;
+            this.updateModelDisplay();
+            if (window.learningViz) {
+                window.learningViz.updateModelSelection(this.selectedModel);
+            }
+        });
     }
     
     setupWebSocketHandlers() {
@@ -257,7 +267,7 @@ class EnhancedTradingDashboard {
     async createNewSession() {
         const params = {
             session_name: `Training Session ${new Date().toLocaleString()}`,
-            algorithm_type: 'ANE_PPO',
+            algorithm_type: this.selectedModel,
             parameters: {
                 hidden_layers: parseInt(document.getElementById('hiddenLayers').value),
                 neurons_per_layer: parseInt(document.getElementById('neuronsPerLayer').value),
@@ -601,6 +611,11 @@ class EnhancedTradingDashboard {
     updateTimeframe(timeframe) {
         console.log(`Timeframe changed to ${timeframe} minutes`);
         // This would update the data fetching interval
+    }
+    
+    updateModelDisplay() {
+        document.getElementById('modelType').textContent = this.selectedModel;
+        console.log(`Model changed to ${this.selectedModel}`);
     }
     
     handleDataRangeTypeChange(e) {

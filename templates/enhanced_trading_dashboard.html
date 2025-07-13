@@ -3,6 +3,7 @@
 {% block title %}Advanced Trading Dashboard - AI Trading System{% endblock %}
 
 {% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/learning_visualizations.css') }}">
 <style>
     body {
         background: #0a0a0a;
@@ -481,6 +482,18 @@
             </div>
         </div>
         
+        <!-- Model Selection -->
+        <div class="control-section">
+            <h5><i class="fas fa-brain"></i> AI Model Selection</h5>
+            <select id="modelSelect" class="form-control">
+                <option value="ANE_PPO" selected>ANE-PPO (Advanced Neural Evolution)</option>
+                <option value="DQN">DQN (Deep Q-Network)</option>
+                <option value="PPO">PPO (Proximal Policy Optimization)</option>
+                <option value="GENETIC">Genetic Algorithm Only</option>
+                <option value="HYBRID">Hybrid Model (All Combined)</option>
+            </select>
+        </div>
+        
         <!-- Timeframe Selection -->
         <div class="control-section">
             <h5><i class="fas fa-clock"></i> Timeframe</h5>
@@ -599,6 +612,11 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Learning Visualizations Container -->
+        <div id="learningVisualizationsContainer" style="grid-column: span 3;">
+            <!-- Learning visualizations will be dynamically inserted here -->
+        </div>
     </div>
 </div>
 
@@ -608,6 +626,20 @@
     <div id="no-trades-message"></div>
 </div>
 
+<link rel="stylesheet" href="/static/css/learning_visualizations.css">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="/static/js/enhanced_trading.js"></script>
+<script src="/static/js/learning_visualizations.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize enhanced trading dashboard
+    window.dashboard = new EnhancedTradingDashboard();
+    
+    // Initialize learning visualizations
+    window.learningViz = new LearningVisualizations();
+});
+</script>
 {% endblock %}
