@@ -16,6 +16,11 @@ class EnhancedTradingDashboard {
         this.setupWebSocketHandlers();
         this.startDataStream();
         this.initializeNeuralNetworkViz();
+        
+        // Check for active training sessions after initialization
+        setTimeout(() => {
+            this.checkForActiveTraining();
+        }, 1000);
     }
     
     initializeComponents() {
@@ -317,32 +322,26 @@ class EnhancedTradingDashboard {
             await this.createNewSession();
         }
         
-        // Start the training
+        // After creating or selecting a session, update UI
         if (this.sessionId) {
-            const startResponse = await fetch(`/api/sessions/${this.sessionId}/start`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    dataConfig: this.dataConfig || {}
-                })
-            });
+            this.isTraining = true;
+            this.updateTrainingControls();
+            this.resetMetricsDisplay();
+            this.updateStatus('TRAINING', true);
             
-            if (startResponse.ok) {
-                this.isTraining = true;
-                this.updateTrainingControls();
-                this.resetMetricsDisplay();
-                console.log('Training started successfully');
-                
-                // Join session room for WebSocket updates
-                if (this.socket.connected) {
-                    this.socket.emit('join_session', {session_id: this.sessionId});
-                }
-                
-                // Load existing trades for this session
-                this.loadSessionTrades();
+            // Add log message
+            this.addLog(`[TRAINING] Started session ID: ${this.sessionId}`, 'success');
+            
+            // Join session room for WebSocket updates
+            if (this.socket.connected) {
+                this.socket.emit('join_session', {session_id: this.sessionId});
             }
+            
+            // Load existing trades for this session
+            this.loadSessionTrades();
+            
+            // Update model display
+            document.getElementById('modelType').textContent = this.selectedModel.toUpperCase();
         }
     }
     
@@ -361,8 +360,9 @@ class EnhancedTradingDashboard {
     
     async createNewSession() {
         const params = {
-            session_name: `Training Session ${new Date().toLocaleString()}`,
+            session_name: `Advanced Training ${new Date().toLocaleString()}`,
             algorithm_type: this.selectedModel,
+            total_episodes: 1000,
             parameters: {
                 hidden_layers: parseInt(document.getElementById('hiddenLayers').value),
                 neurons_per_layer: parseInt(document.getElementById('neuronsPerLayer').value),
@@ -376,7 +376,7 @@ class EnhancedTradingDashboard {
         };
         
         try {
-            const response = await fetch('/api/sessions', {
+            const response = await fetch('/start_training', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -967,8 +967,12 @@ class EnhancedTradingDashboard {
     }
     
     updateNeuralNetworkVisualization(data) {
-        // This would update the neural network visualization with real-time activation data
-        console.log('Neural network update:', data);
+        // Update neural network visualization based on current parameters
+        if (this.neuralNetwork) {
+            const layers = parseInt(document.getElementById('hiddenLayers').value) || 3;
+            const neurons = parseInt(document.getElementById('neuronsPerLayer').value) || 128;
+            this.neuralNetwork.updateArchitecture(layers, neurons);
+        }
     }
 }
 
