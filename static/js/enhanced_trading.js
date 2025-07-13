@@ -211,6 +211,24 @@ class EnhancedTradingDashboard {
                 this.updateTrainingProgress(0);
             }
         });
+        
+        // Listen for global session updates from any dashboard
+        this.socket.on('global_session_update', (data) => {
+            console.log('Global session update received:', data);
+            if (data.session_id === this.sessionId) {
+                this.handleTrainingUpdate(data);
+            }
+        });
+        
+        // Listen for active session count updates
+        this.socket.on('active_sessions_count', (data) => {
+            console.log('Active sessions count:', data.count);
+            // Update any UI element showing active sessions
+            const activeSessionsEl = document.getElementById('activeSessions');
+            if (activeSessionsEl) {
+                activeSessionsEl.textContent = data.count;
+            }
+        });
     }
     
     async startTraining() {
@@ -242,7 +260,13 @@ class EnhancedTradingDashboard {
         // Start the training
         if (this.sessionId) {
             const startResponse = await fetch(`/api/sessions/${this.sessionId}/start`, {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    dataConfig: this.dataConfig || {}
+                })
             });
             
             if (startResponse.ok) {

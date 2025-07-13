@@ -301,6 +301,22 @@ class TradingDashboard {
                 this.loadRecentTrades();
             }
         }, 10000);
+        
+        // Listen for global session updates
+        this.socket.on('global_session_update', (data) => {
+            console.log('📊 Global session update received:', data);
+            // Update session info if it's the current session
+            if (data.session_id === this.sessionId || !this.sessionId) {
+                this.updateSessionInfo(data);
+                this.updateMetrics(data);
+            }
+        });
+        
+        // Listen for active sessions count
+        this.socket.on('active_sessions_count', (data) => {
+            console.log('📊 Active sessions:', data.count);
+            this.updateSessionsList();
+        });
     }
     
     clearTradeList() {

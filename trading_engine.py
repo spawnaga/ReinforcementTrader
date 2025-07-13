@@ -122,6 +122,17 @@ class TradingEngine:
 
             training_thread.start()
             logger.info(f"Training session {session_id} started")
+            
+            # Immediately broadcast that we have a new active session
+            try:
+                from app import socketio
+                socketio.emit('active_sessions_count', {
+                    'count': len(self.active_sessions),
+                    'session_ids': list(self.active_sessions.keys())
+                })
+                logger.info(f"Broadcast active sessions count: {len(self.active_sessions)}")
+            except Exception as e:
+                logger.error(f"Failed to broadcast active sessions: {e}")
 
             return True
 
@@ -799,6 +810,12 @@ class TradingEngine:
                 'session_id': session_id,
                 'status': status
             })
+            
+            # Broadcast updated active sessions count
+            socketio.emit('active_sessions_count', {
+                'count': len(self.active_sessions),
+                'session_ids': list(self.active_sessions.keys())
+            })
 
             logger.info(f"Training session {session_id} ended with status: {status}")
 
@@ -820,11 +837,11 @@ class TradingEngine:
         except Exception as e:
             logger.error(f"Error disconnecting from IB: {str(e)}")
 
-    def get_active_sessions(self) -> Dict:
-        """Get all active training sessions"""
+    def get_active_sessions(self) -> List[int]:
+        """Get all active training session IDs"""
         # Clean up any stale sessions before returning
         self._cleanup_stale_sessions()
-        return self.active_sessions.copy()
+        return list(self.active_sessions.keys())
 
     def _cleanup_stale_sessions(self):
         """Remove any sessions that are no longer active"""

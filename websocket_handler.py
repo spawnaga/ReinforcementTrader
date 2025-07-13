@@ -738,13 +738,22 @@ def background_broadcast_loop():
                 active_sessions = trading_engine.get_active_sessions()
                 logger.debug(f"Found {len(active_sessions)} active training sessions")
                 
+                # Broadcast session count to all clients
+                socketio.emit('active_sessions_count', {
+                    'count': len(active_sessions),
+                    'session_ids': active_sessions
+                })
+                
                 for session_id in active_sessions:
                     logger.debug(f"Getting real-time data for session {session_id}")
                     session_data = get_session_real_time_data(session_id)
                     if session_data:
+                        # Broadcast to both session room and all clients
                         room_name = f"session_{session_id}"
                         logger.debug(f"Broadcasting update for session {session_id}")
                         socketio.emit('session_update', session_data, room=room_name)
+                        # Also broadcast to all clients for dashboard sync
+                        socketio.emit('global_session_update', session_data)
             else:
                 logger.debug("No active connections, skipping broadcast")
             
