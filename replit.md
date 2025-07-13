@@ -108,7 +108,27 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 13, 2025)
 
-### Session Management and Trade Tracking Fix (July 13, 2025 - Latest)
+### Critical UI and Functionality Fixes (July 13, 2025 - Latest Update)
+- **Fixed Footer Blocking Issue**: Removed "Revolutionary AI Trading System" footer from enhanced trading dashboard
+  - Added conditional rendering in base.html to exclude footer on enhanced_dashboard endpoint
+  - Changed dashboard-container padding-bottom from 100px to 10px to reclaim screen space
+  - Resolved issue where footer was blocking training controls at bottom of page
+- **Fixed Session Reset Functionality**: Enhanced reset mechanism to properly clear trades
+  - Added WebSocket 'session_reset' event emission in reset_session route
+  - Updated enhanced_trading.js to handle session_reset events and clear UI
+  - Reset now properly broadcasts to both session room and general room
+  - Added session_reset event handler to clear trade list, reset metrics, and update progress
+- **Fixed Technical Indicators Time-based Features Error**: Resolved "'Index' object has no attribute 'hour'" error
+  - Added robust timestamp detection in _add_technical_indicators method
+  - Checks for DatetimeIndex, timestamp column, or time column before extracting time features
+  - Falls back to zero values if no timestamp available, preventing crashes
+  - Supports both database-loaded data (with timestamp column) and index-based timestamps
+- **Fixed Neural Network Visualization**: Added delayed initialization to ensure canvas renders
+  - Added setTimeout wrapper to allow DOM to fully render before drawing
+  - Set default canvas dimensions (600x400) if offsetWidth/Height are zero
+  - Visualization now properly displays neural network architecture
+
+### Session Management and Trade Tracking Fix (July 13, 2025)
 - **Fixed Session Management Issue**: Resolved critical bug where profits and trade counts accumulated across sessions
   - Added proper session management with Continue/Reset/New options when starting training
   - Implemented session-specific trade tracking - trades now only display for the current session

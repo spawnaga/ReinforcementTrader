@@ -446,11 +446,37 @@ class TradingEngine:
             data['lower_low'] = (data['low'] < data['low'].shift(1)).astype(int)
 
             # Time-based features
-            data['hour'] = data.index.hour
-            data['minute'] = data.index.minute
-            data['day_of_week'] = data.index.dayofweek
-            data['is_session_start'] = (data['hour'] == 17).astype(int)
-            data['is_session_end'] = (data['hour'] == 16).astype(int)
+            # Check if index is datetime, if not try to find timestamp column
+            if isinstance(data.index, pd.DatetimeIndex):
+                data['hour'] = data.index.hour
+                data['minute'] = data.index.minute
+                data['day_of_week'] = data.index.dayofweek
+            elif 'timestamp' in data.columns:
+                # Convert timestamp column to datetime if needed
+                data['timestamp'] = pd.to_datetime(data['timestamp'])
+                data['hour'] = data['timestamp'].dt.hour
+                data['minute'] = data['timestamp'].dt.minute
+                data['day_of_week'] = data['timestamp'].dt.dayofweek
+            elif 'time' in data.columns:
+                # Convert time column to datetime if needed
+                data['time'] = pd.to_datetime(data['time'])
+                data['hour'] = data['time'].dt.hour
+                data['minute'] = data['time'].dt.minute
+                data['day_of_week'] = data['time'].dt.dayofweek
+            else:
+                # Skip time-based features if no timestamp available
+                logger.warning("No timestamp index or column found, skipping time-based features")
+                data['hour'] = 0
+                data['minute'] = 0
+                data['day_of_week'] = 0
+            
+            # Add session features only if hour column exists
+            if 'hour' in data.columns:
+                data['is_session_start'] = (data['hour'] == 17).astype(int)
+                data['is_session_end'] = (data['hour'] == 16).astype(int)
+            else:
+                data['is_session_start'] = 0
+                data['is_session_end'] = 0
 
             # Fill NaN values
             data.ffill(inplace=True)

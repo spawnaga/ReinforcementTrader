@@ -175,6 +175,15 @@ class EnhancedTradingDashboard {
         this.socket.on('neural_network_update', (data) => {
             this.updateNeuralNetworkVisualization(data);
         });
+        
+        this.socket.on('session_reset', (data) => {
+            if (data.session_id === this.sessionId) {
+                console.log('Session reset received:', data);
+                this.clearTradeList();
+                this.resetMetricsDisplay();
+                this.updateTrainingProgress(0);
+            }
+        });
     }
     
     async startTraining() {
@@ -599,9 +608,11 @@ class EnhancedTradingDashboard {
         const canvas = document.getElementById('neural-network-viz');
         if (!canvas) return;
         
-        const ctx = canvas.getContext('2d');
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
+        // Ensure canvas has dimensions
+        setTimeout(() => {
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth || 600;
+            canvas.height = canvas.offsetHeight || 400;
         
         // Simple neural network visualization
         this.neuralNetwork = {
@@ -666,6 +677,7 @@ class EnhancedTradingDashboard {
         
         // Initial draw
         this.neuralNetwork.draw();
+        }, 100); // Delay to ensure DOM is ready
     }
     
     updateNeuralNetworkVisualization(data) {

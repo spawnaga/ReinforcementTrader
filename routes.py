@@ -399,6 +399,19 @@ def reset_session(session_id):
         
         db.session.commit()
         
+        # Emit WebSocket event to clear trades on frontend
+        from extensions import socketio
+        socketio.emit('session_reset', {
+            'session_id': session_id,
+            'message': 'Session reset successfully'
+        }, room=f'session_{session_id}')
+        
+        # Also emit to general room in case client hasn't joined session room yet
+        socketio.emit('session_reset', {
+            'session_id': session_id,
+            'message': 'Session reset successfully'
+        })
+        
         return jsonify({'success': True, 'message': 'Session reset successfully'})
         
     except Exception as e:
