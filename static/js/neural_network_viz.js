@@ -43,13 +43,16 @@ class NeuralNetworkVisualization {
     }
     
     init() {
-        this.setupCanvas();
-        this.calculateLayout();
-        this.initializeWeights();
-        this.setupEventListeners();
-        this.startAnimation();
-        
-        console.log('✅ Neural Network Visualization ready');
+        // Delay initialization to ensure canvas is rendered
+        setTimeout(() => {
+            this.setupCanvas();
+            this.calculateLayout();
+            this.initializeWeights();
+            this.setupEventListeners();
+            this.startAnimation();
+            
+            console.log('✅ Neural Network Visualization ready');
+        }, 100);
     }
     
     setupCanvas() {

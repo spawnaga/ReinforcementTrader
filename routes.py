@@ -321,8 +321,22 @@ def start_session(session_id):
         if not session:
             return jsonify({'error': 'Session not found'}), 404
             
+        # Get data configuration from request if provided
+        data = request.get_json() or {}
+        
         # Start training with the session parameters
-        success = trading_engine.start_training(session_id, session.configuration)
+        # Prepare training configuration
+        config = {
+            'algorithm_type': session.algorithm_type,
+            'total_episodes': session.total_episodes,
+            'parameters': session.parameters or {}
+        }
+        
+        # Add data configuration if provided
+        if 'dataConfig' in data:
+            config['parameters']['dataConfig'] = data['dataConfig']
+        
+        success = trading_engine.start_training(session_id, config)
         
         if success:
             session.status = 'active'
