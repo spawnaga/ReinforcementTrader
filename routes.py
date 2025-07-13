@@ -68,6 +68,11 @@ def trading_dashboard():
     """Advanced trading dashboard with real-time charts"""
     return render_template('trading_dashboard.html')
 
+@app.route('/enhanced_dashboard')
+def enhanced_dashboard():
+    """Enhanced trading dashboard with full neural network control"""
+    return render_template('enhanced_trading_dashboard.html')
+
 @app.route('/test_trades')
 def test_trades():
     """Test page for API endpoints"""
