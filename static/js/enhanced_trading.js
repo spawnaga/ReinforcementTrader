@@ -400,6 +400,8 @@ class EnhancedTradingDashboard {
             if (response.ok) {
                 const data = await response.json();
                 this.sessionId = data.session_id;
+                this.totalEpisodes = totalEpisodes; // Store total episodes for progress calculation
+                document.getElementById('totalEpisodes').textContent = totalEpisodes;
             }
         } catch (error) {
             console.error('Error creating session:', error);
@@ -595,36 +597,27 @@ class EnhancedTradingDashboard {
         this.currentEpisode = data.episode;
         this.updateTrainingProgress(data.episode / this.totalEpisodes * 100);
         
-        // Update chart - destroy and recreate if having issues
-        try {
-            if (this.trainingChart) {
-                // Check if chart is in a valid state
-                if (this.trainingChart.canvas && this.trainingChart.ctx) {
-                    this.trainingChart.data.labels.push(data.episode);
-                    this.trainingChart.data.datasets[0].data.push(data.reward);
-                    this.trainingChart.data.datasets[1].data.push(data.loss);
-                    
-                    // Keep only last 100 points
-                    if (this.trainingChart.data.labels.length > 100) {
-                        this.trainingChart.data.labels.shift();
-                        this.trainingChart.data.datasets.forEach(dataset => dataset.data.shift());
-                    }
-                    
-                    this.trainingChart.update('none'); // No animation for performance
-                } else {
-                    // Chart is in invalid state, recreate it
-                    console.warn('Chart in invalid state, recreating...');
-                    this.trainingChart.destroy();
-                    this.initializeCharts();
+        // Update chart only if it exists and is valid
+        if (this.trainingChart && this.trainingChart.canvas && this.trainingChart.ctx) {
+            try {
+                this.trainingChart.data.labels.push(data.episode);
+                this.trainingChart.data.datasets[0].data.push(data.reward);
+                this.trainingChart.data.datasets[1].data.push(data.loss);
+                
+                // Keep only last 100 points
+                if (this.trainingChart.data.labels.length > 100) {
+                    this.trainingChart.data.labels.shift();
+                    this.trainingChart.data.datasets.forEach(dataset => dataset.data.shift());
                 }
+                
+                this.trainingChart.update('none'); // No animation for performance
+            } catch (error) {
+                console.error('Error updating chart:', error);
+                // Don't recreate chart on every error, just skip this update
             }
-        } catch (error) {
-            console.error('Error updating chart:', error);
-            // Try to recreate the chart
-            if (this.trainingChart) {
-                this.trainingChart.destroy();
-            }
-            this.recreateChart();
+        } else if (!this.trainingChart) {
+            // Initialize chart only if it doesn't exist
+            this.initializeCharts();
         }
         
         // Update metrics
