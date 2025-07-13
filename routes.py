@@ -931,4 +931,33 @@ def force_start_training():
         import traceback
         return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
 
+# ---------------------------------------------------------------------------
+# New API Endpoints for frontend integration
+# ---------------------------------------------------------------------------
+
+@app.route('/api/place_trade', methods=['POST'])
+def place_trade_api():
+    """Place a manual trade via the trading engine"""
+    try:
+        trade_data = request.get_json() or {}
+        result = trading_engine.place_trade(trade_data)
+        status_code = 200 if result.get('success') else 400
+        return jsonify(result), status_code
+    except Exception as e:
+        logger.error(f"Error placing trade: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/optimize', methods=['POST'])
+def run_optimization():
+    """Run hyperparameter optimization"""
+    try:
+        data = request.get_json() or {}
+        result = trading_engine.optimize_hyperparameters(data)
+        status_code = 200 if result.get('success') else 400
+        return jsonify(result), status_code
+    except Exception as e:
+        logger.error(f"Error running optimization: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
