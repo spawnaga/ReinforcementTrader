@@ -353,6 +353,7 @@ class EnhancedTradingDashboard {
         document.getElementById('totalProfit').textContent = '$0';
         document.getElementById('maxDrawdown').textContent = '0%';
         document.getElementById('currentEpisode').textContent = '0';
+        document.getElementById('totalTrades').textContent = '0';
     }
     
     clearTradeList() {
@@ -445,10 +446,30 @@ class EnhancedTradingDashboard {
         
         // Update metrics
         if (data.metrics) {
-            document.getElementById('winRate').textContent = `${(data.metrics.win_rate * 100).toFixed(1)}%`;
-            document.getElementById('sharpeRatio').textContent = data.metrics.sharpe_ratio.toFixed(2);
-            document.getElementById('totalProfit').textContent = `$${data.metrics.total_profit.toFixed(2)}`;
-            document.getElementById('maxDrawdown').textContent = `${(data.metrics.max_drawdown * 100).toFixed(1)}%`;
+            // Safely update win rate
+            if (data.metrics.win_rate !== undefined && data.metrics.win_rate !== null) {
+                document.getElementById('winRate').textContent = `${(data.metrics.win_rate * 100).toFixed(1)}%`;
+            }
+            
+            // Safely update sharpe ratio
+            if (data.metrics.sharpe_ratio !== undefined && data.metrics.sharpe_ratio !== null) {
+                document.getElementById('sharpeRatio').textContent = data.metrics.sharpe_ratio.toFixed(2);
+            }
+            
+            // Safely update total profit
+            if (data.metrics.total_profit !== undefined && data.metrics.total_profit !== null) {
+                document.getElementById('totalProfit').textContent = `$${data.metrics.total_profit.toFixed(2)}`;
+            }
+            
+            // Safely update max drawdown
+            if (data.metrics.max_drawdown !== undefined && data.metrics.max_drawdown !== null) {
+                document.getElementById('maxDrawdown').textContent = `${(data.metrics.max_drawdown * 100).toFixed(1)}%`;
+            }
+            
+            // Safely update total trades
+            if (data.metrics.total_trades !== undefined && data.metrics.total_trades !== null) {
+                document.getElementById('totalTrades').textContent = data.metrics.total_trades.toString();
+            }
         }
     }
     
