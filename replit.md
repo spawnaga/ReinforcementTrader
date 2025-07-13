@@ -108,7 +108,23 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 13, 2025)
 
-### Chart.js Error Fixes and Dashboard Integration (July 13, 2025 - Latest)
+### Advanced Dashboard Neural Network Parameter Integration (July 13, 2025 - Latest)
+- **Fixed Parameter Mapping for ANE-PPO Algorithm**:
+  - Discovered ANE-PPO doesn't use `hidden_layers` or `neurons_per_layer` parameters
+  - Mapped UI controls to correct ANE-PPO parameters:
+    - "Hidden Layers" slider → `transformer_layers` (controls transformer depth)
+    - "Neurons per Layer" slider → `hidden_dim` (controls network hidden dimension)
+  - Updated parameter names in createNewSession() to match ANE-PPO constructor
+  - Changed UI labels to "Transformer Layers" and "Hidden Dimension" for clarity
+- **Enhanced Parameter Collection**:
+  - Advanced dashboard now properly collects all neural network parameters
+  - Parameters are correctly passed through to the training engine
+  - Training sessions from advanced dashboard now use custom neural network configurations
+- **Fixed "Session not found" Warning**:
+  - This was caused by attempting to access non-existent sessions
+  - Enhanced session management to prevent accessing invalid session IDs
+
+### Chart.js Error Fixes and Dashboard Integration (July 13, 2025)
 - **Fixed WebSocket Session Tracking**: 
   - Modified `get_active_sessions` method in trading_engine.py to return session IDs instead of full dictionaries
   - This resolved the "unhashable type: 'dict'" error that was preventing proper session tracking

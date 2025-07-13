@@ -364,11 +364,15 @@ class EnhancedTradingDashboard {
             algorithm_type: this.selectedModel,
             total_episodes: 1000,
             parameters: {
-                hidden_layers: parseInt(document.getElementById('hiddenLayers').value),
-                neurons_per_layer: parseInt(document.getElementById('neuronsPerLayer').value),
+                // Map UI parameters to what ANE-PPO expects
+                hidden_dim: parseInt(document.getElementById('neuronsPerLayer').value) || 512,
+                transformer_layers: parseInt(document.getElementById('hiddenLayers').value) || 6,
                 learning_rate: parseFloat(document.getElementById('learningRate').value),
-                dropout_rate: parseFloat(document.getElementById('dropoutRate').value),
                 batch_size: parseInt(document.getElementById('batchSize').value),
+                // Additional ANE-PPO specific parameters
+                attention_heads: 8,
+                attention_dim: 256,
+                dropout: parseFloat(document.getElementById('dropoutRate').value) || 0.2,
                 indicators: this.selectedIndicators,
                 timeframe: parseInt(document.getElementById('timeframeSelect').value),
                 dataConfig: this.dataConfig || { type: 'all' }
