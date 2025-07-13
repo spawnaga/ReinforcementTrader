@@ -22,6 +22,17 @@ class EnhancedTradingDashboard {
         // Initialize training chart
         const ctx = document.getElementById('trainingChart')?.getContext('2d');
         if (ctx) {
+            // Destroy existing chart if it exists
+            if (this.trainingChart) {
+                this.trainingChart.destroy();
+            }
+            
+            // Check if there's an existing chart on this canvas
+            const existingChart = Chart.getChart(ctx);
+            if (existingChart) {
+                existingChart.destroy();
+            }
+            
             this.trainingChart = new Chart(ctx, {
                 type: 'line',
                 data: {
