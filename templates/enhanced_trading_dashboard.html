@@ -17,7 +17,7 @@
         height: calc(100vh - 100px);
         gap: 10px;
         padding: 10px;
-        padding-bottom: 10px;
+        padding-bottom: 220px; /* Make room for log section */
     }
     
     /* Control Panel Sidebar */
@@ -498,10 +498,10 @@
         <div class="control-section">
             <h5><i class="fas fa-clock"></i> Timeframe</h5>
             <select id="timeframeSelect" class="form-control">
-                <option value="1">1 minute</option>
+                <option value="1" selected>1 minute</option>
                 <option value="2">2 minutes</option>
                 <option value="3">3 minutes</option>
-                <option value="5" selected>5 minutes</option>
+                <option value="5">5 minutes</option>
                 <option value="10">10 minutes</option>
                 <option value="15">15 minutes</option>
                 <option value="20">20 minutes</option>
@@ -621,6 +621,20 @@
         <!-- Learning Visualizations Container -->
         <div id="learningVisualizationsContainer" style="grid-column: span 3;">
             <!-- Learning visualizations will be dynamically inserted here -->
+        </div>
+    </div>
+    
+    <!-- Advanced Log Section -->
+    <div class="advanced-log-section" style="background: #0a0a0a; border-top: 1px solid #333; padding: 20px; position: fixed; bottom: 0; left: 0; right: 0; height: 200px; overflow-y: auto; z-index: 1000;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h5 style="color: #00ff88; margin: 0;"><i class="fas fa-terminal"></i> Advanced System Log</h5>
+            <button class="btn btn-sm btn-primary" onclick="dashboard.clearLog()">
+                <i class="fas fa-eraser"></i> Clear Log
+            </button>
+        </div>
+        <div id="advancedLog" style="font-family: 'Courier New', monospace; font-size: 12px; color: #00ff00; background: #000; padding: 10px; border-radius: 5px; height: calc(100% - 40px); overflow-y: auto;">
+            <div>[SYSTEM] Advanced Trading Dashboard initialized...</div>
+            <div>[SYSTEM] Waiting for main dashboard connection...</div>
         </div>
     </div>
 </div>

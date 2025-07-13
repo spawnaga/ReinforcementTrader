@@ -126,11 +126,32 @@ class TradingEngine:
             # Immediately broadcast that we have a new active session
             try:
                 from app import socketio
+                
+                # Emit active sessions count
                 socketio.emit('active_sessions_count', {
                     'count': len(self.active_sessions),
                     'session_ids': list(self.active_sessions.keys())
                 })
-                logger.info(f"Broadcast active sessions count: {len(self.active_sessions)}")
+                
+                # Emit training started event for advanced dashboard integration
+                # Get session name from database
+                session_name = f"Session_{session_id}"
+                try:
+                    session = db.session.get(TradingSession, session_id)
+                    if session:
+                        session_name = session.session_name
+                except Exception as e:
+                    logger.error(f"Failed to get session name: {e}")
+                
+                socketio.emit('training_started', {
+                    'session_id': session_id,
+                    'session_name': session_name,
+                    'algorithm': config.get('algorithm_type', 'ANE_PPO').lower(),
+                    'total_episodes': config.get('total_episodes', 1000),
+                    'parameters': config.get('parameters', {})
+                })
+                
+                logger.info(f"Broadcast training started for session {session_id}")
             except Exception as e:
                 logger.error(f"Failed to broadcast active sessions: {e}")
 

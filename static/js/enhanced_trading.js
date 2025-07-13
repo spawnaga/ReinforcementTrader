@@ -201,6 +201,7 @@ class EnhancedTradingDashboard {
         this.socket.on('connect', () => {
             console.log('Connected to trading server');
             this.updateStatus('ONLINE', true);
+            this.addLog('[CONNECTION] Connected to trading server', 'success');
             
             // Join session room if we have a session
             if (this.sessionId) {
@@ -211,6 +212,39 @@ class EnhancedTradingDashboard {
         this.socket.on('disconnect', () => {
             console.log('Disconnected from trading server');
             this.updateStatus('OFFLINE', false);
+            this.addLog('[CONNECTION] Disconnected from trading server', 'error');
+        });
+        
+        // Listen for training started from main dashboard
+        this.socket.on('training_started', (data) => {
+            this.addLog(`[MAIN DASHBOARD] Training started - Session: ${data.session_name}, Algorithm: ${data.algorithm}`, 'info');
+            this.sessionId = data.session_id;
+            this.isTraining = true;
+            this.updateTrainingControls();
+            this.updateStatus('TRAINING', true);
+            
+            // Update model display
+            if (data.algorithm) {
+                document.getElementById('modelType').textContent = data.algorithm.toUpperCase();
+                // Update the model select dropdown
+                const modelSelect = document.getElementById('modelSelect');
+                if (modelSelect) {
+                    const algorithmMap = {
+                        'ane_ppo': 'ANE_PPO',
+                        'dqn': 'DQN',
+                        'genetic': 'GENETIC'
+                    };
+                    const mappedValue = algorithmMap[data.algorithm] || 'ANE_PPO';
+                    modelSelect.value = mappedValue;
+                    this.selectedModel = mappedValue;
+                }
+            }
+            
+            // Join the session room
+            this.socket.emit('join_session', {session_id: this.sessionId});
+            
+            // Load session trades
+            this.loadSessionTrades();
         });
         
         this.socket.on('training_update', (data) => {
@@ -977,7 +1011,85 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
+// Add missing methods to EnhancedTradingDashboard prototype
+EnhancedTradingDashboard.prototype.addLog = function(message, type = 'info') {
+    const logContainer = document.getElementById('advancedLog');
+    if (!logContainer) return;
+    
+    const timestamp = new Date().toISOString().substr(11, 8);
+    const logEntry = document.createElement('div');
+    
+    // Color code based on type
+    const colors = {
+        'info': '#00ff88',
+        'warning': '#ffaa00',
+        'error': '#ff4444',
+        'success': '#00ff00',
+        'trade': '#00aaff'
+    };
+    
+    logEntry.style.color = colors[type] || '#00ff88';
+    logEntry.textContent = `[${timestamp}] ${message}`;
+    
+    // Add to log
+    logContainer.appendChild(logEntry);
+    
+    // Auto-scroll to bottom
+    logContainer.scrollTop = logContainer.scrollHeight;
+    
+    // Keep only last 100 entries
+    while (logContainer.children.length > 100) {
+        logContainer.removeChild(logContainer.firstChild);
+    }
+};
+
+EnhancedTradingDashboard.prototype.clearLog = function() {
+    const logContainer = document.getElementById('advancedLog');
+    if (logContainer) {
+        logContainer.innerHTML = '<div>[SYSTEM] Log cleared</div>';
+    }
+};
+
+EnhancedTradingDashboard.prototype.checkForActiveTraining = async function() {
+    // Check if there's active training on main dashboard
+    try {
+        const response = await fetch('/api/sessions');
+        const sessions = await response.json();
+        
+        const activeSessions = sessions.filter(s => s.status === 'active');
+        if (activeSessions.length > 0) {
+            const session = activeSessions[0];
+            this.addLog(`[SYNC] Found active training session: ${session.name}`, 'info');
+            
+            // Sync with the active session
+            this.sessionId = session.id;
+            this.isTraining = true;
+            this.updateTrainingControls();
+            this.updateStatus('TRAINING', true);
+            
+            // Update model display
+            if (session.algorithm_type) {
+                document.getElementById('modelType').textContent = session.algorithm_type.toUpperCase();
+            }
+            
+            // Join session room
+            this.socket.emit('join_session', {session_id: this.sessionId});
+            
+            // Load session trades
+            this.loadSessionTrades();
+        } else {
+            this.addLog('[SYNC] No active training sessions found', 'warning');
+        }
+    } catch (error) {
+        this.addLog(`[ERROR] Failed to check for active training: ${error.message}`, 'error');
+    }
+};
+
 // Initialize dashboard when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.enhancedDashboard = new EnhancedTradingDashboard();
+    // Check for active training after a short delay
+    setTimeout(() => {
+        window.enhancedDashboard.checkForActiveTraining();
+    }, 1000);
 });
