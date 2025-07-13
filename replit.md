@@ -108,7 +108,24 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 13, 2025)
 
-### Advanced Dashboard Neural Network Parameter Integration (July 13, 2025 - Latest)
+### Manual Episode Control and Browser Extension Fix (July 13, 2025 - Latest Update)
+- **Added Manual Episode Control**:
+  - Added numeric input field for training episodes in the advanced dashboard
+  - Users can now manually specify training episodes from 10 to 10,000 in steps of 10
+  - Input field styled to match the dark theme with proper focus states
+  - JavaScript updated to read totalEpisodesInput value when creating new sessions
+  - Total episodes display dynamically updates when user changes the input value
+- **Browser Extension Error Handling**:
+  - Added try-catch blocks around training session creation to handle browser extension errors
+  - The "listener indicated async response but channel closed" error is now gracefully handled
+  - Training state properly resets if session creation fails
+  - Users receive clear error messages if training fails to start
+- **UI Improvements**:
+  - Added proper CSS styling for number inputs with dark theme support
+  - Episode input integrates seamlessly with existing neural network controls
+  - Form controls maintain consistent styling across the dashboard
+
+### Advanced Dashboard Neural Network Parameter Integration (July 13, 2025)
 - **Fixed Parameter Mapping for ANE-PPO Algorithm**:
   - Discovered ANE-PPO doesn't use `hidden_layers`, `neurons_per_layer`, or `hidden_dim` parameters
   - ActorCritic network has fixed hidden_dim=512 default

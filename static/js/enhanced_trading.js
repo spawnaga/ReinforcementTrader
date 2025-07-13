@@ -166,6 +166,11 @@ class EnhancedTradingDashboard {
             document.getElementById('batchSizeValue').textContent = e.target.value;
         });
         
+        // Total episodes input handler
+        document.getElementById('totalEpisodesInput')?.addEventListener('change', (e) => {
+            document.getElementById('totalEpisodes').textContent = e.target.value;
+        });
+        
         // Indicator selection
         document.querySelectorAll('.indicator-item').forEach(item => {
             item.addEventListener('click', (e) => {
@@ -359,10 +364,12 @@ class EnhancedTradingDashboard {
     }
     
     async createNewSession() {
+        const totalEpisodes = parseInt(document.getElementById('totalEpisodesInput').value) || 1000;
+        
         const params = {
             session_name: `Advanced Training ${new Date().toLocaleString()}`,
             algorithm_type: this.selectedModel,
-            total_episodes: 1000,
+            total_episodes: totalEpisodes,
             parameters: {
                 // Map UI parameters to what ANE-PPO actually accepts
                 transformer_layers: parseInt(document.getElementById('hiddenLayers').value) || 6,
