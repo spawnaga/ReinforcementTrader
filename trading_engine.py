@@ -553,11 +553,15 @@ class TradingEngine:
     def _create_algorithm(self, algorithm_type: str, env, config: Dict):
         """Create the specified algorithm with multi-GPU support"""
         try:
+            # Extract parameters and remove dataConfig which is not needed by the algorithm
+            params = config.get('parameters', {}).copy()
+            params.pop('dataConfig', None)  # Remove dataConfig as it's only for data loading
+            
             if algorithm_type == 'ANE_PPO':
                 algorithm = ANEPPO(
                     env=env,
                     device=self.device,
-                    **config.get('parameters', {})
+                    **params
                 )
                 # Enable multi-GPU training if available
                 if self.gpu_count > 1:
@@ -568,7 +572,7 @@ class TradingEngine:
                 algorithm = ANEPPO(
                     env=env,
                     device=self.device,
-                    **config.get('parameters', {}))
+                    **params)
                 if self.gpu_count > 1:
                     algorithm.enable_multi_gpu(self.gpu_count)
                 return algorithm

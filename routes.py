@@ -838,4 +838,59 @@ def chart_debug():
     """Chart debug page"""
     return render_template('chart_debug.html')
 
+@app.route('/api/force_start_training', methods=['POST'])
+def force_start_training():
+    """Force start training with minimal config"""
+    try:
+        # Create a minimal session
+        session = TradingSession(
+            session_name='Force Start Test',
+            algorithm_type='ANE_PPO',
+            status='active',
+            total_episodes=10,
+            parameters={'dataConfig': {'type': 'percentage', 'percentage': 1}}
+        )
+        db.session.add(session)
+        db.session.commit()
+        
+        # Log the attempt
+        logger.info(f"Force starting training for session {session.id}")
+        
+        # Directly start training thread
+        import threading
+        
+        config = {
+            'algorithm_type': 'ANE_PPO',
+            'total_episodes': 10,
+            'parameters': {'dataConfig': {'type': 'percentage', 'percentage': 1}}
+        }
+        
+        # Add to active sessions first
+        trading_engine.active_sessions[session.id] = {
+            'status': 'starting',
+            'config': config,
+            'start_time': datetime.utcnow()
+        }
+        
+        # Create and start thread
+        thread = threading.Thread(
+            target=trading_engine._training_loop,
+            args=(session.id, config),
+            daemon=True
+        )
+        trading_engine.training_threads[session.id] = thread
+        thread.start()
+        
+        return jsonify({
+            'success': True,
+            'session_id': session.id,
+            'message': 'Training force started',
+            'active_sessions': list(trading_engine.active_sessions.keys())
+        })
+        
+    except Exception as e:
+        logger.error(f"Force start error: {str(e)}")
+        import traceback
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+
 

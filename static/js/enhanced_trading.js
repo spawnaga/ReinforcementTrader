@@ -500,19 +500,31 @@ class EnhancedTradingDashboard {
     }
     
     handleTradeUpdate(trade) {
+        console.log('Trade update received:', trade);
+        console.log('Current session ID:', this.sessionId);
+        
         // Only show trades for the current session
         if (trade.session_id !== this.sessionId) {
+            console.log('Trade is for different session, ignoring');
             return;
         }
         
         const tradeList = document.getElementById('tradeList');
         const tradeItem = document.createElement('div');
         tradeItem.className = `trade-item ${trade.profit_loss >= 0 ? 'profit' : 'loss'}`;
+        
+        // Extract time from timestamp
+        const timestamp = new Date(trade.timestamp);
+        const timeStr = timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+        
         tradeItem.innerHTML = `
-            <span>${trade.position_type.toUpperCase()} @ $${trade.entry_price.toFixed(2)}</span>
-            <span class="${trade.profit_loss >= 0 ? 'text-success' : 'text-danger'}">
-                ${trade.profit_loss >= 0 ? '+' : ''}$${trade.profit_loss.toFixed(2)}
-            </span>
+            <span class="trade-type">${trade.position_type}</span>
+            <span class="trade-time">${timeStr}</span>
+            <span class="trade-price">$${trade.entry_price ? trade.entry_price.toFixed(2) : '0.00'}</span>
+            ${trade.profit_loss !== undefined ? 
+                `<span class="${trade.profit_loss >= 0 ? 'text-success' : 'text-danger'}">
+                    ${trade.profit_loss >= 0 ? '+' : ''}$${trade.profit_loss.toFixed(2)}
+                </span>` : ''}
         `;
         
         // Prepend to list (newest first)
