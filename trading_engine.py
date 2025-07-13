@@ -597,9 +597,12 @@ class TradingEngine:
     def _create_algorithm(self, algorithm_type: str, env, config: Dict):
         """Create the specified algorithm with multi-GPU support"""
         try:
-            # Extract parameters and remove dataConfig which is not needed by the algorithm
+            # Extract parameters and remove non-algorithm parameters
             params = config.get('parameters', {}).copy()
+            # Remove parameters that are not part of ANE-PPO constructor
             params.pop('dataConfig', None)  # Remove dataConfig as it's only for data loading
+            params.pop('indicators', None)  # Remove indicators as it's for data preprocessing
+            params.pop('timeframe', None)  # Remove timeframe as it's for data selection
             
             if algorithm_type == 'ANE_PPO':
                 algorithm = ANEPPO(

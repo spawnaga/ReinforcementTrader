@@ -373,11 +373,12 @@ class EnhancedTradingDashboard {
                 attention_heads: 8,
                 genetic_population_size: 50,
                 genetic_mutation_rate: 0.1,
-                genetic_crossover_rate: 0.8,
-                indicators: this.selectedIndicators,
-                timeframe: parseInt(document.getElementById('timeframeSelect').value),
-                dataConfig: this.dataConfig || { type: 'all' }
-            }
+                genetic_crossover_rate: 0.8
+            },
+            // Non-algorithm parameters for session config
+            indicators: this.selectedIndicators,
+            timeframe: parseInt(document.getElementById('timeframeSelect').value),
+            dataConfig: this.dataConfig || { type: 'all' }
         };
         
         try {
