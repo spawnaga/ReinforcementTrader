@@ -51,6 +51,32 @@ def handle_connect(auth=None):
         logger.error(f"Error handling connection: {str(e)}")
         emit('error', {'message': 'Connection error'})
 
+@socketio.on('join_session')
+def handle_join_session(data):
+    """Handle client joining a session room"""
+    try:
+        client_id = request.sid
+        session_id = data.get('session_id')
+        
+        if session_id:
+            room_name = f'session_{session_id}'
+            join_room(room_name)
+            
+            # Track room subscription
+            if client_id in active_connections:
+                active_connections[client_id]['subscriptions'].add(room_name)
+            
+            if room_name not in room_subscriptions:
+                room_subscriptions[room_name] = set()
+            room_subscriptions[room_name].add(client_id)
+            
+            logger.info(f"Client {client_id} joined session room {room_name}")
+            emit('joined_session', {'session_id': session_id, 'room': room_name})
+            
+    except Exception as e:
+        logger.error(f"Error joining session: {str(e)}")
+        emit('error', {'message': 'Failed to join session'})
+
 @socketio.on('disconnect')
 def handle_disconnect(*args, **kwargs):
     """Handle client disconnection"""

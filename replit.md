@@ -106,6 +106,22 @@ Preferred communication style: Simple, everyday language.
 - **System Health**: Real-time resource monitoring with detailed debug logs
 - **WebSocket Debugging**: Full broadcast loop tracking with iteration counters
 
+## Recent Updates (July 13, 2025)
+
+### Session Management and Trade Tracking Fix (July 13, 2025 - Latest)
+- **Fixed Session Management Issue**: Resolved critical bug where profits and trade counts accumulated across sessions
+  - Added proper session management with Continue/Reset/New options when starting training
+  - Implemented session-specific trade tracking - trades now only display for the current session
+  - Added `/api/sessions/<id>/reset` endpoint to clear all trades and metrics for a session
+  - WebSocket now uses session rooms (`session_<id>`) to isolate trade updates per session
+  - Enhanced dashboard JavaScript to:
+    - Check for existing sessions before starting new training
+    - Show modal with session info and options (Continue, Reset, Create New)
+    - Load only session-specific trades when training starts
+    - Filter incoming trade updates by session_id
+  - Fixed trade accumulation issue where stopping and restarting would show old trades
+  - Session metrics (profit, trade count, win rate) now properly reset to 0 when creating new session
+
 ## Recent Updates (July 12, 2025)
 
 ### JavaScript IDE Warning Fixes (July 12, 2025 - Latest)

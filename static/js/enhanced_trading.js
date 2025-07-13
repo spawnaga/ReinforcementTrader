@@ -148,6 +148,11 @@ class EnhancedTradingDashboard {
         this.socket.on('connect', () => {
             console.log('Connected to trading server');
             this.updateStatus('ONLINE', true);
+            
+            // Join session room if we have a session
+            if (this.sessionId) {
+                this.socket.emit('join_session', {session_id: this.sessionId});
+            }
         });
         
         this.socket.on('disconnect', () => {
@@ -173,8 +178,70 @@ class EnhancedTradingDashboard {
     }
     
     async startTraining() {
+        // Check if there's an existing session
+        const existingSessions = await this.checkExistingSessions();
+        
+        if (existingSessions.length > 0) {
+            // Ask user what to do with existing sessions
+            const userChoice = await this.showSessionOptions(existingSessions);
+            
+            if (userChoice === 'continue') {
+                // Continue with the existing session
+                this.sessionId = existingSessions[0].id;
+                await this.resumeTraining();
+                return;
+            } else if (userChoice === 'reset') {
+                // Reset the existing session
+                await this.resetSession(existingSessions[0].id);
+                this.sessionId = existingSessions[0].id;
+            } else {
+                // Create new session (default behavior)
+                await this.createNewSession();
+            }
+        } else {
+            // No existing sessions, create new one
+            await this.createNewSession();
+        }
+        
+        // Start the training
+        if (this.sessionId) {
+            const startResponse = await fetch(`/api/sessions/${this.sessionId}/start`, {
+                method: 'POST'
+            });
+            
+            if (startResponse.ok) {
+                this.isTraining = true;
+                this.updateTrainingControls();
+                this.resetMetricsDisplay();
+                console.log('Training started successfully');
+                
+                // Join session room for WebSocket updates
+                if (this.socket.connected) {
+                    this.socket.emit('join_session', {session_id: this.sessionId});
+                }
+                
+                // Load existing trades for this session
+                this.loadSessionTrades();
+            }
+        }
+    }
+    
+    async checkExistingSessions() {
+        try {
+            const response = await fetch('/api/sessions');
+            if (response.ok) {
+                const sessions = await response.json();
+                return sessions.filter(s => s.status === 'active' || s.status === 'paused');
+            }
+        } catch (error) {
+            console.error('Error checking sessions:', error);
+        }
+        return [];
+    }
+    
+    async createNewSession() {
         const params = {
-            session_name: 'Advanced Training Session',
+            session_name: `Training Session ${new Date().toLocaleString()}`,
             algorithm_type: 'ANE_PPO',
             parameters: {
                 hidden_layers: parseInt(document.getElementById('hiddenLayers').value),
@@ -199,20 +266,117 @@ class EnhancedTradingDashboard {
             if (response.ok) {
                 const data = await response.json();
                 this.sessionId = data.session_id;
-                
-                // Start the training
-                const startResponse = await fetch(`/api/sessions/${this.sessionId}/start`, {
-                    method: 'POST'
-                });
-                
-                if (startResponse.ok) {
-                    this.isTraining = true;
-                    this.updateTrainingControls();
-                    console.log('Training started successfully');
-                }
             }
         } catch (error) {
-            console.error('Error starting training:', error);
+            console.error('Error creating session:', error);
+        }
+    }
+    
+    async resetSession(sessionId) {
+        try {
+            const response = await fetch(`/api/sessions/${sessionId}/reset`, {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                console.log('Session reset successfully');
+                this.currentEpisode = 0;
+                this.updateTrainingProgress(0);
+                this.resetMetricsDisplay();
+                this.clearTradeList();
+            }
+        } catch (error) {
+            console.error('Error resetting session:', error);
+        }
+    }
+    
+    async resumeTraining() {
+        try {
+            const response = await fetch(`/api/sessions/${this.sessionId}/start`, {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                this.isTraining = true;
+                this.updateTrainingControls();
+                console.log('Training resumed');
+            }
+        } catch (error) {
+            console.error('Error resuming training:', error);
+        }
+    }
+    
+    async showSessionOptions(sessions) {
+        // Create a simple modal to ask user
+        const modal = document.createElement('div');
+        modal.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+                <div style="background: #1a1a2e; padding: 30px; border-radius: 10px; max-width: 500px;">
+                    <h3 style="color: #00ff88; margin-bottom: 20px;">Active Session Found</h3>
+                    <p style="color: #e0e0e0; margin-bottom: 20px;">
+                        Session: ${sessions[0].name}<br>
+                        Progress: ${sessions[0].current_episode}/${sessions[0].total_episodes} episodes<br>
+                        Total Profit: $${sessions[0].total_profit.toFixed(2)}<br>
+                        Total Trades: ${sessions[0].total_trades}
+                    </p>
+                    <p style="color: #e0e0e0; margin-bottom: 20px;">What would you like to do?</p>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="continueBtn" style="padding: 10px 20px; background: #00ff88; color: #000; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Continue Training</button>
+                        <button id="resetBtn" style="padding: 10px 20px; background: #ff8800; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Reset & Start Fresh</button>
+                        <button id="newBtn" style="padding: 10px 20px; background: #0088ff; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Create New Session</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        return new Promise(resolve => {
+            document.getElementById('continueBtn').onclick = () => {
+                document.body.removeChild(modal);
+                resolve('continue');
+            };
+            document.getElementById('resetBtn').onclick = () => {
+                document.body.removeChild(modal);
+                resolve('reset');
+            };
+            document.getElementById('newBtn').onclick = () => {
+                document.body.removeChild(modal);
+                resolve('new');
+            };
+        });
+    }
+    
+    resetMetricsDisplay() {
+        document.getElementById('winRate').textContent = '0%';
+        document.getElementById('sharpeRatio').textContent = '0.00';
+        document.getElementById('totalProfit').textContent = '$0';
+        document.getElementById('maxDrawdown').textContent = '0%';
+        document.getElementById('currentEpisode').textContent = '0';
+    }
+    
+    clearTradeList() {
+        document.getElementById('tradeList').innerHTML = '';
+    }
+    
+    async loadSessionTrades() {
+        if (!this.sessionId) return;
+        
+        try {
+            const response = await fetch(`/api/recent_trades?session_id=${this.sessionId}&limit=20`);
+            if (response.ok) {
+                const trades = await response.json();
+                
+                // Clear existing trades
+                this.clearTradeList();
+                
+                // Add trades in reverse order (oldest first) so newest appear at top
+                trades.reverse().forEach(trade => {
+                    this.handleTradeUpdate(trade);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading session trades:', error);
         }
     }
     
@@ -289,6 +453,11 @@ class EnhancedTradingDashboard {
     }
     
     handleTradeUpdate(trade) {
+        // Only show trades for the current session
+        if (trade.session_id !== this.sessionId) {
+            return;
+        }
+        
         const tradeList = document.getElementById('tradeList');
         const tradeItem = document.createElement('div');
         tradeItem.className = `trade-item ${trade.profit_loss >= 0 ? 'profit' : 'loss'}`;

@@ -311,35 +311,170 @@ def get_algorithm_configs():
         logger.error(f"Error fetching algorithm configs: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/sessions')
-def get_sessions():
-    """Get all trading sessions"""
+@app.route('/api/sessions/<int:session_id>/start', methods=['POST'])
+@retry_on_db_error()
+def start_session(session_id):
+    """Start a training session"""
     try:
-        sessions = TradingSession.query.order_by(TradingSession.start_time.desc()).all()
-        result = []
+        session = TradingSession.query.get(session_id)
+        if not session:
+            return jsonify({'error': 'Session not found'}), 404
+            
+        # Start training with the session parameters
+        success = trading_engine.start_training(session_id, session.configuration)
         
-        for session in sessions:
-            result.append({
-                'id': session.id,
-                'name': session.session_name,
-                'algorithm_type': session.algorithm_type,
-                'status': session.status,
-                'start_time': session.start_time.isoformat() if session.start_time else None,
-                'end_time': session.end_time.isoformat() if session.end_time else None,
-                'total_episodes': session.total_episodes,
-                'current_episode': session.current_episode,
-                'total_profit': session.total_profit,
-                'total_trades': session.total_trades,
-                'win_rate': session.win_rate,
-                'sharpe_ratio': session.sharpe_ratio,
-                'max_drawdown': session.max_drawdown
-            })
+        if success:
+            session.status = 'active'
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Training started'})
+        else:
+            return jsonify({'error': 'Failed to start training'}), 500
+            
+    except Exception as e:
+        logger.error(f"Error starting session: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/sessions/<int:session_id>/pause', methods=['POST'])
+@retry_on_db_error()
+def pause_session(session_id):
+    """Pause a training session"""
+    try:
+        session = TradingSession.query.get(session_id)
+        if not session:
+            return jsonify({'error': 'Session not found'}), 404
+            
+        trading_engine.pause_training(session_id)
+        session.status = 'paused'
+        db.session.commit()
         
-        return jsonify(result)
+        return jsonify({'success': True, 'message': 'Training paused'})
         
     except Exception as e:
-        logger.error(f"Error fetching sessions: {str(e)}")
+        logger.error(f"Error pausing session: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/sessions/<int:session_id>/stop', methods=['POST'])
+@retry_on_db_error()
+def stop_session(session_id):
+    """Stop a training session"""
+    try:
+        session = TradingSession.query.get(session_id)
+        if not session:
+            return jsonify({'error': 'Session not found'}), 404
+            
+        trading_engine.stop_training(session_id)
+        session.status = 'stopped'
+        session.end_time = datetime.now(timezone.utc)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Training stopped'})
+        
+    except Exception as e:
+        logger.error(f"Error stopping session: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/sessions/<int:session_id>/reset', methods=['POST'])
+@retry_on_db_error()
+def reset_session(session_id):
+    """Reset a training session - clear all trades and metrics"""
+    try:
+        session = TradingSession.query.get(session_id)
+        if not session:
+            return jsonify({'error': 'Session not found'}), 404
+            
+        # Delete all trades for this session
+        Trade.query.filter_by(session_id=session_id).delete()
+        
+        # Delete all training metrics
+        TrainingMetrics.query.filter_by(session_id=session_id).delete()
+        
+        # Reset session stats
+        session.current_episode = 0
+        session.total_profit = 0.0
+        session.total_trades = 0
+        session.win_rate = 0.0
+        session.sharpe_ratio = 0.0
+        session.max_drawdown = 0.0
+        session.status = 'ready'
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Session reset successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error resetting session: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/sessions', methods=['GET', 'POST'])
+def handle_sessions():
+    """Get all trading sessions or create a new one"""
+    if request.method == 'GET':
+        try:
+            sessions = TradingSession.query.order_by(TradingSession.start_time.desc()).all()
+            result = []
+            
+            for session in sessions:
+                result.append({
+                    'id': session.id,
+                    'name': session.session_name,
+                    'algorithm_type': session.algorithm_type,
+                    'status': session.status,
+                    'start_time': session.start_time.isoformat() if session.start_time else None,
+                    'end_time': session.end_time.isoformat() if session.end_time else None,
+                    'total_episodes': session.total_episodes,
+                    'current_episode': session.current_episode,
+                    'total_profit': session.total_profit,
+                    'total_trades': session.total_trades,
+                    'win_rate': session.win_rate,
+                    'sharpe_ratio': session.sharpe_ratio,
+                    'max_drawdown': session.max_drawdown
+                })
+            
+            return jsonify(result)
+            
+        except Exception as e:
+            logger.error(f"Error fetching sessions: {str(e)}")
+            return jsonify({'error': str(e)}), 500
+            
+    else:  # POST - Create new session
+        try:
+            data = request.get_json()
+            
+            # Stop any existing active sessions
+            active_sessions = TradingSession.query.filter_by(status='active').all()
+            for session in active_sessions:
+                session.status = 'stopped'
+                session.end_time = datetime.now(timezone.utc)
+                trading_engine.stop_training(session.id)
+            
+            # Create new session with fresh start
+            new_session = TradingSession(
+                session_name=data.get('session_name', f'Training Session {datetime.now().strftime("%Y%m%d_%H%M%S")}'),
+                algorithm_type=data.get('algorithm_type', 'ANE_PPO'),
+                status='active',
+                start_time=datetime.now(timezone.utc),
+                total_episodes=data.get('total_episodes', 1000),
+                current_episode=0,
+                total_profit=0.0,
+                total_trades=0,
+                win_rate=0.0,
+                sharpe_ratio=0.0,
+                max_drawdown=0.0,
+                configuration=data.get('parameters', {})
+            )
+            
+            db.session.add(new_session)
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'session_id': new_session.id,
+                'message': 'New training session created'
+            })
+            
+        except Exception as e:
+            logger.error(f"Error creating session: {str(e)}")
+            return jsonify({'error': str(e)}), 500
 
 @app.route('/api/session_status/<status>')
 def get_sessions_by_status(status):
