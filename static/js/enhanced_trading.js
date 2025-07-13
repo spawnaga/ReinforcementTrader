@@ -93,6 +93,12 @@ class EnhancedTradingDashboard {
         document.getElementById('startTraining')?.addEventListener('click', () => this.startTraining());
         document.getElementById('pauseTraining')?.addEventListener('click', () => this.pauseTraining());
         document.getElementById('stopTraining')?.addEventListener('click', () => this.stopTraining());
+        document.getElementById('resetSessionBtn')?.addEventListener('click', () => this.handleResetSession());
+        
+        // Data selection controls
+        document.getElementById('dataRangeType')?.addEventListener('change', (e) => this.handleDataRangeTypeChange(e));
+        document.getElementById('dataPercentage')?.addEventListener('input', (e) => this.updatePercentageDisplay(e));
+        document.getElementById('validateDataBtn')?.addEventListener('click', () => this.validateDataAndSettings());
         
         // Neural network controls
         document.getElementById('hiddenLayers')?.addEventListener('input', (e) => {
@@ -259,7 +265,8 @@ class EnhancedTradingDashboard {
                 dropout_rate: parseFloat(document.getElementById('dropoutRate').value),
                 batch_size: parseInt(document.getElementById('batchSize').value),
                 indicators: this.selectedIndicators,
-                timeframe: parseInt(document.getElementById('timeframeSelect').value)
+                timeframe: parseInt(document.getElementById('timeframeSelect').value),
+                dataConfig: this.dataConfig || { type: 'all' }
             }
         };
         
@@ -596,6 +603,71 @@ class EnhancedTradingDashboard {
         // This would update the data fetching interval
     }
     
+    handleDataRangeTypeChange(e) {
+        const type = e.target.value;
+        document.querySelectorAll('.data-selector').forEach(selector => {
+            selector.style.display = 'none';
+        });
+        
+        if (type === 'percentage') {
+            document.getElementById('percentageSelector').style.display = 'block';
+        } else if (type === 'daterange') {
+            document.getElementById('dateRangeSelector').style.display = 'block';
+        } else if (type === 'timeperiod') {
+            document.getElementById('timePeriodSelector').style.display = 'block';
+        }
+    }
+    
+    updatePercentageDisplay(e) {
+        const value = e.target.value;
+        document.getElementById('percentageValue').textContent = value + '%';
+        document.getElementById('percentageText').textContent = value + '%';
+    }
+    
+    async validateDataAndSettings() {
+        try {
+            const rangeType = document.getElementById('dataRangeType').value;
+            let dataConfig = { type: rangeType };
+            
+            if (rangeType === 'percentage') {
+                dataConfig.percentage = parseInt(document.getElementById('dataPercentage').value);
+            } else if (rangeType === 'daterange') {
+                dataConfig.startDate = document.getElementById('startDate').value;
+                dataConfig.endDate = document.getElementById('endDate').value;
+            } else if (rangeType === 'timeperiod') {
+                dataConfig.period = document.getElementById('timePeriod').value;
+            }
+            
+            const response = await fetch('/api/validate_data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataConfig)
+            });
+            
+            const result = await response.json();
+            if (result.valid) {
+                showNotification(`Data validated! ${result.rowCount} rows available for training.`, 'success');
+                this.dataConfig = dataConfig;
+            } else {
+                showNotification(`Validation failed: ${result.error}`, 'error');
+            }
+        } catch (error) {
+            console.error('Validation error:', error);
+            showNotification('Failed to validate data settings', 'error');
+        }
+    }
+    
+    async handleResetSession() {
+        if (!this.sessionId) {
+            showNotification('No active session to reset', 'warning');
+            return;
+        }
+        
+        if (confirm('Are you sure you want to reset the session? This will clear all trades and metrics.')) {
+            await this.resetSession(this.sessionId);
+        }
+    }
+    
     updatePerformanceMetrics(data) {
         // Update GPU status if available
         if (data.gpu_usage !== undefined) {
@@ -684,6 +756,45 @@ class EnhancedTradingDashboard {
         // This would update the neural network visualization with real-time activation data
         console.log('Neural network update:', data);
     }
+}
+
+// Global notification function
+function showNotification(message, type = 'info') {
+    const alertClass = type === 'success' ? 'alert-success' : 
+                      type === 'error' ? 'alert-danger' : 
+                      type === 'warning' ? 'alert-warning' : 'alert-info';
+    
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    // Create a container for notifications if it doesn't exist
+    let notificationContainer = document.getElementById('notificationContainer');
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.id = 'notificationContainer';
+        notificationContainer.style.position = 'fixed';
+        notificationContainer.style.top = '20px';
+        notificationContainer.style.right = '20px';
+        notificationContainer.style.zIndex = '9999';
+        document.body.appendChild(notificationContainer);
+    }
+    
+    // Add the notification
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = alertHtml;
+    const alertElement = tempDiv.firstElementChild;
+    notificationContainer.appendChild(alertElement);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        if (alertElement.parentNode) {
+            alertElement.remove();
+        }
+    }, 5000);
 }
 
 // Initialize dashboard when DOM is ready

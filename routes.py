@@ -745,6 +745,77 @@ def system_test():
             "error": str(e)
         }), 500
 
+@app.route('/api/validate_data', methods=['POST'])
+def validate_data():
+    """Validate data selection and settings"""
+    try:
+        data = request.json
+        range_type = data.get('type', 'all')
+        
+        # Load data based on selection
+        data_manager = DataManager()
+        market_data = None
+        
+        if range_type == 'percentage':
+            percentage = data.get('percentage', 100)
+            market_data = data_manager.load_nq_data()
+            if market_data is not None:
+                total_rows = len(market_data)
+                rows_to_use = int(total_rows * percentage / 100)
+                market_data = market_data.tail(rows_to_use)
+                
+        elif range_type == 'daterange':
+            start_date = data.get('startDate')
+            end_date = data.get('endDate')
+            market_data = data_manager.load_nq_data(start_date=start_date, end_date=end_date)
+            
+        elif range_type == 'timeperiod':
+            period = data.get('period', 'all')
+            if period != 'all':
+                # Calculate date range based on period
+                from datetime import datetime, timedelta
+                end_date = datetime.now()
+                
+                period_map = {
+                    '1month': 30,
+                    '3months': 90,
+                    '6months': 180,
+                    '1year': 365,
+                    '2years': 730,
+                    '3years': 1095,
+                    '5years': 1825,
+                    '10years': 3650
+                }
+                
+                days = period_map.get(period, 365)
+                start_date = end_date - timedelta(days=days)
+                market_data = data_manager.load_nq_data(
+                    start_date=start_date.strftime('%Y-%m-%d'),
+                    end_date=end_date.strftime('%Y-%m-%d')
+                )
+            else:
+                market_data = data_manager.load_nq_data()
+        
+        if market_data is not None and len(market_data) > 0:
+            return jsonify({
+                'valid': True,
+                'rowCount': len(market_data),
+                'startDate': str(market_data.index[0]) if hasattr(market_data.index[0], 'date') else str(market_data.index[0]),
+                'endDate': str(market_data.index[-1]) if hasattr(market_data.index[-1], 'date') else str(market_data.index[-1])
+            })
+        else:
+            return jsonify({
+                'valid': False,
+                'error': 'No data available for the selected range'
+            })
+            
+    except Exception as e:
+        logger.error(f"Data validation error: {str(e)}")
+        return jsonify({
+            'valid': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/chart_debug')
 def chart_debug():
     """Chart debug page"""

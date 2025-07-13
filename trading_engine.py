@@ -167,21 +167,83 @@ class TradingEngine:
                         total_count = conn.execute(count_query).scalar()
                         logger.info(f"Database has {total_count} total NQ records")
                         
-                        # Load available data - use what we have
-                        if total_count < 500:
-                            # If we have less than 500 rows, use all
-                            limit = total_count
-                        else:
-                            # Otherwise limit to 500 for memory efficiency
-                            limit = 500
+                        # Get data configuration from session
+                        data_config = config.get('parameters', {}).get('dataConfig', {})
+                        range_type = data_config.get('type', 'all')
+                        logger.info(f"Data configuration: {data_config}")
+                        
+                        # Build query based on data configuration
+                        if range_type == 'percentage':
+                            percentage = data_config.get('percentage', 100)
+                            limit = int(total_count * percentage / 100)
+                            limit = min(limit, 500)  # Cap at 500 for memory
+                            query = text(f"""
+                                SELECT * FROM market_data 
+                                WHERE symbol = 'NQ' 
+                                ORDER BY timestamp DESC 
+                                LIMIT {limit}
+                            """)
+                            market_data = pd.read_sql(query, conn)
                             
-                        query = text(f"""
-                            SELECT * FROM market_data 
-                            WHERE symbol = 'NQ' 
-                            ORDER BY timestamp DESC 
-                            LIMIT {limit}
-                        """)
-                        market_data = pd.read_sql(query, conn)
+                        elif range_type == 'daterange':
+                            start_date = data_config.get('startDate')
+                            end_date = data_config.get('endDate')
+                            query = text("""
+                                SELECT * FROM market_data 
+                                WHERE symbol = 'NQ' 
+                                AND timestamp >= :start_date 
+                                AND timestamp <= :end_date
+                                ORDER BY timestamp
+                                LIMIT 500
+                            """)
+                            market_data = pd.read_sql(query, conn, params={
+                                'start_date': start_date,
+                                'end_date': end_date
+                            })
+                            
+                        elif range_type == 'timeperiod':
+                            period = data_config.get('period', 'all')
+                            if period != 'all':
+                                from datetime import datetime, timedelta
+                                period_map = {
+                                    '1month': 30, '3months': 90, '6months': 180,
+                                    '1year': 365, '2years': 730, '3years': 1095,
+                                    '5years': 1825, '10years': 3650
+                                }
+                                days = period_map.get(period, 365)
+                                end_date = datetime.now()
+                                start_date = end_date - timedelta(days=days)
+                                
+                                query = text("""
+                                    SELECT * FROM market_data 
+                                    WHERE symbol = 'NQ' 
+                                    AND timestamp >= :start_date
+                                    ORDER BY timestamp
+                                    LIMIT 500
+                                """)
+                                market_data = pd.read_sql(query, conn, params={
+                                    'start_date': start_date.strftime('%Y-%m-%d')
+                                })
+                            else:
+                                # Load all data but with limit
+                                limit = min(total_count, 500)
+                                query = text(f"""
+                                    SELECT * FROM market_data 
+                                    WHERE symbol = 'NQ' 
+                                    ORDER BY timestamp DESC 
+                                    LIMIT {limit}
+                                """)
+                                market_data = pd.read_sql(query, conn)
+                        else:
+                            # Default: load limited data
+                            limit = min(total_count, 500)
+                            query = text(f"""
+                                SELECT * FROM market_data 
+                                WHERE symbol = 'NQ' 
+                                ORDER BY timestamp DESC 
+                                LIMIT {limit}
+                            """)
+                            market_data = pd.read_sql(query, conn)
                         
                     if market_data is None or len(market_data) == 0:
                         logger.error(f"No market data available in database for session {session_id}")
