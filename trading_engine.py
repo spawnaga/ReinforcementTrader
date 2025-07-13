@@ -175,6 +175,18 @@ class TradingEngine:
         except Exception as e:
             logger.error(f"Error stopping training session {session_id}: {str(e)}")
             return False
+    
+    def clear_all_sessions(self):
+        """Clear all active sessions - used for recovery from stuck states"""
+        try:
+            count = len(self.active_sessions)
+            self.active_sessions.clear()
+            self.training_threads.clear()
+            logger.info(f"Cleared {count} active sessions")
+            return True
+        except Exception as e:
+            logger.error(f"Error clearing sessions: {str(e)}")
+            return False
 
     def _training_loop(self, session_id: int, config: Dict):
         """Main training loop for a session"""

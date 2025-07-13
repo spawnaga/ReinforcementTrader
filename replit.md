@@ -110,12 +110,14 @@ Preferred communication style: Simple, everyday language.
 
 ### Advanced Dashboard Neural Network Parameter Integration (July 13, 2025 - Latest)
 - **Fixed Parameter Mapping for ANE-PPO Algorithm**:
-  - Discovered ANE-PPO doesn't use `hidden_layers` or `neurons_per_layer` parameters
-  - Mapped UI controls to correct ANE-PPO parameters:
-    - "Hidden Layers" slider → `transformer_layers` (controls transformer depth)
-    - "Neurons per Layer" slider → `hidden_dim` (controls network hidden dimension)
-  - Updated parameter names in createNewSession() to match ANE-PPO constructor
-  - Changed UI labels to "Transformer Layers" and "Hidden Dimension" for clarity
+  - Discovered ANE-PPO doesn't use `hidden_layers`, `neurons_per_layer`, or `hidden_dim` parameters
+  - ActorCritic network has fixed hidden_dim=512 default
+  - Mapped UI controls to correct ANE-PPO constructor parameters:
+    - "Transformer Layers" slider → `transformer_layers` (controls transformer depth) 
+    - "Attention Dimension" slider → `attention_dim` (controls attention mechanism dimension)
+  - Updated parameter names in createNewSession() to match exact ANE-PPO constructor signature
+  - Changed UI labels to "Transformer Layers" and "Attention Dimension" for clarity
+  - Removed invalid parameters like `hidden_dim` and `dropout` that ANE-PPO doesn't accept
 - **Enhanced Parameter Collection**:
   - Advanced dashboard now properly collects all neural network parameters
   - Parameters are correctly passed through to the training engine
@@ -123,6 +125,9 @@ Preferred communication style: Simple, everyday language.
 - **Fixed "Session not found" Warning**:
   - This was caused by attempting to access non-existent sessions
   - Enhanced session management to prevent accessing invalid session IDs
+- **Added Session Recovery**:
+  - Added `clear_all_sessions()` method to trading engine for clearing stuck sessions
+  - Active sessions now properly tracked and cleared on worker restart
 
 ### Chart.js Error Fixes and Dashboard Integration (July 13, 2025)
 - **Fixed WebSocket Session Tracking**: 
