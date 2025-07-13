@@ -7,6 +7,7 @@ import json
 import logging
 from db_utils import retry_on_db_error
 import pandas as pd
+from data_manager import DataManager
 
 # Import websocket handlers to register them
 import websocket_handler
@@ -473,7 +474,7 @@ def handle_sessions():
                 win_rate=0.0,
                 sharpe_ratio=0.0,
                 max_drawdown=0.0,
-                configuration=data.get('parameters', {})
+                parameters=data.get('parameters', {})
             )
             
             db.session.add(new_session)
@@ -644,6 +645,77 @@ def disconnect_interactive_brokers():
             'error': str(e)
         }), 500
 
+@app.route('/api/validate_data', methods=['POST'])
+def validate_data():
+    """Validate data configuration and return row count"""
+    try:
+        config = request.get_json()
+        data_type = config.get('type', 'all')
+        
+        logger.info(f"Validating data configuration: {config}")
+        data_manager = DataManager()
+        
+        # Load data based on configuration
+        if data_type == 'all':
+            data = data_manager.load_nq_data()
+        elif data_type == 'percentage':
+            percentage = config.get('percentage', 100)
+            data = data_manager.load_nq_data()
+            if data is not None:
+                total_rows = len(data)
+                sample_size = int(total_rows * percentage / 100)
+                data = data.tail(sample_size)  # Use most recent data
+        elif data_type == 'daterange':
+            start_date = config.get('startDate')
+            end_date = config.get('endDate')
+            data = data_manager.load_nq_data(start_date=start_date, end_date=end_date)
+        elif data_type == 'timeperiod':
+            period = config.get('period', 'last_month')
+            # Convert period to date range
+            end_date = pd.Timestamp.now()
+            if period == 'last_week':
+                start_date = end_date - pd.Timedelta(days=7)
+            elif period == 'last_month':
+                start_date = end_date - pd.Timedelta(days=30)
+            elif period == 'last_3months':
+                start_date = end_date - pd.Timedelta(days=90)
+            elif period == 'last_6months':
+                start_date = end_date - pd.Timedelta(days=180)
+            elif period == 'last_year':
+                start_date = end_date - pd.Timedelta(days=365)
+            else:
+                start_date = None
+            
+            if start_date:
+                data = data_manager.load_nq_data(
+                    start_date=start_date.strftime('%Y-%m-%d'),
+                    end_date=end_date.strftime('%Y-%m-%d')
+                )
+            else:
+                data = data_manager.load_nq_data()
+        
+        if data is None or data.empty:
+            return jsonify({
+                'valid': False,
+                'error': 'No data available for the specified configuration',
+                'rowCount': 0
+            })
+        
+        return jsonify({
+            'valid': True,
+            'rowCount': len(data),
+            'startDate': data.index[0].strftime('%Y-%m-%d') if hasattr(data.index[0], 'strftime') else str(data.index[0]),
+            'endDate': data.index[-1].strftime('%Y-%m-%d') if hasattr(data.index[-1], 'strftime') else str(data.index[-1])
+        })
+        
+    except Exception as e:
+        logger.error(f"Data validation error: {str(e)}")
+        return jsonify({
+            'valid': False,
+            'error': str(e),
+            'rowCount': 0
+        }), 500
+
 
 @app.route("/api/system_test")
 def system_test():
@@ -745,76 +817,7 @@ def system_test():
             "error": str(e)
         }), 500
 
-@app.route('/api/validate_data', methods=['POST'])
-def validate_data():
-    """Validate data selection and settings"""
-    try:
-        data = request.json
-        range_type = data.get('type', 'all')
-        
-        # Load data based on selection
-        data_manager = DataManager()
-        market_data = None
-        
-        if range_type == 'percentage':
-            percentage = data.get('percentage', 100)
-            market_data = data_manager.load_nq_data()
-            if market_data is not None:
-                total_rows = len(market_data)
-                rows_to_use = int(total_rows * percentage / 100)
-                market_data = market_data.tail(rows_to_use)
-                
-        elif range_type == 'daterange':
-            start_date = data.get('startDate')
-            end_date = data.get('endDate')
-            market_data = data_manager.load_nq_data(start_date=start_date, end_date=end_date)
-            
-        elif range_type == 'timeperiod':
-            period = data.get('period', 'all')
-            if period != 'all':
-                # Calculate date range based on period
-                from datetime import datetime, timedelta
-                end_date = datetime.now()
-                
-                period_map = {
-                    '1month': 30,
-                    '3months': 90,
-                    '6months': 180,
-                    '1year': 365,
-                    '2years': 730,
-                    '3years': 1095,
-                    '5years': 1825,
-                    '10years': 3650
-                }
-                
-                days = period_map.get(period, 365)
-                start_date = end_date - timedelta(days=days)
-                market_data = data_manager.load_nq_data(
-                    start_date=start_date.strftime('%Y-%m-%d'),
-                    end_date=end_date.strftime('%Y-%m-%d')
-                )
-            else:
-                market_data = data_manager.load_nq_data()
-        
-        if market_data is not None and len(market_data) > 0:
-            return jsonify({
-                'valid': True,
-                'rowCount': len(market_data),
-                'startDate': str(market_data.index[0]) if hasattr(market_data.index[0], 'date') else str(market_data.index[0]),
-                'endDate': str(market_data.index[-1]) if hasattr(market_data.index[-1], 'date') else str(market_data.index[-1])
-            })
-        else:
-            return jsonify({
-                'valid': False,
-                'error': 'No data available for the selected range'
-            })
-            
-    except Exception as e:
-        logger.error(f"Data validation error: {str(e)}")
-        return jsonify({
-            'valid': False,
-            'error': str(e)
-        }), 500
+
 
 @app.route('/chart_debug')
 def chart_debug():
