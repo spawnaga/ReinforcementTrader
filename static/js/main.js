@@ -269,6 +269,61 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+// Clear all trades function
+async function clearAllTrades() {
+    if (!confirm('Are you sure you want to clear all trades? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        // Get all sessions to clear trades from
+        const response = await fetch('/api/sessions');
+        const sessions = await response.json();
+        
+        if (sessions.length === 0) {
+            showNotification('No sessions found to clear trades from', 'warning');
+            return;
+        }
+        
+        // Clear trades from all sessions
+        const clearPromises = sessions.map(session => 
+            fetch(`/api/sessions/${session.id}/clear_trades`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        );
+        
+        await Promise.all(clearPromises);
+        
+        // Update the display
+        const totalTradesElement = document.getElementById('total-trades-count');
+        if (totalTradesElement) {
+            totalTradesElement.textContent = '0';
+        }
+        
+        // Clear the recent trades list
+        const recentTradesContainer = document.querySelector('.list-group-flush');
+        if (recentTradesContainer) {
+            recentTradesContainer.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-chart-line fa-2x text-muted mb-3"></i>
+                    <h6 class="text-muted">No recent trades</h6>
+                    <p class="text-muted small">Trades will appear here once training begins</p>
+                </div>
+            `;
+        }
+        
+        showNotification('All trades have been cleared successfully', 'success');
+        console.log('All trades cleared successfully');
+        
+    } catch (error) {
+        showNotification('Error clearing trades: ' + error.message, 'error');
+        console.error('Error clearing trades:', error);
+    }
+}
+
 function getNotificationIcon(type) {
     const icons = {
         success: 'check-circle',

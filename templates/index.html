@@ -27,7 +27,10 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <h5 class="card-title">Total Trades</h5>
-                        <h2 class="mb-0">{{ total_trades_count }}</h2>
+                        <h2 class="mb-0" id="total-trades-count">{{ total_trades_count }}</h2>
+                        <button class="btn btn-sm btn-light mt-2" onclick="clearAllTrades()">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-chart-line fa-2x"></i>
