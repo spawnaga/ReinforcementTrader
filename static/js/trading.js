@@ -276,6 +276,22 @@ class TradingDashboard {
             this.updatePerformanceMetrics(data);
         });
         
+        // Session reset handler
+        this.socket.on('session_reset', (data) => {
+            console.log('Session reset received:', data);
+            if (data.session_id === this.sessionId || !this.sessionId) {
+                // Clear all trades and metrics
+                this.clearTradeList();
+                this.resetMetricsDisplay();
+                
+                // Reload sessions list
+                this.updateSessionsList();
+                
+                // Show notification
+                this.showNotification('Session reset successfully', 'info');
+            }
+        });
+        
         // Auto-refresh trades every 10 seconds
         setInterval(() => {
             console.log('🔄 Auto-refreshing trades...');
@@ -285,6 +301,27 @@ class TradingDashboard {
                 this.loadRecentTrades();
             }
         }, 10000);
+    }
+    
+    clearTradeList() {
+        const tradesContainer = document.getElementById('recentTrades');
+        if (tradesContainer) {
+            tradesContainer.innerHTML = '<p class="text-muted">No trades yet</p>';
+        }
+    }
+    
+    resetMetricsDisplay() {
+        // Reset all metric displays on the regular dashboard
+        const metrics = document.querySelectorAll('.metric-value');
+        metrics.forEach(metric => {
+            if (metric.textContent.includes('$')) {
+                metric.textContent = '$0.00';
+            } else if (metric.textContent.includes('%')) {
+                metric.textContent = '0%';
+            } else {
+                metric.textContent = '0';
+            }
+        });
     }
     
     showNewSessionModal() {

@@ -316,6 +316,38 @@ class EnhancedTradingDashboard {
         }
     }
     
+    async handleResetSession() {
+        // Show confirmation dialog
+        if (!confirm('Are you sure you want to reset the session? This will clear all trades and metrics.')) {
+            return;
+        }
+        
+        // Reset local UI immediately
+        this.resetMetricsDisplay();
+        this.clearTradeList();
+        this.currentEpisode = 0;
+        this.updateTrainingProgress(0);
+        
+        // If we have a session, reset it on the server
+        if (this.sessionId) {
+            try {
+                const response = await fetch(`/api/sessions/${this.sessionId}/reset`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    console.log('Session reset successfully');
+                    // Emit websocket event to notify other screens
+                    this.socket.emit('session_reset', {
+                        session_id: this.sessionId
+                    });
+                }
+            } catch (error) {
+                console.error('Error resetting session:', error);
+            }
+        }
+    }
+    
     async resumeTraining() {
         try {
             const response = await fetch(`/api/sessions/${this.sessionId}/start`, {
