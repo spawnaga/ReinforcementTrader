@@ -590,6 +590,24 @@ class TradingEngine:
                                 episode_number=current_episode
                             )
                             db.session.add(trade)
+                            
+                            # Emit trade update via WebSocket
+                            try:
+                                from app import socketio
+                                socketio.emit('trade_update', {
+                                    'id': trade.id,
+                                    'session_id': session_id,
+                                    'position_type': trade.position_type,
+                                    'entry_price': trade.entry_price,
+                                    'exit_price': trade.exit_price,
+                                    'profit_loss': trade.profit_loss,
+                                    'entry_time': trade.entry_time.isoformat() if trade.entry_time else None,
+                                    'exit_time': trade.exit_time.isoformat() if trade.exit_time else None,
+                                    'quantity': trade.quantity
+                                }, room=f'session_{session_id}')
+                                logger.debug(f"Emitted trade update for session {session_id}")
+                            except Exception as e:
+                                logger.error(f"Failed to emit trade update: {e}")
                     
                     db.session.commit()
                     logger.info(f"Saved {len(env.trading_logger.trades)} trades for session {session_id}")

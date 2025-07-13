@@ -265,13 +265,26 @@ class TradingDashboard {
         
         // Trade updates
         this.socket.on('trade_update', (data) => {
+            console.log('📈 New trade received:', data);
             this.updateTradeInfo(data);
+            // Reload recent trades to show the new trade
+            this.loadRecentTrades(this.sessionId);
         });
         
         // Performance metrics updates
         this.socket.on('performance_metrics', (data) => {
             this.updatePerformanceMetrics(data);
         });
+        
+        // Auto-refresh trades every 10 seconds
+        setInterval(() => {
+            console.log('🔄 Auto-refreshing trades...');
+            if (this.sessionId) {
+                this.loadRecentTrades(this.sessionId);
+            } else {
+                this.loadRecentTrades();
+            }
+        }, 10000);
     }
     
     showNewSessionModal() {
