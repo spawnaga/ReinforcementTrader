@@ -576,11 +576,19 @@ class TradingEngine:
                         # Only save completed trades (exits)
                         if trade_info.get('action') == 'EXIT' and trade_info.get('entry_price') and trade_info.get('exit_price'):
                             trade_count += 1
+                            # Convert timestamp string back to datetime if needed
+                            timestamp = trade_info.get('timestamp', datetime.now())
+                            if isinstance(timestamp, str):
+                                try:
+                                    timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                                except:
+                                    timestamp = datetime.now()
+                            
                             trade = Trade(
                                 session_id=session_id,
                                 trade_id=f"T{session_id}_{current_episode}_{trade_count}",
-                                entry_time=trade_info.get('timestamp', datetime.now()),
-                                exit_time=trade_info.get('timestamp', datetime.now()),
+                                entry_time=timestamp,
+                                exit_time=timestamp,
                                 position_type=trade_info.get('position_type', '').lower(),
                                 entry_price=float(trade_info.get('entry_price', 0)),
                                 exit_price=float(trade_info.get('exit_price', 0)),

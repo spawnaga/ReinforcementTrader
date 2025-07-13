@@ -121,6 +121,10 @@ Preferred communication style: Simple, everyday language.
     - Filter incoming trade updates by session_id
   - Fixed trade accumulation issue where stopping and restarting would show old trades
   - Session metrics (profit, trade count, win rate) now properly reset to 0 when creating new session
+- **Fixed Timestamp Conversion Error**: Resolved "str object has no attribute 'isoformat'" error
+  - Trading logger was converting timestamps to strings, but trading engine expected datetime objects
+  - Added conversion logic to handle string timestamps from trading logger
+  - Trade updates now emit successfully without timestamp errors
 
 ## Recent Updates (July 12, 2025)
 
