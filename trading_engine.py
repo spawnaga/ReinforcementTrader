@@ -5,7 +5,7 @@ import logging
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 import torch
 import torch.nn as nn
 from flask import current_app
@@ -899,3 +899,30 @@ class TradingEngine:
                 del self.active_sessions[session_id]
             if session_id in self.training_threads:
                 del self.training_threads[session_id]
+
+    # ------------------------------------------------------------------
+    # Simple helper methods for manual trades and optimization requests
+    # ------------------------------------------------------------------
+
+    def place_trade(self, trade_info: Dict[str, Any]) -> Dict[str, Any]:
+        """Placeholder manual trade handler"""
+        try:
+            logger.info(f"Manual trade request: {trade_info}")
+            trade_id = f"T{int(time.time()*1000)}"
+            return {'success': True, 'trade_id': trade_id, 'executed_price': trade_info.get('price')}
+        except Exception as e:
+            logger.error(f"Place trade error: {e}")
+            return {'success': False, 'error': str(e)}
+
+    def optimize_hyperparameters(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Run a genetic optimizer for hyperparameters"""
+        try:
+            logger.info(f"Optimization request: {config}")
+            base_params = config.get('parameters', {})
+            performance = config.get('performance', 0.0)
+            optimizer = GeneticOptimizer()
+            best = optimizer.evolve(base_params, performance)
+            return {'success': True, 'best_parameters': best}
+        except Exception as e:
+            logger.error(f"Optimization error: {e}")
+            return {'success': False, 'error': str(e)}
