@@ -433,6 +433,44 @@ def reset_session(session_id):
         logger.error(f"Error resetting session: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/sessions/<int:session_id>/clear_trades', methods=['POST'])
+@retry_on_db_error()
+def clear_trades(session_id):
+    """Clear all trades for a session without resetting other metrics"""
+    try:
+        session = TradingSession.query.get(session_id)
+        if not session:
+            return jsonify({'error': 'Session not found'}), 404
+            
+        # Delete all trades for this session
+        Trade.query.filter_by(session_id=session_id).delete()
+        
+        # Reset trade-related metrics
+        session.total_trades = 0
+        session.win_rate = 0.0
+        session.total_profit = 0.0
+        
+        db.session.commit()
+        
+        # Emit WebSocket event to clear trades on frontend
+        from extensions import socketio
+        socketio.emit('trades_cleared', {
+            'session_id': session_id,
+            'message': 'All trades cleared successfully'
+        }, room=f'session_{session_id}')
+        
+        # Also emit to general room
+        socketio.emit('trades_cleared', {
+            'session_id': session_id,
+            'message': 'All trades cleared successfully'
+        })
+        
+        return jsonify({'success': True, 'message': 'All trades cleared successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error clearing trades: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/sessions', methods=['GET', 'POST'])
 def handle_sessions():
     """Get all trading sessions or create a new one"""

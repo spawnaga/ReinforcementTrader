@@ -740,6 +740,49 @@ class EnhancedTradingDashboard {
         console.log(`Model changed to ${this.selectedModel}`);
     }
     
+    async clearAllTrades() {
+        if (!this.sessionId) {
+            console.warn('No active session to clear trades from');
+            return;
+        }
+        
+        // Confirm with user before clearing all trades
+        if (!confirm('Are you sure you want to clear all trades? This action cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/sessions/${this.sessionId}/clear_trades`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                // Clear the trade list in the UI
+                const tradeList = document.getElementById('tradeList');
+                if (tradeList) {
+                    tradeList.innerHTML = '<div class="text-center text-muted py-3">No trades yet</div>';
+                }
+                
+                // Reset the metrics display
+                this.resetMetricsDisplay();
+                
+                // Show success notification
+                showNotification('All trades have been cleared successfully', 'success');
+                console.log('All trades cleared successfully');
+            } else {
+                const error = await response.json();
+                showNotification(`Failed to clear trades: ${error.error || 'Unknown error'}`, 'error');
+                console.error('Failed to clear trades:', error);
+            }
+        } catch (error) {
+            showNotification('Error clearing trades: ' + error.message, 'error');
+            console.error('Error clearing trades:', error);
+        }
+    }
+    
     handleDataRangeTypeChange(e) {
         const type = e.target.value;
         document.querySelectorAll('.data-selector').forEach(selector => {
