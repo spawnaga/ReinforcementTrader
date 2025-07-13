@@ -19,6 +19,10 @@ class EnhancedTradingDashboard {
     }
     
     initializeComponents() {
+        this.initializeCharts();
+    }
+    
+    initializeCharts() {
         // Initialize training chart
         const ctx = document.getElementById('trainingChart')?.getContext('2d');
         if (ctx) {
@@ -98,6 +102,28 @@ class EnhancedTradingDashboard {
                 }
             });
         }
+    }
+    
+    recreateChart() {
+        // Safely recreate the chart after errors
+        const canvas = document.getElementById('trainingChart');
+        if (!canvas) {
+            console.warn('Training chart canvas not found');
+            return;
+        }
+        
+        // Destroy existing chart if it exists
+        if (this.trainingChart) {
+            try {
+                this.trainingChart.destroy();
+            } catch (e) {
+                console.warn('Error destroying chart:', e);
+            }
+            this.trainingChart = null;
+        }
+        
+        // Reinitialize the chart
+        this.initializeCharts();
     }
     
     setupEventListeners() {
@@ -522,19 +548,36 @@ class EnhancedTradingDashboard {
         this.currentEpisode = data.episode;
         this.updateTrainingProgress(data.episode / this.totalEpisodes * 100);
         
-        // Update chart
-        if (this.trainingChart) {
-            this.trainingChart.data.labels.push(data.episode);
-            this.trainingChart.data.datasets[0].data.push(data.reward);
-            this.trainingChart.data.datasets[1].data.push(data.loss);
-            
-            // Keep only last 100 points
-            if (this.trainingChart.data.labels.length > 100) {
-                this.trainingChart.data.labels.shift();
-                this.trainingChart.data.datasets.forEach(dataset => dataset.data.shift());
+        // Update chart - destroy and recreate if having issues
+        try {
+            if (this.trainingChart) {
+                // Check if chart is in a valid state
+                if (this.trainingChart.canvas && this.trainingChart.ctx) {
+                    this.trainingChart.data.labels.push(data.episode);
+                    this.trainingChart.data.datasets[0].data.push(data.reward);
+                    this.trainingChart.data.datasets[1].data.push(data.loss);
+                    
+                    // Keep only last 100 points
+                    if (this.trainingChart.data.labels.length > 100) {
+                        this.trainingChart.data.labels.shift();
+                        this.trainingChart.data.datasets.forEach(dataset => dataset.data.shift());
+                    }
+                    
+                    this.trainingChart.update('none'); // No animation for performance
+                } else {
+                    // Chart is in invalid state, recreate it
+                    console.warn('Chart in invalid state, recreating...');
+                    this.trainingChart.destroy();
+                    this.initializeCharts();
+                }
             }
-            
-            this.trainingChart.update();
+        } catch (error) {
+            console.error('Error updating chart:', error);
+            // Try to recreate the chart
+            if (this.trainingChart) {
+                this.trainingChart.destroy();
+            }
+            this.recreateChart();
         }
         
         // Update metrics

@@ -108,6 +108,25 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 13, 2025)
 
+### Chart.js Error Fixes and Dashboard Integration (July 13, 2025 - Latest)
+- **Fixed WebSocket Session Tracking**: 
+  - Modified `get_active_sessions` method in trading_engine.py to return session IDs instead of full dictionaries
+  - This resolved the "unhashable type: 'dict'" error that was preventing proper session tracking
+- **Enhanced Global Session Broadcasting**:
+  - Added immediate session count broadcasting when training starts
+  - Added session count broadcasting when training ends
+  - Both dashboards now receive real-time updates about active sessions
+- **Chart.js Canvas Reuse Error Mitigation**:
+  - Added safer chart update handling with try-catch blocks in enhanced_trading.js
+  - Implemented `recreateChart()` method to handle chart recreation when errors occur
+  - Chart updates now use 'none' animation mode for better performance
+  - Added validation to check if chart canvas and context are valid before updating
+- **Dashboard Communication**:
+  - All dashboards now synchronize properly through global WebSocket broadcasts
+  - Active session count is broadcast to all connected clients, not just session rooms
+
+## Recent Updates (July 13, 2025)
+
 ### Critical UI and Functionality Fixes (July 13, 2025 - Latest Update)
 - **Fixed Footer Blocking Issue**: Removed "Revolutionary AI Trading System" footer from enhanced trading dashboard
   - Added conditional rendering in base.html to exclude footer on enhanced_dashboard endpoint
