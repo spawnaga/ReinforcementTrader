@@ -108,7 +108,25 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 14, 2025)
 
-### Frontend Removal and Backend-Only Architecture (July 14, 2025 - Latest Update)
+### Project Cleanup and Essential Files (July 14, 2025 - Latest Update)
+- **Massive Cleanup**: Reduced project from 69 Python files to 16 essential files
+  - Moved all test, check, debug, fix, and helper scripts to backup_files/
+  - Kept only core application files needed for API functionality
+  - Created run.py as simple entry point
+  - Created comprehensive README.md for documentation
+- **Essential Files Structure**:
+  - Core: app.py, main.py, config.py, models.py, routes.py, extensions.py
+  - Trading: trading_engine.py, data_manager.py, trading_logger.py, risk_manager.py
+  - Environment: futures_env_realistic.py (with anti-exploitation measures)
+  - Utils: websocket_handler.py, db_utils.py, gpu_data_loader.py, ib_integration.py
+  - Directories: rl_algorithms/, gym_futures/, data/, logs/, models/
+- **Anti-Exploitation Measures**: Fixed infinite trading exploit
+  - Minimum 5-step gap between trades at same state
+  - Maximum 5 trades per episode
+  - Realistic costs: $5-10 commission, 0-2 tick slippage
+  - 95% fill probability to simulate missed trades
+
+### Frontend Removal and Backend-Only Architecture (July 14, 2025)
 - **Complete Frontend Removal**: Removed all frontend components to create a pure API backend
   - Deleted directories: `templates/`, `static/`, `nextjs-migration/`
   - Removed all HTML templates and JavaScript files
