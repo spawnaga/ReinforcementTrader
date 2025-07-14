@@ -1,62 +1,95 @@
 #!/usr/bin/env python3
 """
-Reset training sessions and start fresh
+Reset the training system - clear old sessions and trades
 """
-from app import app
-from extensions import db
-from models import TradingSession, Trade, TrainingMetrics
-from sqlalchemy import text
+import os
+from sqlalchemy import create_engine, text
+from datetime import datetime
 
-def reset_all_sessions():
-    """Reset all training sessions"""
-    with app.app_context():
-        print("🔄 Resetting Training Sessions...")
-        print("=" * 60)
+def reset_training():
+    """Reset training by clearing old data"""
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url:
+        print("❌ DATABASE_URL not set")
+        return
         
-        # Get current session count
-        session_count = TradingSession.query.count()
-        trade_count = Trade.query.count()
-        
-        print(f"Current state:")
-        print(f"  Sessions: {session_count}")
-        print(f"  Trades: {trade_count}")
-        
-        # Stop all active sessions
-        active_sessions = TradingSession.query.filter_by(status='active').all()
-        for session in active_sessions:
-            session.status = 'stopped'
-            print(f"  Stopped session {session.id}: {session.session_name}")
-        
-        db.session.commit()
-        
-        # Optional: Clear ALL sessions and trades
-        response = input("\nDo you want to clear ALL sessions and trades? (y/N): ")
-        if response.lower() == 'y':
-            print("\nClearing all data...")
+    print("=== Training System Reset ===")
+    print(f"Time: {datetime.now()}")
+    print("=" * 50)
+    
+    try:
+        engine = create_engine(db_url)
+        with engine.connect() as conn:
+            # Get current status
+            result = conn.execute(text("SELECT COUNT(*) FROM trading_session"))
+            session_count = result.scalar()
             
-            # Delete all training metrics
-            TrainingMetrics.query.delete()
+            result = conn.execute(text("SELECT COUNT(*) FROM trade"))
+            trade_count = result.scalar()
             
-            # Delete all trades
-            Trade.query.delete()
+            print(f"\nCurrent state:")
+            print(f"  - Sessions: {session_count}")
+            print(f"  - Trades: {trade_count}")
             
-            # Delete all sessions
-            TradingSession.query.delete()
+            # Ask for confirmation
+            response = input("\nDo you want to reset? This will:\n"
+                           "1. Mark all sessions as 'stopped'\n"
+                           "2. Clear all trades\n"
+                           "3. Clear all training metrics\n"
+                           "Type 'yes' to confirm: ")
             
-            db.session.commit()
-            print("✅ All sessions and trades cleared!")
+            if response.lower() != 'yes':
+                print("\nReset cancelled.")
+                return
             
-            # Reset auto-increment counters
-            db.session.execute(text("ALTER SEQUENCE trading_session_id_seq RESTART WITH 1"))
-            db.session.execute(text("ALTER SEQUENCE trade_id_seq RESTART WITH 1"))
-            db.session.commit()
-            print("✅ ID counters reset!")
-        
-        print("\n🎯 Ready to start fresh!")
-        print("\nStart a new training session with:")
-        print('curl -X POST http://127.0.0.1:5000/api/start_training \\')
-        print('  -H "Content-Type: application/json" \\')
-        print('  -d \'{"session_name": "Fresh Start", "algorithm_type": "ANE_PPO", "total_episodes": 100}\'')
+            # Start transaction
+            trans = conn.begin()
+            try:
+                # Mark all sessions as stopped
+                conn.execute(text("""
+                    UPDATE trading_session 
+                    SET status = 'stopped', 
+                        end_time = CURRENT_TIMESTAMP 
+                    WHERE status = 'active'
+                """))
+                
+                # Clear all trades
+                conn.execute(text("DELETE FROM trade"))
+                
+                # Clear all training metrics
+                conn.execute(text("DELETE FROM training_metrics"))
+                
+                # Reset session statistics
+                conn.execute(text("""
+                    UPDATE trading_session 
+                    SET current_episode = 0,
+                        total_profit = 0.0,
+                        total_trades = 0,
+                        win_rate = 0.0,
+                        sharpe_ratio = 0.0,
+                        max_drawdown = 0.0
+                """))
+                
+                trans.commit()
+                print("\n✅ Reset complete!")
+                
+                # Verify
+                result = conn.execute(text("SELECT COUNT(*) FROM trade"))
+                trade_count = result.scalar()
+                
+                result = conn.execute(text("SELECT COUNT(*) FROM trading_session WHERE status='active'"))
+                active_count = result.scalar()
+                
+                print(f"\nNew state:")
+                print(f"  - Active sessions: {active_count}")
+                print(f"  - Total trades: {trade_count}")
+                
+            except Exception as e:
+                trans.rollback()
+                print(f"\n❌ Reset failed: {e}")
+                
+    except Exception as e:
+        print(f"\n❌ Database error: {e}")
 
 if __name__ == "__main__":
-    reset_all_sessions()
+    reset_training()

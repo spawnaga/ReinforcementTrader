@@ -13,6 +13,7 @@ from flask import current_app
 from extensions import db
 from models import TradingSession, Trade, MarketData, TrainingMetrics
 from gym_futures.envs.futures_env import FuturesEnv
+from futures_env_realistic import RealisticFuturesEnv
 from gym_futures.envs.utils import TimeSeriesState
 from rl_algorithms.ane_ppo import ANEPPO
 from rl_algorithms.genetic_optimizer import GeneticOptimizer
@@ -333,18 +334,17 @@ class TradingEngine:
                     return
                 logger.info(f"Created {len(states)} time series states for session {session_id}")
 
-                # Create trading environment
-                logger.info(f"Creating FuturesEnv for session {session_id}")
-                env = FuturesEnv(
+                # Create trading environment with realistic constraints
+                logger.info(f"Creating RealisticFuturesEnv for session {session_id}")
+                env = RealisticFuturesEnv(
                     states=states,
                     value_per_tick=self.market_params['value_per_tick'],
                     tick_size=self.market_params['tick_size'],
-                    fill_probability=self.market_params['fill_probability'],
-                    long_values=self.market_params['long_values'],
-                    long_probabilities=self.market_params['long_probabilities'],
-                    short_values=self.market_params['short_values'],
-                    short_probabilities=self.market_params['short_probabilities'],
-                    execution_cost_per_order=self.market_params['execution_cost_per_order'],
+                    fill_probability=self.market_params.get('fill_probability', 0.95),
+                    execution_cost_per_order=self.market_params.get('execution_cost_per_order', 5.0),
+                    min_holding_periods=10,  # Must hold for 10 time steps
+                    max_trades_per_episode=5,  # Max 5 trades per episode
+                    slippage_ticks=2,  # Average 2 tick slippage
                     session_id=session_id
                 )
                 logger.info(f"FuturesEnv created successfully for session {session_id}")
