@@ -182,12 +182,16 @@ class EnhancedMonitor:
                 equity_curve.append(equity_curve[-1] + trade.profit_loss)
             max_drawdown = calculate_max_drawdown(equity_curve)
         
-        self.stdscr.addstr(y, 0, "💰 Performance Metrics:")
-        self.stdscr.addstr(y+1, 2, f"Total Trades: {len(closed_trades)}")
-        self.stdscr.addstr(y+2, 2, f"Total Profit: ${total_profit:,.2f}")
-        self.stdscr.addstr(y+3, 2, f"Win Rate: {win_rate:.1f}%")
-        self.stdscr.addstr(y+4, 2, f"Sharpe Ratio: {sharpe_ratio:.2f}")
-        self.stdscr.addstr(y+5, 2, f"Max Drawdown: {max_drawdown:.1f}%")
+        try:
+            self.stdscr.addstr(y, 0, "💰 Performance Metrics:")
+            self.stdscr.addstr(y+1, 2, f"Total Trades: {len(closed_trades)}")
+            self.stdscr.addstr(y+2, 2, f"Total Profit: ${total_profit:,.2f}")
+            self.stdscr.addstr(y+3, 2, f"Win Rate: {win_rate:.1f}%")
+            self.stdscr.addstr(y+4, 2, f"Sharpe Ratio: {sharpe_ratio:.2f}")
+            self.stdscr.addstr(y+5, 2, f"Max Drawdown: {max_drawdown:.1f}%")
+        except curses.error:
+            # Handle when terminal is too small
+            pass
     
     def _display_recent_trades(self, session, width):
         """Display recent trades"""
@@ -205,7 +209,10 @@ class EnhancedMonitor:
                 trade_str = f"#{trade.id}: ${trade.entry_price:.2f} → ${trade.exit_price:.2f} P&L: ${trade.profit_loss:.2f}"
             else:
                 trade_str = f"#{trade.id}: OPEN @ ${trade.entry_price:.2f}"
-            self.stdscr.addstr(y+1+i, 2, trade_str[:width-3])
+            try:
+                self.stdscr.addstr(y+1+i, 2, trade_str[:width-3])
+            except curses.error:
+                pass
     
     def _display_system_info(self, width):
         """Display system information"""
