@@ -413,8 +413,14 @@ class RealisticFuturesEnv(gym.Env):
         """Get observation with optional position information"""
         if hasattr(state, 'flatten'):
             obs = state.flatten()
+        elif hasattr(state, 'data'):
+            if hasattr(state.data, 'values'):
+                obs = state.data.values.flatten()
+            else:
+                obs = np.array(state.data).flatten()
         else:
-            obs = np.array(state)
+            # If state is already an array
+            obs = np.array(state).flatten()
         
         if self.add_current_position_to_state:
             obs = np.append(obs, self.current_position)
