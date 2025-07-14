@@ -796,33 +796,74 @@ def get_memory_usage() -> float:
         return 0.0
 
 def get_gpu_usage() -> float:
-    """Get GPU usage percentage"""
+    """Get GPU usage percentage (average across all GPUs)"""
     try:
-        import torch
-        if torch.cuda.is_available():
-            # torch.cuda.utilization() returns percentage 0-100
-            gpu_util = torch.cuda.utilization()
-            logger.debug(f"GPU usage collected: {gpu_util}%")
-            return gpu_util
-        else:
-            logger.debug("No CUDA GPUs available")
-            return 0.0
-    except ImportError as e:
-        logger.debug(f"torch not imported for GPU monitoring: {str(e)}")
-        return 0.0
+        # Try nvidia-ml-py first (most accurate)
+        try:
+            import pynvml
+            pynvml.nvmlInit()
+            device_count = pynvml.nvmlDeviceGetCount()
+            total_util = 0
+            
+            for i in range(device_count):
+                handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+                util = pynvml.nvmlDeviceGetUtilizationRates(handle)
+                total_util += util.gpu
+                
+            avg_util = total_util / device_count if device_count > 0 else 0
+            logger.debug(f"GPU usage collected from {device_count} GPUs: {avg_util:.1f}%")
+            return avg_util
+            
+        except ImportError:
+            # Fallback to nvidia-smi parsing
+            import subprocess
+            result = subprocess.run(['nvidia-smi', '--query-gpu=utilization.gpu', '--format=csv,noheader,nounits'], 
+                                  capture_output=True, text=True)
+            if result.returncode == 0:
+                utils = [float(x.strip()) for x in result.stdout.strip().split('\n') if x.strip()]
+                avg_util = sum(utils) / len(utils) if utils else 0
+                logger.debug(f"GPU usage from nvidia-smi: {avg_util:.1f}%")
+                return avg_util
+            else:
+                logger.debug("nvidia-smi command failed")
+                return 0.0
+                
     except Exception as e:
         logger.error(f"Error getting GPU usage: {str(e)}")
         return 0.0
 
+# Track previous network stats for rate calculation
+_last_network_stats = {'time': None, 'bytes': 0}
+
 def get_network_io() -> float:
-    """Get network I/O rate"""
+    """Get network I/O rate in MB/s"""
+    global _last_network_stats
     try:
         import psutil
+        import time
+        
+        current_time = time.time()
         net_io = psutil.net_io_counters()
-        # Calculate MB/s (we'll need to track previous values for rate)
-        total_bytes = net_io.bytes_sent + net_io.bytes_recv
-        network_rate = total_bytes / 1024 / 1024  # Convert to MB
-        logger.debug(f"Network I/O collected: {network_rate:.2f} MB total")
+        current_bytes = net_io.bytes_sent + net_io.bytes_recv
+        
+        # Calculate rate if we have previous data
+        if _last_network_stats['time'] is not None:
+            time_diff = current_time - _last_network_stats['time']
+            bytes_diff = current_bytes - _last_network_stats['bytes']
+            
+            if time_diff > 0:
+                # Convert to MB/s
+                network_rate = (bytes_diff / time_diff) / (1024 * 1024)
+            else:
+                network_rate = 0.0
+        else:
+            network_rate = 0.0
+            
+        # Update last stats
+        _last_network_stats['time'] = current_time
+        _last_network_stats['bytes'] = current_bytes
+        
+        logger.debug(f"Network I/O rate: {network_rate:.2f} MB/s")
         return network_rate
     except ImportError as e:
         logger.error(f"psutil not imported for network monitoring: {str(e)}")
