@@ -88,9 +88,9 @@ class RemoteMonitor:
             if not session_details:
                 continue
                 
-            print(f"\n📊 Session: {session['session_name']} (ID: {session['id']})")
+            print(f"\n📊 Session: {session.get('name', 'Unknown')} (ID: {session['id']})")
             print(f"   Status: {session['status']}")
-            print(f"   Started: {session.get('created_at', 'Unknown')}")
+            print(f"   Started: {session.get('start_time', 'Unknown')}")
             
             # Algorithm info
             print(f"\n🧠 Algorithm: {session_details.get('algorithm', 'Unknown')}")

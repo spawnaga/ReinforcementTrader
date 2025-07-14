@@ -399,23 +399,16 @@ def get_trades():
             result.append({
                 'id': trade.id,
                 'session_id': trade.session_id,
-                'symbol': trade.symbol,
                 'position_type': trade.position_type,
                 'entry_time': trade.entry_time.isoformat() if trade.entry_time else None,
                 'entry_price': trade.entry_price,
                 'exit_time': trade.exit_time.isoformat() if trade.exit_time else None,
                 'exit_price': trade.exit_price,
                 'quantity': trade.quantity,
-                'profit': trade.profit,
-                'commission': trade.commission,
-                'slippage': trade.slippage,
-                'trade_duration': trade.trade_duration,
-                'max_profit': trade.max_profit,
-                'max_loss': trade.max_loss,
-                'mae': trade.mae,
-                'mfe': trade.mfe,
-                'exit_reason': trade.exit_reason,
-                'notes': trade.notes
+                'profit_loss': trade.profit_loss,
+                'status': trade.status,
+                'episode_number': trade.episode_number,
+                'trade_id': trade.trade_id
             })
         
         return jsonify(result)
@@ -435,23 +428,16 @@ def get_trade(trade_id):
         return jsonify({
             'id': trade.id,
             'session_id': trade.session_id,
-            'symbol': trade.symbol,
             'position_type': trade.position_type,
             'entry_time': trade.entry_time.isoformat() if trade.entry_time else None,
             'entry_price': trade.entry_price,
             'exit_time': trade.exit_time.isoformat() if trade.exit_time else None,
             'exit_price': trade.exit_price,
             'quantity': trade.quantity,
-            'profit': trade.profit,
-            'commission': trade.commission,
-            'slippage': trade.slippage,
-            'trade_duration': trade.trade_duration,
-            'max_profit': trade.max_profit,
-            'max_loss': trade.max_loss,
-            'mae': trade.mae,
-            'mfe': trade.mfe,
-            'exit_reason': trade.exit_reason,
-            'notes': trade.notes
+            'profit_loss': trade.profit_loss,
+            'status': trade.status,
+            'episode_number': trade.episode_number,
+            'trade_id': trade.trade_id
         })
         
     except Exception as e:
@@ -471,15 +457,15 @@ def get_recent_trades():
             result.append({
                 'id': trade.id,
                 'session_id': trade.session_id,
-                'symbol': trade.symbol,
                 'position_type': trade.position_type,
                 'entry_time': trade.entry_time.isoformat() if trade.entry_time else None,
                 'entry_price': trade.entry_price,
                 'exit_time': trade.exit_time.isoformat() if trade.exit_time else None,
                 'exit_price': trade.exit_price,
                 'quantity': trade.quantity,
-                'profit': trade.profit,
-                'exit_reason': trade.exit_reason
+                'profit_loss': trade.profit_loss,
+                'status': trade.status,
+                'episode_number': trade.episode_number
             })
         
         return jsonify(result)
