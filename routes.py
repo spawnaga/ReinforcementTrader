@@ -43,6 +43,11 @@ def health_check():
         'timestamp': datetime.now(timezone.utc).isoformat()
     })
 
+@app.route('/training_dashboard')
+def training_dashboard():
+    """Serve the advanced training dashboard"""
+    return app.send_static_file('training_dashboard.html')
+
 # ---------------------------------------------------------------------------
 # Training Control API Endpoints
 # ---------------------------------------------------------------------------

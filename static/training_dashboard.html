@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Trading System - Training Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.js"></script>
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+        
+        .metric-card {
+            background: linear-gradient(145deg, #1a1a1a, #252525);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+        }
+        
+        .metric-title {
+            font-size: 0.85em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        
+        .progress-bar-custom {
+            height: 30px;
+            background: #1a1a1a;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #00ff88, #00cc66);
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: 600;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .gpu-meter {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .gpu-bar {
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .gpu-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0066ff, #00ccff);
+            transition: width 0.3s ease;
+        }
+        
+        .algo-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #2a2a2a;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-right: 10px;
+            border: 1px solid #444;
+        }
+        
+        .header-title {
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-active { background: #00ff88; }
+        .status-inactive { background: #666; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .trade-item {
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .win { border-left: 3px solid #00ff88; }
+        .loss { border-left: 3px solid #ff4444; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-4">
+        <h1 class="header-title text-center">AI Trading System - Training Dashboard</h1>
+        
+        <!-- Status Bar -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="metric-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="status-indicator status-active" id="statusIndicator"></span>
+                            <span id="sessionName">No Active Session</span>
+                        </div>
+                        <div>
+                            <span class="algo-badge" id="algorithmType">ANE-PPO</span>
+                            <span class="algo-badge" id="timeElapsed">00:00:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Training Progress -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="metric-card">
+                    <div class="metric-title">Training Progress</div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Episode <span id="currentEpisode">0</span> / <span id="totalEpisodes">0</span></span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar-custom">
+                        <div class="progress-fill" id="progressBar" style="width: 0%">
+                            <span id="progressText"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Key Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-title">Total P&L</div>
+                    <div class="metric-value" id="totalPnL">$0.00</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-title">Win Rate</div>
+                    <div class="metric-value" id="winRate">0%</div>
+                    <small id="winLossRatio">0W / 0L</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-title">Sharpe Ratio</div>
+                    <div class="metric-value" id="sharpeRatio">0.00</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-title">Max Drawdown</div>
+                    <div class="metric-value negative" id="maxDrawdown">0.0%</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h5>P&L Over Time</h5>
+                    <canvas id="pnlChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h5>Training Metrics</h5>
+                    <canvas id="metricsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Algorithm & GPU Row -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="metric-card">
+                    <h5>Algorithm Configuration</h5>
+                    <div class="row mt-3">
+                        <div class="col-6">
+                            <small class="d-block text-muted">Learning Rate</small>
+                            <span id="learningRate">3e-4</span>
+                        </div>
+                        <div class="col-6">
+                            <small class="d-block text-muted">Batch Size</small>
+                            <span id="batchSize">64</span>
+                        </div>
+                        <div class="col-6 mt-3">
+                            <small class="d-block text-muted">Transformer Layers</small>
+                            <span id="transformerLayers">6</span>
+                        </div>
+                        <div class="col-6 mt-3">
+                            <small class="d-block text-muted">Attention Heads</small>
+                            <span id="attentionHeads">8</span>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="d-block text-muted">Algorithm Distribution</small>
+                        <div class="d-flex mt-2">
+                            <div style="flex: 1; background: #00ff88; height: 20px; border-radius: 4px;" id="algoBar"></div>
+                        </div>
+                        <small class="text-muted mt-1">ANE-PPO: 100%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="metric-card">
+                    <h5>GPU Utilization</h5>
+                    <div id="gpuMeters">
+                        <!-- GPU meters will be added dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Trades -->
+        <div class="row">
+            <div class="col-12">
+                <div class="metric-card">
+                    <h5>Recent Trades</h5>
+                    <div id="recentTrades">
+                        <div class="text-muted">No trades yet...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Socket.IO connection
+        const socket = io();
+        
+        // Chart configurations
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: '#333'
+                    },
+                    ticks: {
+                        color: '#888'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: '#333'
+                    },
+                    ticks: {
+                        color: '#888'
+                    }
+                }
+            }
+        };
+        
+        // Initialize P&L Chart
+        const pnlCtx = document.getElementById('pnlChart').getContext('2d');
+        const pnlChart = new Chart(pnlCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'P&L',
+                    data: [],
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.1
+                }]
+            },
+            options: chartOptions
+        });
+        
+        // Initialize Metrics Chart
+        const metricsCtx = document.getElementById('metricsChart').getContext('2d');
+        const metricsChart = new Chart(metricsCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Reward',
+                    data: [],
+                    borderColor: '#00ccff',
+                    borderWidth: 2,
+                    tension: 0.1
+                }, {
+                    label: 'Loss',
+                    data: [],
+                    borderColor: '#ff4444',
+                    borderWidth: 2,
+                    tension: 0.1
+                }]
+            },
+            options: chartOptions
+        });
+        
+        // Update functions
+        let startTime = null;
+        
+        function updateTimeElapsed() {
+            if (startTime) {
+                const elapsed = Date.now() - startTime;
+                const hours = Math.floor(elapsed / 3600000);
+                const minutes = Math.floor((elapsed % 3600000) / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                document.getElementById('timeElapsed').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+        
+        // Socket event handlers
+        socket.on('training_started', (data) => {
+            startTime = Date.now();
+            document.getElementById('sessionName').textContent = data.session_name || 'Training Session';
+            document.getElementById('algorithmType').textContent = data.algorithm || 'ANE-PPO';
+            document.getElementById('totalEpisodes').textContent = data.total_episodes || 0;
+            document.getElementById('statusIndicator').className = 'status-indicator status-active';
+        });
+        
+        socket.on('session_update', (data) => {
+            // Update progress
+            const current = data.episode || 0;
+            const total = data.total_episodes || 1;
+            const percent = (current / total * 100).toFixed(1);
+            
+            document.getElementById('currentEpisode').textContent = current;
+            document.getElementById('progressPercent').textContent = `${percent}%`;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            
+            // Update metrics
+            if (data.total_profit !== undefined) {
+                const pnl = document.getElementById('totalPnL');
+                pnl.textContent = `$${data.total_profit.toFixed(2)}`;
+                pnl.className = data.total_profit >= 0 ? 'metric-value positive' : 'metric-value negative';
+            }
+            
+            if (data.win_rate !== undefined) {
+                document.getElementById('winRate').textContent = `${data.win_rate.toFixed(1)}%`;
+            }
+            
+            if (data.sharpe_ratio !== undefined) {
+                document.getElementById('sharpeRatio').textContent = data.sharpe_ratio.toFixed(2);
+            }
+            
+            if (data.max_drawdown !== undefined) {
+                document.getElementById('maxDrawdown').textContent = `${data.max_drawdown.toFixed(1)}%`;
+            }
+        });
+        
+        socket.on('trade_update', (data) => {
+            // Add to recent trades
+            const tradesDiv = document.getElementById('recentTrades');
+            if (tradesDiv.querySelector('.text-muted')) {
+                tradesDiv.innerHTML = '';
+            }
+            
+            const tradeItem = document.createElement('div');
+            tradeItem.className = `trade-item ${data.profit_loss > 0 ? 'win' : 'loss'}`;
+            tradeItem.innerHTML = `
+                <div>
+                    <strong>${data.position_type}</strong>
+                    <small class="text-muted ms-2">${new Date().toLocaleTimeString()}</small>
+                </div>
+                <div>
+                    <span class="${data.profit_loss >= 0 ? 'positive' : 'negative'}">
+                        $${data.profit_loss.toFixed(2)}
+                    </span>
+                </div>
+            `;
+            
+            tradesDiv.insertBefore(tradeItem, tradesDiv.firstChild);
+            
+            // Keep only last 10 trades
+            while (tradesDiv.children.length > 10) {
+                tradesDiv.removeChild(tradesDiv.lastChild);
+            }
+        });
+        
+        socket.on('training_metrics', (data) => {
+            // Update charts
+            const timestamp = new Date().toLocaleTimeString();
+            
+            // Update P&L chart
+            if (data.episode_profit !== undefined) {
+                pnlChart.data.labels.push(timestamp);
+                pnlChart.data.datasets[0].data.push(data.episode_profit);
+                
+                // Keep last 50 points
+                if (pnlChart.data.labels.length > 50) {
+                    pnlChart.data.labels.shift();
+                    pnlChart.data.datasets[0].data.shift();
+                }
+                
+                pnlChart.update('none');
+            }
+            
+            // Update metrics chart
+            if (data.reward !== undefined || data.loss !== undefined) {
+                metricsChart.data.labels.push(timestamp);
+                
+                if (data.reward !== undefined) {
+                    metricsChart.data.datasets[0].data.push(data.reward);
+                }
+                if (data.loss !== undefined) {
+                    metricsChart.data.datasets[1].data.push(data.loss);
+                }
+                
+                // Keep last 50 points
+                if (metricsChart.data.labels.length > 50) {
+                    metricsChart.data.labels.shift();
+                    metricsChart.data.datasets[0].data.shift();
+                    metricsChart.data.datasets[1].data.shift();
+                }
+                
+                metricsChart.update('none');
+            }
+        });
+        
+        socket.on('performance_metrics', (data) => {
+            // Update GPU meters
+            if (data.gpu_usage !== undefined) {
+                updateGPUMeters([{
+                    index: 0,
+                    name: 'GPU Average',
+                    utilization: data.gpu_usage,
+                    memory: data.memory_usage || 0
+                }]);
+            }
+        });
+        
+        function updateGPUMeters(gpus) {
+            const container = document.getElementById('gpuMeters');
+            container.innerHTML = '';
+            
+            gpus.forEach(gpu => {
+                const meter = document.createElement('div');
+                meter.className = 'gpu-meter';
+                meter.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <small>${gpu.name || `GPU ${gpu.index}`}</small>
+                        <small>${gpu.utilization.toFixed(1)}%</small>
+                    </div>
+                    <div class="gpu-bar">
+                        <div class="gpu-fill" style="width: ${gpu.utilization}%"></div>
+                    </div>
+                `;
+                container.appendChild(meter);
+            });
+        }
+        
+        // Update time elapsed every second
+        setInterval(updateTimeElapsed, 1000);
+    </script>
+</body>
+</html>
