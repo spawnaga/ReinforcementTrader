@@ -170,27 +170,38 @@ class ActorCritic(nn.Module):
                 feat = extractor(x.view(-1, self.input_dim))
                 feat = feat.view(batch_size, sequence_length, -1)
             else:
+                # For 2D input, treat as single timestep
                 feat = extractor(x)
+                if feat.dim() == 2:
+                    # Add sequence dimension: (batch, features) -> (batch, 1, features)
+                    feat = feat.unsqueeze(1)
             features.append(feat)
 
         # Combine multi-scale features
-        if x.dim() == 3:
+        if all(f.dim() == 3 for f in features):
+            # All features are 3D (batch, sequence, features)
             combined_features = torch.cat(features, dim=-1)
             # Project from 1536 (3*512) to 512 dimensions
             combined_features = self.feature_projection(combined_features)
         else:
-            combined_features = torch.stack(features, dim=1).mean(dim=1)
+            # Handle mixed dimensions or all 2D
+            # Ensure all features are 3D
+            features_3d = []
+            for f in features:
+                if f.dim() == 2:
+                    features_3d.append(f.unsqueeze(1))
+                else:
+                    features_3d.append(f)
+            combined_features = torch.cat(features_3d, dim=-1)
+            combined_features = self.feature_projection(combined_features)
 
         # Apply transformer attention for temporal patterns
-        if x.dim() == 3:
-            attended_features = self.transformer_attention(combined_features)
-            # Handle case where transformer returns tuple (output, attention_weights)
-            if isinstance(attended_features, tuple):
-                attended_features = attended_features[0]  # Extract just the output tensor
-            attended_features = attended_features.mean(dim=1)  # Global average pooling
-        else:
-            # For single timestep, use the combined features directly
-            attended_features = combined_features
+        # combined_features should always be 3D at this point
+        attended_features = self.transformer_attention(combined_features)
+        # Handle case where transformer returns tuple (output, attention_weights)
+        if isinstance(attended_features, tuple):
+            attended_features = attended_features[0]  # Extract just the output tensor
+        attended_features = attended_features.mean(dim=1)  # Global average pooling
 
         # Market regime detection
         regime_logits = self.regime_classifier(attended_features)
