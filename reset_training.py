@@ -50,8 +50,7 @@ def reset_training():
                 print("\nReset cancelled.")
                 return
             
-            # Start transaction
-            trans = conn.begin()
+            # Execute in a transaction
             try:
                 # Mark all sessions as stopped
                 conn.execute(text("""
@@ -78,7 +77,7 @@ def reset_training():
                         max_drawdown = 0.0
                 """))
                 
-                trans.commit()
+                conn.commit()
                 print("\n✅ Reset complete!")
                 
                 # Verify
@@ -93,7 +92,7 @@ def reset_training():
                 print(f"  - Total trades: {trade_count}")
                 
             except Exception as e:
-                trans.rollback()
+                conn.rollback()
                 print(f"\n❌ Reset failed: {e}")
                 
     except Exception as e:
