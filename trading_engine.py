@@ -604,6 +604,7 @@ class TradingEngine:
             params.pop('indicators', None)  # Remove indicators as it's for data preprocessing
             params.pop('timeframe', None)  # Remove timeframe as it's for data selection
             params.pop('total_episodes', None)  # Remove total_episodes as it's stored separately
+            params.pop('risk_level', None)  # Remove risk_level as it's not an algorithm parameter
             
             if algorithm_type == 'ANE_PPO':
                 algorithm = ANEPPO(
@@ -763,8 +764,19 @@ class TradingEngine:
                                     'profit_loss': trade.profit_loss,
                                     'entry_time': trade.entry_time.isoformat() if trade.entry_time else None,
                                     'exit_time': trade.exit_time.isoformat() if trade.exit_time else None,
-                                    'quantity': trade.quantity
+                                    'quantity': trade.quantity,
+                                    'episode_number': current_episode,
+                                    'reward': trade_info.get('reward', 0)
                                 }, room=f'session_{session_id}')
+                                
+                                # Also emit training metrics
+                                socketio.emit('training_metrics', {
+                                    'episode': current_episode,
+                                    'reward': trade_info.get('reward', 0),
+                                    'loss': 0,  # Will be updated when we have loss data
+                                    'episode_profit': trade.profit_loss
+                                })
+                                
                                 logger.debug(f"Emitted trade update for session {session_id}")
                             except Exception as e:
                                 logger.error(f"Failed to emit trade update: {e}")

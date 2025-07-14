@@ -748,12 +748,56 @@ def background_broadcast_loop():
                     logger.debug(f"Getting real-time data for session {session_id}")
                     session_data = get_session_real_time_data(session_id)
                     if session_data:
+                        # Calculate Sharpe ratio and max drawdown from recent trades
+                        sharpe_ratio = 0.0
+                        max_drawdown = 0.0
+                        
+                        if session_data.get('recent_trades'):
+                            profits = [t['profit_loss'] for t in session_data['recent_trades'] if t.get('profit_loss') is not None]
+                            if len(profits) > 1:
+                                # Calculate Sharpe ratio
+                                avg_profit = sum(profits) / len(profits) if profits else 0
+                                variance = sum((p - avg_profit) ** 2 for p in profits) / len(profits) if profits else 1
+                                std_profit = variance ** 0.5
+                                sharpe_ratio = (avg_profit / std_profit * (252 ** 0.5)) if std_profit > 0 else 0.0
+                                
+                                # Calculate max drawdown
+                                cumulative = []
+                                cum_sum = 0
+                                for p in profits:
+                                    cum_sum += p
+                                    cumulative.append(cum_sum)
+                                
+                                if cumulative:
+                                    peak = cumulative[0]
+                                    max_dd = 0
+                                    for val in cumulative:
+                                        if val > peak:
+                                            peak = val
+                                        dd = (peak - val) / peak if peak > 0 else 0
+                                        max_dd = max(max_dd, dd)
+                                    max_drawdown = max_dd * 100
+                        
+                        # Add calculated metrics to session data
+                        session_data['sharpe_ratio'] = sharpe_ratio
+                        session_data['max_drawdown'] = max_drawdown
+                        
                         # Broadcast to both session room and all clients
                         room_name = f"session_{session_id}"
                         logger.debug(f"Broadcasting update for session {session_id}")
                         socketio.emit('session_update', session_data, room=room_name)
                         # Also broadcast to all clients for dashboard sync
                         socketio.emit('global_session_update', session_data)
+                        
+                        # Emit training metrics if available
+                        if session_data.get('latest_metrics'):
+                            socketio.emit('training_metrics', {
+                                'session_id': session_id,
+                                'episode': session_data['latest_metrics'].get('episode', 0),
+                                'reward': session_data['latest_metrics'].get('reward', 0),
+                                'loss': session_data['latest_metrics'].get('loss', 0),
+                                'episode_profit': session_data.get('episode_profit', 0)
+                            })
             else:
                 logger.debug("No active connections, skipping broadcast")
             
