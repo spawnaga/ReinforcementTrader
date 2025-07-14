@@ -108,7 +108,25 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 14, 2025)
 
-### Project Cleanup and Essential Files (July 14, 2025 - Latest Update)
+### Database Clean State and Monitoring Fixes (July 14, 2025 - Latest Update)
+- **Complete Database Cleanup**: Cleared all previous training data for fresh start
+  - Deleted all 12 training sessions
+  - Deleted all 10 trades  
+  - Deleted all training metrics
+  - Kept 7,406 NQ futures market data records for training
+  - System now in clean state ready for new training sessions
+- **Fixed GPU Monitoring**: Resolved incorrect GPU usage detection
+  - Replaced non-existent `torch.cuda.utilization()` with nvidia-smi queries
+  - Added fallback to pynvml library for accurate GPU metrics
+  - Created enhanced gpu_monitor.py for detailed diagnostics
+- **Fixed Network I/O Monitoring**: Now shows rate (MB/s) instead of total bytes
+  - Added rate calculation with time-based sampling
+  - Tracks previous network stats for accurate throughput
+- **Enhanced Monitoring Tools**:
+  - monitor.py: Shows average GPU usage across all devices
+  - gpu_monitor.py: Detailed per-GPU stats including temperature and power draw
+
+### Project Cleanup and Essential Files (July 14, 2025)
 - **Massive Cleanup**: Reduced project from 69 Python files to 16 essential files
   - Moved all test, check, debug, fix, and helper scripts to backup_files/
   - Kept only core application files needed for API functionality
