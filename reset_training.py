@@ -6,6 +6,14 @@ import os
 from sqlalchemy import create_engine, text
 from datetime import datetime
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    print("✓ Loaded .env file")
+except ImportError:
+    print("⚠️  python-dotenv not installed, using system environment variables")
+
 def reset_training():
     """Reset training by clearing old data"""
     db_url = os.environ.get('DATABASE_URL')
