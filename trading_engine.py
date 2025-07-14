@@ -733,7 +733,7 @@ class TradingEngine:
                                 entry_price=float(trade_info.get('entry_price', 0)),
                                 exit_price=float(trade_info.get('exit_price', 0)),
                                 quantity=trade_info.get('quantity', 1),
-                                profit_loss=float(trade_info.get('profit_loss', 0)) if trade_info.get('profit_loss') else None,
+                                profit_loss=float(trade_info.get('profit_loss', 0)) if trade_info.get('profit_loss') is not None else 0.0,
                                 status='closed',
                                 episode_number=current_episode
                             )
