@@ -28,9 +28,10 @@ def check_metrics():
             trades = Trade.query.filter_by(session_id=session.id).all()
             for trade in trades[:5]:  # Show first 5
                 print(f"\n   Trade {trade.id}:")
-                print(f"     Time: {trade.timestamp}")
-                print(f"     Action: {trade.action}")
-                print(f"     Price: ${trade.price:.2f}")
+                print(f"     Time: {trade.entry_time}")
+                print(f"     Action: BUY at ${trade.entry_price:.2f}")
+                if trade.exit_time:
+                    print(f"     Exit: SELL at ${trade.exit_price:.2f}")
                 print(f"     P&L: ${trade.profit_loss:.2f}")
         
         # Check total trades across all sessions
