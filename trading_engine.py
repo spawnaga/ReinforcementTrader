@@ -677,13 +677,25 @@ class TradingEngine:
             action_counts = np.bincount(actions_taken, minlength=3)
             action_distribution = (action_counts / len(actions_taken)).tolist()
 
-            episode_metrics = {
-                'steps': step_count,
-                'action_distribution': action_distribution,
-                'total_trades': len(env.trades),
-                'profitable_trades': len([t for t in env.trades if t[6] > 0]),  # Assuming profit is at index 6
-                'average_trade_profit': np.mean([t[6] for t in env.trades]) if env.trades else 0
-            }
+            # Calculate trade metrics
+            if hasattr(env, 'trading_logger') and env.trading_logger:
+                trades = env.trading_logger.trades
+                completed_trades = [t for t in trades if t.get('action') == 'EXIT' and t.get('profit_loss') is not None]
+                episode_metrics = {
+                    'steps': step_count,
+                    'action_distribution': action_distribution,
+                    'total_trades': len(completed_trades),
+                    'profitable_trades': len([t for t in completed_trades if t.get('profit_loss', 0) > 0]),
+                    'average_trade_profit': np.mean([t.get('profit_loss', 0) for t in completed_trades]) if completed_trades else 0
+                }
+            else:
+                episode_metrics = {
+                    'steps': step_count,
+                    'action_distribution': action_distribution,
+                    'total_trades': 0,
+                    'profitable_trades': 0,
+                    'average_trade_profit': 0
+                }
 
             # Save trades from the episode to database
             self._save_episode_trades(session_id, env)
