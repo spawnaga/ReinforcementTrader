@@ -4,7 +4,6 @@ import os
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
-import sqlite3
 from pathlib import Path
 import yfinance as yf
 from extensions import db
