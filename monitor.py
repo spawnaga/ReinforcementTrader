@@ -31,7 +31,7 @@ class TradingMonitor:
             print(f"\n📊 System Performance [{datetime.now().strftime('%H:%M:%S')}]")
             print(f"   CPU: {data.get('cpu_usage', 0):.1f}%")
             print(f"   Memory: {data.get('memory_usage', 0):.1f}%")
-            print(f"   GPU: {data.get('gpu_usage', 0):.1f}%")
+            print(f"   GPU (avg): {data.get('gpu_usage', 0):.1f}%")
             print(f"   Network: {data.get('network_io', 0):.2f} MB/s")
             
         @self.sio.on('trade_update')
@@ -69,6 +69,30 @@ class TradingMonitor:
             pass
         return []
         
+    def get_gpu_info(self):
+        """Get detailed GPU information"""
+        try:
+            import subprocess
+            result = subprocess.run(['nvidia-smi', '--query-gpu=index,name,memory.used,memory.total,utilization.gpu,utilization.memory', 
+                                   '--format=csv,noheader,nounits'], capture_output=True, text=True)
+            if result.returncode == 0:
+                gpus = []
+                for line in result.stdout.strip().split('\n'):
+                    parts = line.split(', ')
+                    if len(parts) >= 6:
+                        gpus.append({
+                            'index': int(parts[0]),
+                            'name': parts[1],
+                            'memory_used': int(parts[2]),
+                            'memory_total': int(parts[3]),
+                            'gpu_util': float(parts[4]),
+                            'memory_util': float(parts[5])
+                        })
+                return gpus
+        except:
+            pass
+        return []
+    
     def monitor(self):
         """Start monitoring the system"""
         print("=" * 60)
@@ -82,6 +106,15 @@ class TradingMonitor:
         except:
             print("❌ System is not responding")
             return
+            
+        # Show GPU information
+        gpus = self.get_gpu_info()
+        if gpus:
+            print(f"\n🎮 GPU Configuration ({len(gpus)} devices):")
+            for gpu in gpus:
+                print(f"   GPU {gpu['index']}: {gpu['name']}")
+                print(f"      Memory: {gpu['memory_used']}MB / {gpu['memory_total']}MB ({gpu['memory_util']:.1f}%)")
+                print(f"      Utilization: {gpu['gpu_util']:.1f}%")
             
         # Get initial status
         status = self.get_system_status()
