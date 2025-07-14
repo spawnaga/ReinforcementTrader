@@ -219,15 +219,13 @@ def main():
             new_session = TradingSession(
                 session_name=session_name,
                 algorithm_type='ANE-PPO',
-                symbol='NQ',
                 status='pending',
-                start_time=datetime.utcnow(),
+                start_time=datetime.now(),
                 total_episodes=1000,  # Start with fewer episodes to test
                 current_episode=0,
                 total_profit=0.0,
                 total_trades=0,
-                win_rate=0.0,
-                notes='Training with realistic constraints: min holding 10 steps, max 5 trades/episode'
+                win_rate=0.0
             )
             db.session.add(new_session)
             db.session.commit()
