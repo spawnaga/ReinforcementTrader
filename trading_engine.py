@@ -51,6 +51,9 @@ class TradingEngine:
 
         # Initialize default algorithm configurations
         self._initialize_default_configs()
+        
+        # Synchronize with database sessions on startup
+        self._sync_database_sessions()
 
     def _initialize_default_configs(self):
         """Initialize default algorithm configurations"""
@@ -92,6 +95,36 @@ class TradingEngine:
 
         except Exception as e:
             logger.error(f"Error initializing default configs: {str(e)}")
+    
+    def _sync_database_sessions(self):
+        """Synchronize with database sessions on startup"""
+        try:
+            from app import app
+            with app.app_context():
+                # Find all active sessions in database
+                active_db_sessions = TradingSession.query.filter_by(status='active').all()
+                
+                for session in active_db_sessions:
+                    # Add to active_sessions dictionary but without running thread
+                    # This allows monitoring to detect them
+                    self.active_sessions[session.id] = {
+                        'status': 'active',
+                        'config': {
+                            'algorithm_type': session.algorithm_type,
+                            'total_episodes': session.total_episodes
+                        },
+                        'start_time': session.start_time,
+                        'current_episode': session.current_episode
+                    }
+                    logger.info(f"Synchronized with existing active session {session.id}")
+                
+                if active_db_sessions:
+                    logger.info(f"Synchronized {len(active_db_sessions)} active sessions from database")
+                else:
+                    logger.info("No active sessions found in database")
+                    
+        except Exception as e:
+            logger.error(f"Error synchronizing database sessions: {str(e)}")
 
     def start_training(self, session_id: int, config: Dict):
         """Start a new training session"""
