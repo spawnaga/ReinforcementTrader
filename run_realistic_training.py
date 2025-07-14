@@ -146,8 +146,8 @@ def patch_futures_env():
         return original_step(self, action)
     
     # Create patched reset method
-    def patched_reset(self):
-        result = original_reset(self)
+    def patched_reset(self, *args, **kwargs):
+        result = original_reset(self, *args, **kwargs)
         
         # Reset episode tracking
         if hasattr(self, 'holding_time'):

@@ -96,8 +96,8 @@ def apply_realistic_patches():
         return original_step(self, action)
     
     # Patch reset method
-    def patched_reset(self):
-        result = original_reset(self)
+    def patched_reset(self, *args, **kwargs):
+        result = original_reset(self, *args, **kwargs)
         
         # Reset episode tracking
         self.holding_time = 0
