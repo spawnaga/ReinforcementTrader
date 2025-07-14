@@ -245,8 +245,8 @@ def main():
                     'n_steps': 2048,
                     'batch_size': 64,
                     'n_epochs': 10,
-                    'ent_coef': 0.01,
-                    'vf_coef': 0.5,
+                    'entropy_coef': 0.01,  # Fixed parameter name
+                    'value_loss_coef': 0.5,  # Fixed parameter name
                     'max_grad_norm': 0.5,
                     # These will be used by our patched environment
                     'min_holding_periods': settings['min_holding_periods'],
