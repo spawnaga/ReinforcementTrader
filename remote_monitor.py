@@ -154,7 +154,26 @@ def main():
     print(f"Connecting to trading system at {host}:{port}...")
     
     monitor = RemoteMonitor(host, port)
-    monitor.run()
+    
+    # Test connection first
+    print("Testing connection...")
+    if monitor.check_connection():
+        print("✓ Connection successful!")
+        monitor.run()
+    else:
+        print("\n❌ Connection failed!")
+        print(f"\nCannot connect to {host}:{port}")
+        print("\nPossible issues:")
+        print("1. The trading system is not running on the remote machine")
+        print("2. The port 5000 is blocked by firewall")
+        print("3. The Flask app is bound to localhost only (not 0.0.0.0)")
+        print("\nTo fix on the remote machine:")
+        print("1. Check if app is running: ps aux | grep python")
+        print("2. Allow port: sudo ufw allow 5000")
+        print("3. Edit run_local.py to use host='0.0.0.0'")
+        print("\nOr use SSH tunnel:")
+        print(f"ssh -L 5000:localhost:5000 username@{host}")
+        print("Then run: python remote_monitor.py localhost 5000")
 
 if __name__ == "__main__":
     main()
