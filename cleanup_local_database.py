@@ -7,17 +7,38 @@ This will remove all training sessions and trades while keeping market data
 import os
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from pathlib import Path
+
+def load_env_file():
+    """Load database URL from .env file"""
+    env_path = Path('.env')
+    if env_path.exists():
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    if key == 'DATABASE_URL':
+                        return value
+    return None
 
 def cleanup_database():
     """Clean up all training data while preserving market data"""
     
-    # Get database URL from environment or prompt user
-    db_url = os.environ.get('DATABASE_URL')
+    # Try to get database URL from .env file first
+    db_url = load_env_file()
+    
     if not db_url:
-        print("DATABASE_URL not found in environment.")
+        # Fall back to environment variable
+        db_url = os.environ.get('DATABASE_URL')
+    
+    if not db_url:
+        print("DATABASE_URL not found in .env file or environment.")
         print("Please enter your PostgreSQL connection string:")
         print("Format: postgresql://username:password@host:port/database")
         db_url = input("> ").strip()
+    else:
+        print(f"Using database connection from .env file")
     
     try:
         # Connect to database
