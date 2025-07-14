@@ -211,30 +211,72 @@ def main():
         # Create new realistic training session
         print("\n🎯 Starting realistic training session...")
         
-        # Start training with realistic parameters
+        # Create a new training session in the database first
         session_name = f"Realistic Training {datetime.now().strftime('%Y-%m-%d %H:%M')}"
         
         try:
-            engine.start_training(
-                algorithm='ANE-PPO',
-                symbol='NQ',
+            # Create session in database
+            new_session = TradingSession(
                 session_name=session_name,
+                algorithm_type='ANE-PPO',
+                symbol='NQ',
+                status='pending',
+                start_time=datetime.utcnow(),
                 total_episodes=1000,  # Start with fewer episodes to test
-                # The patches will automatically apply the realistic constraints
+                current_episode=0,
+                total_profit=0.0,
+                total_trades=0,
+                win_rate=0.0,
+                notes='Training with realistic constraints: min holding 10 steps, max 5 trades/episode'
             )
+            db.session.add(new_session)
+            db.session.commit()
             
-            print("\n✅ Realistic training started successfully!")
-            print("\nExpected behavior:")
-            print("- Fewer trades (max 5 per episode)")
-            print("- Longer holding periods (min 10 time steps)")
-            print("- More realistic profits/losses")
-            print("- Better preparation for live trading")
+            session_id = new_session.id
+            print(f"\n✓ Created training session ID: {session_id}")
             
-            print("\nMonitor progress with:")
-            print("  python monitor_training_enhanced.py")
-            print("\nOr from Windows:")
-            print("  python remote_monitor.py localhost 5000")
+            # Prepare configuration for training
+            config = {
+                'algorithm_type': 'ANE-PPO',
+                'symbol': 'NQ',
+                'total_episodes': 1000,
+                'parameters': {
+                    'learning_rate': 3e-4,
+                    'gamma': 0.99,
+                    'clip_range': 0.2,
+                    'n_steps': 2048,
+                    'batch_size': 64,
+                    'n_epochs': 10,
+                    'ent_coef': 0.01,
+                    'vf_coef': 0.5,
+                    'max_grad_norm': 0.5,
+                    # These will be used by our patched environment
+                    'min_holding_periods': settings['min_holding_periods'],
+                    'max_trades_per_episode': settings['max_trades_per_episode'],
+                    'execution_cost_per_order': settings['execution_cost_per_order'],
+                    'slippage_ticks': settings['slippage_ticks'],
+                    'fill_probability': settings['fill_probability']
+                }
+            }
             
+            # Start training with the session ID and config
+            success = engine.start_training(session_id, config)
+            
+            if success:
+                print("\n✅ Realistic training started successfully!")
+                print("\nExpected behavior:")
+                print("- Fewer trades (max 5 per episode)")
+                print("- Longer holding periods (min 10 time steps)")
+                print("- More realistic profits/losses")
+                print("- Better preparation for live trading")
+                
+                print("\nMonitor progress with:")
+                print("  python monitor_training_enhanced.py")
+                print("\nOr from Windows:")
+                print("  python remote_monitor.py 192.168.0.129 5000")
+            else:
+                print("\n❌ Failed to start training - another session may be active")
+                
         except Exception as e:
             print(f"\n❌ Error starting training: {e}")
             import traceback
