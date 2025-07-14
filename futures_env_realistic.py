@@ -150,10 +150,15 @@ class RealisticFuturesEnv(gym.Env):
         # Get the shape from the first state
         if len(self.states) > 0:
             first_state = self.states[0]
-            if hasattr(first_state, 'shape'):
+            if hasattr(first_state, 'data'):
+                if hasattr(first_state.data, 'shape'):
+                    state_shape = first_state.data.shape
+                else:
+                    state_shape = (len(first_state.data),) if hasattr(first_state.data, '__len__') else (1,)
+            elif hasattr(first_state, 'shape'):
                 state_shape = first_state.shape
             else:
-                state_shape = (len(first_state),)
+                state_shape = (1,)  # Default shape
             
             if self.add_current_position_to_state:
                 state_shape = (state_shape[0] + 1,)
