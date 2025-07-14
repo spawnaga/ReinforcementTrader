@@ -946,8 +946,15 @@ class TradingEngine:
                 thread = self.training_threads[session_id]
                 if not thread.is_alive():
                     stale_sessions.append(session_id)
+            elif session_info.get('status') == 'active':
+                # This is a synchronized session from database, check if it's still active in DB
+                from app import app
+                with app.app_context():
+                    db_session = TradingSession.query.get(session_id)
+                    if not db_session or db_session.status != 'active':
+                        stale_sessions.append(session_id)
             else:
-                # No thread means session is stale
+                # No thread and not marked as active means session is stale
                 stale_sessions.append(session_id)
 
         # Remove stale sessions
