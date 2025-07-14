@@ -136,6 +136,11 @@ class RealisticFuturesEnv(gym.Env):
         self.orders = []
         self.executed_trades = []
         
+        # Anti-exploitation tracking
+        self.states_traded = set()  # Track which states have been traded
+        self.last_trade_index = -10  # Ensure minimum gap between trades
+        self.trades_at_current_state = 0  # Prevent multiple trades at same state
+        
         # Setup trading logger
         if enable_trading_logger:
             from trading_logger import TradingLogger
@@ -169,6 +174,16 @@ class RealisticFuturesEnv(gym.Env):
     
     def _can_trade(self) -> bool:
         """Check if trading is allowed based on constraints"""
+        # Check if already traded at this state (anti-exploitation)
+        if self.current_index in self.states_traded:
+            trading_logger.debug(f"Already traded at state index {self.current_index}")
+            return False
+        
+        # Check minimum gap between trades (anti-exploitation)
+        if self.current_index - self.last_trade_index < 5:
+            trading_logger.debug(f"Too soon since last trade: {self.current_index - self.last_trade_index} steps")
+            return False
+        
         # Check trade limit
         if self.trades_this_episode >= self.max_trades_per_episode:
             trading_logger.debug(f"Trade limit reached: {self.trades_this_episode}/{self.max_trades_per_episode}")
@@ -257,6 +272,10 @@ class RealisticFuturesEnv(gym.Env):
             self.holding_time = 0
             self.trades_this_episode += 1
             
+            # Track successful trade (anti-exploitation)
+            self.states_traded.add(self.current_index)
+            self.last_trade_index = self.current_index
+            
         elif self.current_position == 0:
             # Opening long position
             self.last_position = self.current_position
@@ -265,6 +284,10 @@ class RealisticFuturesEnv(gym.Env):
             self.entry_time = state.ts
             self.entry_id = str(uuid4())
             self.holding_time = 0
+            
+            # Track successful trade (anti-exploitation)
+            self.states_traded.add(self.current_index)
+            self.last_trade_index = self.current_index
             
             # Log trade entry
             if self.trading_logger:
@@ -309,6 +332,10 @@ class RealisticFuturesEnv(gym.Env):
             self.holding_time = 0
             self.trades_this_episode += 1
             
+            # Track successful trade (anti-exploitation)
+            self.states_traded.add(self.current_index)
+            self.last_trade_index = self.current_index
+            
         elif self.current_position == 0:
             # Opening short position
             self.last_position = self.current_position
@@ -317,6 +344,10 @@ class RealisticFuturesEnv(gym.Env):
             self.entry_time = state.ts
             self.entry_id = str(uuid4())
             self.holding_time = 0
+            
+            # Track successful trade (anti-exploitation)
+            self.states_traded.add(self.current_index)
+            self.last_trade_index = self.current_index
             
             # Log trade entry
             if self.trading_logger:
@@ -403,6 +434,11 @@ class RealisticFuturesEnv(gym.Env):
         self.exit_price = None
         self._last_closed_entry_price = None
         self._last_closed_exit_price = None
+        
+        # Reset anti-exploitation tracking
+        self.states_traded.clear()
+        self.last_trade_index = -10
+        self.trades_at_current_state = 0
         
         if len(self.states) > 0:
             return self._get_observation(self.states[0])
