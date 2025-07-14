@@ -385,8 +385,11 @@ class RealisticFuturesEnv(gym.Env):
         
         return 0.0
     
-    def reset(self):
+    def reset(self, seed=None, options=None):
         """Reset the environment for a new episode"""
+        # Handle seed if provided (for compatibility)
+        if seed is not None:
+            np.random.seed(seed)
         self.current_index = 0
         self.done = False
         self.current_position = 0
