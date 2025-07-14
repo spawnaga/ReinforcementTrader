@@ -3,89 +3,95 @@
 Check what's happening in live training
 """
 import os
-import time
 from app import app
 from extensions import db
-from models import TradingSession, Trade
+from models import TradingSession, Trade, TrainingMetrics
 from sqlalchemy import text
+from datetime import datetime, timedelta
 
 def check_live_training():
     """Monitor live training activity"""
     with app.app_context():
-        print("🔍 Live Training Monitor")
+        print("🔍 Checking Live Training Activity")
         print("=" * 60)
         
         # Get active session
-        session = TradingSession.query.filter_by(status='active').first()
-        if not session:
-            print("❌ No active training session!")
-            print("\nStart training with:")
-            print("python run_local.py")
-            print("\nThen in another terminal:")
-            print('curl -X POST http://127.0.0.1:5000/api/start_training \\')
-            print('  -H "Content-Type: application/json" \\')
-            print('  -d \'{"session_name": "Test Run", "algorithm_type": "ANE_PPO", "total_episodes": 50}\'')
+        active_session = TradingSession.query.filter_by(status='active').first()
+        
+        if not active_session:
+            print("❌ No active session found")
             return
-        
-        print(f"\n📊 Active Session: {session.session_name} (ID: {session.id})")
-        print(f"   Started: {session.start_time}")
-        print(f"   Episodes: {session.current_episode}")
-        
-        # Check recent trades
-        recent_trades = db.session.execute(text("""
-            SELECT id, entry_time, exit_time, entry_price, exit_price, profit_loss
-            FROM trade
-            WHERE session_id = :session_id
-            ORDER BY id DESC
-            LIMIT 10
-        """), {"session_id": session.id})
-        
-        trades = list(recent_trades)
-        print(f"\n📈 Recent Trades (Total: {len(trades)}):")
-        
-        open_trades = 0
-        closed_trades = 0
-        
-        for trade in trades:
-            if trade.exit_time:
-                status = "CLOSED"
-                closed_trades += 1
-            else:
-                status = "OPEN"
-                open_trades += 1
             
-            print(f"   Trade {trade.id}: {status}")
-            print(f"     Entry: ${trade.entry_price:.2f} at {trade.entry_time}")
-            if trade.exit_time:
-                print(f"     Exit: ${trade.exit_price:.2f} at {trade.exit_time}")
-                print(f"     P&L: ${trade.profit_loss:.2f}")
+        session_id = active_session.id
+        print(f"\n📊 Session: {active_session.session_name} (ID: {session_id})")
         
-        print(f"\n📊 Trade Summary:")
+        # Check total trades over time
+        print("\n📈 Trade Activity Over Time:")
+        
+        # Get trades from last 30 minutes in 5-minute intervals
+        now = datetime.utcnow()
+        for i in range(6):
+            end_time = now - timedelta(minutes=i*5)
+            start_time = end_time - timedelta(minutes=5)
+            
+            count_result = db.session.execute(text("""
+                SELECT COUNT(*) 
+                FROM trade 
+                WHERE session_id = :session_id 
+                AND created_at BETWEEN :start_time AND :end_time
+            """), {
+                "session_id": session_id,
+                "start_time": start_time,
+                "end_time": end_time
+            })
+            
+            count = count_result.scalar()
+            print(f"   {start_time.strftime('%H:%M')} - {end_time.strftime('%H:%M')}: {count} new trades")
+        
+        # Check if trades are actually different
+        print("\n📊 Last 10 Unique Trades:")
+        recent_trades = Trade.query.filter_by(
+            session_id=session_id
+        ).order_by(Trade.id.desc()).limit(10).all()
+        
+        for trade in recent_trades:
+            status = "CLOSED" if trade.exit_time else "OPEN"
+            print(f"   Trade #{trade.id}: {status} - Entry: ${trade.entry_price:.2f} @ {trade.entry_time}")
+        
+        # Check open vs closed trades
+        open_trades = Trade.query.filter_by(
+            session_id=session_id,
+            exit_time=None
+        ).count()
+        
+        closed_trades = Trade.query.filter_by(
+            session_id=session_id
+        ).filter(Trade.exit_time.isnot(None)).count()
+        
+        print(f"\n📊 Trade Status:")
         print(f"   Open trades: {open_trades}")
         print(f"   Closed trades: {closed_trades}")
+        print(f"   Total: {open_trades + closed_trades}")
         
-        # Check log file for recent actions
-        log_file = f"logs/trading_{session.session_name.replace(' ', '_')}_{session.id}.log"
+        # Check if training is actually progressing
+        recent_metrics = TrainingMetrics.query.filter_by(
+            session_id=session_id
+        ).order_by(TrainingMetrics.id.desc()).limit(5).all()
+        
+        print(f"\n🎯 Recent Episode Progress:")
+        for metric in recent_metrics:
+            print(f"   Episode {metric.episode}: {metric.timestamp}")
+        
+        # Check for any errors in logs
+        log_file = f"logs/trading_{active_session.session_name.replace(' ', '_')}_{session_id}.log"
         if os.path.exists(log_file):
-            print(f"\n📄 Recent Actions from {log_file}:")
+            print(f"\n📄 Recent Log Activity:")
             with open(log_file, 'r') as f:
                 lines = f.readlines()
-                recent = lines[-20:] if len(lines) > 20 else lines
-                
-                actions = {"BUY": 0, "SELL": 0, "HOLD": 0}
-                for line in recent:
-                    for action in actions:
-                        if f"ACTION: {action}" in line:
-                            actions[action] += 1
-                
-                print(f"   Last 20 lines: BUY={actions['BUY']}, SELL={actions['SELL']}, HOLD={actions['HOLD']}")
-                
-                # Show last few action lines
-                action_lines = [l for l in recent if "ACTION:" in l]
-                if action_lines:
-                    print("\n   Last 3 actions:")
-                    for line in action_lines[-3:]:
-                        print(f"     {line.strip()}")
+                # Get last 20 lines
+                for line in lines[-20:]:
+                    if 'TRADE' in line or 'ERROR' in line:
+                        print(f"   {line.strip()}")
 
 if __name__ == "__main__":
     check_live_training()
