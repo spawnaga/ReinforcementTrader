@@ -93,8 +93,9 @@ class RemoteMonitor:
             print(f"   Started: {session.get('start_time', 'Unknown')}")
             
             # Algorithm info
-            print(f"\n🧠 Algorithm: {session_details.get('algorithm', 'Unknown')}")
-            if session_details.get('algorithm') == 'ANE-PPO':
+            algorithm = session_details.get('algorithm_type', session_details.get('algorithm', 'Unknown'))
+            print(f"\n🧠 Algorithm: {algorithm}")
+            if algorithm == 'ANE-PPO':
                 print("   • Transformer attention mechanisms")
                 print("   • Multi-scale feature extraction")
                 print("   • Actor-Critic architecture")
