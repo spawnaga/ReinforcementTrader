@@ -603,6 +603,7 @@ class TradingEngine:
             params.pop('dataConfig', None)  # Remove dataConfig as it's only for data loading
             params.pop('indicators', None)  # Remove indicators as it's for data preprocessing
             params.pop('timeframe', None)  # Remove timeframe as it's for data selection
+            params.pop('total_episodes', None)  # Remove total_episodes as it's stored separately
             
             if algorithm_type == 'ANE_PPO':
                 algorithm = ANEPPO(
