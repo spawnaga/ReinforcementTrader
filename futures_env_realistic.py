@@ -414,13 +414,21 @@ class RealisticFuturesEnv(gym.Env):
         if hasattr(state, 'flatten'):
             obs = state.flatten()
         elif hasattr(state, 'data'):
-            if hasattr(state.data, 'values'):
-                obs = state.data.values.flatten()
+            data = state.data
+            # If it's a DataFrame, exclude non-numeric columns
+            if hasattr(data, 'select_dtypes'):
+                numeric_data = data.select_dtypes(include=[np.number])
+                obs = numeric_data.values.flatten()
+            elif hasattr(data, 'values'):
+                obs = data.values.flatten()
             else:
-                obs = np.array(state.data).flatten()
+                obs = np.array(data).flatten()
         else:
             # If state is already an array
             obs = np.array(state).flatten()
+        
+        # Ensure all values are numeric
+        obs = np.nan_to_num(obs, nan=0.0, posinf=0.0, neginf=0.0)
         
         if self.add_current_position_to_state:
             obs = np.append(obs, self.current_position)
