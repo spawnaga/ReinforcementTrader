@@ -37,8 +37,15 @@ def main():
     # Start the application
     print("\n🌐 Starting server on http://127.0.0.1:5000")
     print("=" * 60)
-    print("\n⚡ The application is starting...")
-    print("📊 Open your browser to http://127.0.0.1:5000")
+    print("\n⚡ Starting Revolutionary AI Trading System API...")
+    print("🚀 API Backend running at http://127.0.0.1:5000")
+    print("\n📡 Available endpoints:")
+    print("   - GET  /health                 - Health check")
+    print("   - GET  /api/sessions           - List all sessions")
+    print("   - POST /api/start_training     - Start training")
+    print("   - GET  /api/status             - System status")
+    print("   - GET  /api/trades             - Trade history")
+    print("\n📚 Full API documentation: see API_DOCUMENTATION.md")
     print("\nPress Ctrl+C to stop the server\n")
     
     try:
