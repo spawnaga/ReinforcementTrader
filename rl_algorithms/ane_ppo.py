@@ -166,6 +166,7 @@ class ActorCritic(nn.Module):
         for extractor in self.feature_extractors:
             if x.dim() == 3:
                 # Process sequence
+                sequence_length = x.size(1)
                 feat = extractor(x.view(-1, self.input_dim))
                 feat = feat.view(batch_size, sequence_length, -1)
             else:
