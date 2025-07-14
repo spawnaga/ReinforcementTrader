@@ -10,19 +10,21 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Backend Architecture
-- **Flask Web Framework**: Core web application with SQLAlchemy ORM for database management
+### Backend Architecture (API-Only)
+- **Flask Web Framework**: RESTful API backend with SQLAlchemy ORM for database management
 - **Real-time Communication**: WebSocket integration using Flask-SocketIO for live updates
 - **Trading Engine**: Custom GPU-accelerated engine with hybrid reinforcement learning algorithms
-- **Database**: SQLite for development (designed to scale to PostgreSQL in production)
+- **Database**: PostgreSQL for high-concurrency operations
 - **Asynchronous Processing**: Threading-based architecture for concurrent trading operations
 
-### Frontend Architecture
-- **Modern Web Interface**: Bootstrap-based responsive design with dark theme
-- **Real-time Visualization**: 3D portfolio visualization using Three.js
-- **Advanced Charts**: Interactive trading charts with technical indicators
-- **Neural Network Visualization**: Real-time neural network activity display
-- **Strategy Builder**: Visual drag-and-drop interface for algorithm configuration
+### API Endpoints
+- **Health Check**: `/health` - System status monitoring
+- **Training Control**: `/api/start_training`, `/api/stop_training` - Control ML training sessions
+- **Session Management**: `/api/sessions` - CRUD operations for trading sessions
+- **Trading Data**: `/api/trades`, `/api/recent_trades` - Access trade history and metrics
+- **Market Data**: `/api/market_data` - Retrieve OHLCV market data
+- **Algorithm Configs**: `/api/algorithm_configs` - Manage algorithm configurations
+- **System Control**: `/api/shutdown`, `/api/clear_all_sessions` - System administration
 
 ## Key Components
 
@@ -69,11 +71,9 @@ Preferred communication style: Simple, everyday language.
 - **NumPy/Pandas**: Data manipulation and analysis
 
 ### Web Technologies
-- **Flask**: Web framework and API
-- **Socket.IO**: Real-time communication
-- **Bootstrap**: Frontend styling
-- **Three.js**: 3D visualizations
-- **Chart.js**: Trading charts
+- **Flask**: RESTful API framework
+- **Socket.IO**: Real-time WebSocket communication
+- **Gunicorn**: WSGI HTTP Server for Python
 
 ## Deployment Strategy
 
@@ -106,9 +106,32 @@ Preferred communication style: Simple, everyday language.
 - **System Health**: Real-time resource monitoring with detailed debug logs
 - **WebSocket Debugging**: Full broadcast loop tracking with iteration counters
 
+## Recent Updates (July 14, 2025)
+
+### Frontend Removal and Backend-Only Architecture (July 14, 2025 - Latest Update)
+- **Complete Frontend Removal**: Removed all frontend components to create a pure API backend
+  - Deleted directories: `templates/`, `static/`, `nextjs-migration/`
+  - Removed all HTML templates and JavaScript files
+  - Converted routes.py to API-only endpoints
+- **API-Only Routes**: Restructured routes.py with clean REST API endpoints
+  - Health check endpoint: `/health`
+  - Training control: `/api/start_training`, `/api/stop_training`
+  - Session management: Full CRUD operations via `/api/sessions`
+  - Trade data access: `/api/trades`, `/api/recent_trades`
+  - Market data: `/api/market_data`
+  - System control: `/api/shutdown`, `/api/clear_all_sessions`
+- **WebSocket Support**: Maintained WebSocket functionality for real-time updates
+  - Performance metrics broadcasting continues
+  - Trade updates and session status changes still emit via WebSocket
+  - Backend can be integrated with any frontend framework
+- **Clean Backend Architecture**: System now operates as a headless trading engine
+  - RESTful API design for easy integration
+  - WebSocket events for real-time data streaming
+  - Complete separation of concerns between backend logic and presentation
+
 ## Recent Updates (July 13, 2025)
 
-### Manual Episode Control and Browser Extension Fix (July 13, 2025 - Latest Update)
+### Manual Episode Control and Browser Extension Fix (July 13, 2025)
 - **Added Manual Episode Control**:
   - Added numeric input field for training episodes in the advanced dashboard
   - Users can now manually specify training episodes from 10 to 10,000 in steps of 10
