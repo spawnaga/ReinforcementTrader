@@ -9,7 +9,7 @@ import time
 
 def start_training():
     """Start training with correct parameter names"""
-    base_url = "http://localhost:5000"
+    base_url = "http://127.0.0.1:5000"
     
     print("\n🚀 Starting Realistic Training - Correct Parameters")
     print("=" * 60)
