@@ -108,6 +108,26 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 17, 2025)
 
+### Large Data File Support (July 17, 2025 - Latest)
+- **Enhanced Data Loading for 6M Row Files**: Created comprehensive data loading pipeline
+  - Created `load_large_nq_data.py` for efficiently loading 302MB+ data files
+  - Created `test_load_data.py` for quick data verification
+  - Created `prepare_training_data.py` for complete data preparation workflow
+  - Updated GPU data loader to properly detect comma-separated .txt files
+  - Added automatic caching in parquet format for faster subsequent loads
+  - Implemented chunked loading (100k rows/chunk) for memory efficiency
+- **Data Format Support**: 
+  - Handles headerless CSV/TXT files: `timestamp,open,high,low,close,volume`
+  - Automatic separator detection (comma vs tab)
+  - Robust timestamp parsing for various date formats
+- **Performance Optimizations**:
+  - First load: 2-5 minutes for 6M rows
+  - Cached loads: ~30 seconds
+  - PostgreSQL integration for production-scale data management
+- **Created LOADING_LARGE_DATA_GUIDE.md**: Comprehensive guide for handling large datasets
+
+## Recent Updates (July 17, 2025)
+
 ### PyCharm IDE Warnings Fixed (July 17, 2025 - Latest Update)
 - **Fixed Timezone Warnings**: Updated models.py to use timezone-aware UTC timestamps with pytz
   - Created utc_now() helper function for consistent timezone handling
