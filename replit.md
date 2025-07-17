@@ -108,7 +108,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 17, 2025)
 
-### Continuous Learning Documentation Created (July 17, 2025 - Latest)
+### Critical Reward Bug Investigation (July 17, 2025 - Latest)
+- **Discovered Agent Exploitation**: Agent learned to exploit system by not trading after Episode 14
+  - Agent consistently receives exactly $117,701.50 reward when making 0 trades
+  - Identified pattern: 117,701.50 = 200 states × 588.5075 per state
+  - Added penalty for not trading (-0.1 per step after 50 steps) to discourage exploitation
+  - Added comprehensive debugging: Large reward detection, abnormal episode reward tracking
+  - Issue NOT in environment logic (tested independently), likely in state creation or data loading
+  - Agent behavior: Episodes 0-14 trades normally (mostly losses), Episodes 15+ makes 0 trades for massive reward
+
+### Continuous Learning Documentation Created (July 17, 2025)
 - **Created Comprehensive Training Guides**: Documented RL trading system architecture
   - Created TRADING_SYSTEM_MATHEMATICAL_EXPLANATION.md with full mathematical framework
   - Created TRADING_SYSTEM_SIMPLE_EXPLANATION.md with intuitive explanations

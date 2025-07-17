@@ -229,6 +229,13 @@ class RealisticFuturesEnv(gym.Env):
         reward = self.get_reward(state)
         self.total_reward += reward
         
+        # Debug massive rewards
+        if abs(self.total_reward) > 10000 and self.trades_this_episode == 0:
+            trading_logger.error(
+                f"MASSIVE TOTAL REWARD WITHOUT TRADES: ${self.total_reward:.2f} at step {self.current_index}, "
+                f"step_reward: ${reward:.2f}, trades: {self.trades_this_episode}"
+            )
+        
         # Move to next state
         self.current_index += 1
         if self.current_index >= self.limit:
@@ -365,6 +372,10 @@ class RealisticFuturesEnv(gym.Env):
     
     def get_reward(self, state: TimeSeriesState) -> float:
         """Calculate reward using realistic reward function"""
+        # Small penalty for not trading to encourage action
+        if self.trades_this_episode == 0 and self.current_index > 50:
+            return -0.1  # Small penalty per step for not trading
+        
         # No reward for opening positions
         if self.last_position == 0 and self.current_position != 0:
             return 0.0
@@ -403,7 +414,7 @@ class RealisticFuturesEnv(gym.Env):
         # Small reward for holding (encourages patience)
         if self.current_position != 0 and self.entry_price is not None:
             position_type = 'long' if self.current_position == 1 else 'short'
-            return calculate_reward(
+            hold_reward = calculate_reward(
                 timestamp=state.ts,
                 action='HOLD',
                 position_before=self.current_position,
@@ -416,6 +427,8 @@ class RealisticFuturesEnv(gym.Env):
                 session_id=self.session_id,
                 tick_size=self.tick_size
             )
+            # Clip holding rewards to prevent exploitation
+            return np.clip(hold_reward, -100, 100)
         
         return 0.0
     

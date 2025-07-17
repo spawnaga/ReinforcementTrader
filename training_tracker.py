@@ -205,6 +205,8 @@ class TrainingTracker:
         # Calculate performance metrics
         win_rate = winning_trades / num_trades if num_trades > 0 else 0
         avg_duration = np.mean([t['duration'] for t in self.episode_trades]) if num_trades > 0 else 0
+        # Calculate profitable trades percentage (same as win rate but for clarity)
+        profitable_trades_pct = (winning_trades / num_trades * 100) if num_trades > 0 else 0
         
         # Calculate Sharpe ratio (simplified)
         if num_trades > 1:
@@ -243,7 +245,8 @@ class TrainingTracker:
         self.loggers['performance'].info(
             f"Episode {self.current_episode} | Reward: {total_reward:.2f} | "
             f"Profit: ${total_profit:.2f} | Trades: {num_trades} | "
-            f"Win Rate: {win_rate:.2%} | Sharpe: {sharpe_ratio:.2f}"
+            f"Win Rate: {win_rate:.2%} | Profitable: {profitable_trades_pct:.1f}% | "
+            f"Sharpe: {sharpe_ratio:.2f}"
         )
         
         # Update learning progress
