@@ -375,15 +375,18 @@ def train_standalone():
             # Get action from algorithm
             action = algorithm.get_action(state)
             
-            # Get current timestamp and price from state
-            timestamp = state.ts if hasattr(state, 'ts') else datetime.now()
-            # Fix: Get price from state.price instead of state.current_price
-            if hasattr(state, 'price') and state.price is not None:
-                current_price = float(state.price)
-            elif hasattr(env, 'current_price') and env.current_price is not None:
-                current_price = float(env.current_price)
+            # Get current timestamp from the environment's current TimeSeriesState
+            # The state returned by env is a numpy array, not a TimeSeriesState
+            # We need to get the timestamp from the actual TimeSeriesState in the env
+            if hasattr(env, 'states') and env.current_index < len(env.states):
+                current_state_obj = env.states[env.current_index]
+                timestamp = current_state_obj.ts if hasattr(current_state_obj, 'ts') else datetime.now()
+                # Get price from the TimeSeriesState object
+                current_price = float(current_state_obj.price) if hasattr(current_state_obj, 'price') else 0.0
             else:
-                current_price = 0.0
+                # Fallback if we can't access the states
+                timestamp = datetime.now()
+                current_price = float(env.current_price) if hasattr(env, 'current_price') and env.current_price is not None else 0.0
             
             # Log agent's decision BEFORE taking action
             action_names = {0: 'BUY', 1: 'HOLD', 2: 'SELL'}

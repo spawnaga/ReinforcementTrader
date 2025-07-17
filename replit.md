@@ -119,12 +119,15 @@ Preferred communication style: Simple, everyday language.
   - Made penalties curriculum-based: -0.05 (easy), -0.075 (medium), -0.1 (hard)
   - Now rewards properly reflect actual trading performance and position changes
 - **Fixed Timestamp Logging**: All logs (rewards.log, algorithm.log, trading.log, positions.log) now show historical market data timestamps
-  - Root cause: Data files contained nanosecond timestamps (e.g., 1622493300000000000) that weren't being converted properly
+  - Root cause #1: Data files contained nanosecond timestamps (e.g., 1622493300000000000) that weren't being converted properly
   - Fixed by updating SimpleDataLoader in train_standalone.py to:
     - Detect headerless CSV files with nanosecond timestamps
     - Convert nanosecond timestamps to datetime using pd.to_datetime(unit='ns')
     - Properly assign column names for headerless data files
-  - Now logs correctly show historical timestamps (e.g., 2021-05-31) from the market data instead of current wall clock time (2025-07-17)
+  - Root cause #2: Environment returns flattened numpy arrays, not TimeSeriesState objects with timestamps
+  - Fixed by accessing env.states[env.current_index] directly to get the current TimeSeriesState object
+  - Now extracts timestamp from the actual TimeSeriesState: `current_state_obj.ts`
+  - All logs now correctly show historical timestamps (e.g., 2021-05-31) from the market data instead of current wall clock time (2025-07-17)
   - Verified with user's actual data format containing 16 columns of market data and indicators
 
 ### Continuous Learning Documentation Created (July 17, 2025)
