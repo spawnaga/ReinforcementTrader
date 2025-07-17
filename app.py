@@ -3,8 +3,7 @@ import logging
 from dotenv import load_dotenv
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-# Remove flask_socketio import temporarily due to package conflict
-# from flask_socketio import SocketIO
+from flask_socketio import SocketIO
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -20,8 +19,8 @@ class Base(DeclarativeBase):
 
 # Initialize extensions
 db = SQLAlchemy(model_class=Base)
-# Temporarily disable socketio due to package conflict
-socketio = None  # SocketIO(cors_allowed_origins="*", async_mode='threading')
+# Initialize socketio after app creation to avoid import issues
+socketio = None
 
 # Create the app
 app = Flask(__name__)
@@ -48,7 +47,8 @@ logging.info("PostgreSQL configured for high-concurrency multi-GPU training")
 
 # Initialize extensions
 db.init_app(app)
-# socketio.init_app(app)  # Temporarily disabled
+# Initialize socketio after app creation
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 with app.app_context():
     # Create all tables
