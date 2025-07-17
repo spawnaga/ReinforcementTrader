@@ -95,10 +95,28 @@ def add_technical_indicators(df):
     # Volatility
     df['volatility'] = df['returns'].rolling(window=20).std()
     
-    # Time features
+    # Time features - raw values
     df['hour'] = df.index.hour
     df['minute'] = df.index.minute
     df['day_of_week'] = df.index.dayofweek
+    
+    # Cyclical time encoding using sin/cos transformations
+    # Convert time to minutes since midnight
+    minutes_since_midnight = df['hour'] * 60 + df['minute']
+    
+    # Time of day encoding (24-hour cycle)
+    MINUTES_IN_DAY = 24 * 60  # 1440 minutes
+    df['sin_time'] = np.sin(2 * np.pi * minutes_since_midnight / MINUTES_IN_DAY)
+    df['cos_time'] = np.cos(2 * np.pi * minutes_since_midnight / MINUTES_IN_DAY)
+    
+    # Day of week encoding (7-day cycle)
+    DAYS_IN_WEEK = 7
+    df['sin_weekday'] = np.sin(2 * np.pi * df['day_of_week'] / DAYS_IN_WEEK)
+    df['cos_weekday'] = np.cos(2 * np.pi * df['day_of_week'] / DAYS_IN_WEEK)
+    
+    # Hour of day encoding (24-hour cycle) - more granular than time
+    df['sin_hour'] = np.sin(2 * np.pi * df['hour'] / 24)
+    df['cos_hour'] = np.cos(2 * np.pi * df['hour'] / 24)
     
     return df
 
@@ -118,6 +136,10 @@ def prepare_data_for_training(filepath):
     
     logger.info(f"Added {len(df.columns) - 5} technical indicators")
     logger.info(f"Total features: {len(df.columns)}")
+    
+    # Log cyclical features specifically
+    cyclical_features = ['sin_time', 'cos_time', 'sin_weekday', 'cos_weekday', 'sin_hour', 'cos_hour']
+    logger.info(f"Including {len(cyclical_features)} cyclical time features: {', '.join(cyclical_features)}")
     
     # Step 3: Clean data
     logger.info("\nStep 3: Cleaning data...")
