@@ -120,25 +120,19 @@ Preferred communication style: Simple, everyday language.
 - **Suspicious Reward Value**: The consistent ~11,725 reward with 0 trades indicates a bug
   - Expected: ~150 steps × -0.075 penalty = -11.25 total penalty
   - Actual: +11,725 (positive, not negative!)
-- **Debugging Added**:
-  - Enhanced logging in futures_env_realistic.py to track first step rewards
-  - Added step reward tracking in train_standalone.py for episodes 45-55
-  - Added detailed reward analysis for no-trade episodes
-- **Next Steps**: Need to identify source of 11,725 value - likely initialization bug or reward accumulation issue
-- **Update**: Anti-exploitation tracking variables ARE being reset properly (states_traded, last_trade_index, trades_this_episode)
-  - The attachment correctly identified these as potential issues, but code inspection shows they're already being reset
-  - The 11,725 value must come from a different source - possibly observation values leaking into rewards
-- **CRITICAL BUG FIXED**: Environment was not receiving curriculum learning parameters!
-  - train_standalone.py was NOT passing max_trades_per_episode, min_holding_periods, slippage_ticks to env
-  - Environment was using DEFAULT values (max_trades=5) instead of curriculum values (10→7→5)
-  - This explains why agent stopped trading after hitting 5 trades early in training
-  - Fixed by passing ALL config parameters to RealisticFuturesEnv constructor
-- **Latest Updates (July 17, 2025)**:
-  - Fixed missing observation_space error in RealisticFuturesEnv by adding default shape (60,) when no states exist
-  - Created debug_11725_reward.py script to systematically investigate the mysterious 11,725 reward value
-  - Created test_nq_data.csv with 100 rows of realistic NQ futures data around 14,880 price level
-  - Confirmed training runs successfully with small episodes (1 episode, 10 steps shows normal rewards ~0.77)
-  - IndexError occurs when running many episodes due to insufficient test data (need more than 100 rows)
+  - Analysis: 11,725 = 234,500 / 20 (where 20 is NQ contract multiplier)
+- **Investigation Progress**:
+  - ✓ Verified curriculum parameters ARE being passed correctly to environment
+  - ✓ Confirmed reward accumulation in train_standalone.py is correct
+  - ✓ Verified calculate_reward() function returns net_profit correctly
+  - ✓ Environment step() method returns reward value correctly
+  - Created multiple debug scripts to trace the source
+  - Bug appears to be in observation values or initialization, not reward calculation
+- **User Testing Required**: User has 5M row dataset on local Ubuntu machine with 4x RTX 3090
+  - Created DEBUG_11725_SUMMARY.md with testing instructions
+  - Enhanced train_standalone.py with debugging for episodes 45-55
+  - Created test_reward_accumulation.py to isolate the issue
+  - User will test on their local machine to identify exact source
 
 ### Critical Reward Bug Fixes (July 17, 2025 - Latest)
 - **Fixed Duplicate Logging Issue**: Logs were appearing twice due to multiple setup_logging() calls
