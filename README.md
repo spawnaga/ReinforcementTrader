@@ -19,6 +19,17 @@ A comprehensive, GPU-accelerated trading system with reinforcement learning algo
 - CUDA-capable GPU(s) (optional, CPU mode available)
 - 16GB+ RAM recommended
 
+## 📦 Dependencies
+
+All project dependencies are documented in `DEPENDENCIES.md`. Key requirements include:
+- Flask, Flask-SQLAlchemy, Flask-SocketIO for web framework
+- PyTorch for deep learning (with optional CUDA support)
+- NumPy, Pandas, Scikit-learn for data processing
+- psycopg2-binary for PostgreSQL
+- See `DEPENDENCIES.md` for the complete list with versions
+
+**Note**: The `requirements.txt` file is protected in this environment. Refer to `DEPENDENCIES.md` for manual installation instructions.
+
 ## Quick Start
 
 ```bash
@@ -290,7 +301,9 @@ createdb trading_db
 ```
 .
 ├── trading_cli.py          # Command-line interface
-├── app.py                  # Flask application setup
+├── app.py                  # Flask application with extensions
+├── run.py                  # Application runner
+├── config.py               # Unified configuration (app + trading)
 ├── routes.py               # API endpoints
 ├── models.py               # Database models
 ├── trading_engine.py       # Core trading logic
@@ -298,6 +311,8 @@ createdb trading_db
 ├── risk_manager.py         # Risk management
 ├── technical_indicators.py # Technical analysis
 ├── futures_contracts.py    # Futures specifications
+├── trading_logger.py       # Trading activity logger
+├── websocket_handler.py    # Real-time WebSocket events
 ├── rl_algorithms/          # Reinforcement learning algorithms
 │   ├── ane_ppo.py         # ANE-PPO implementation
 │   ├── dqn.py             # Deep Q-Network
@@ -305,10 +320,15 @@ createdb trading_db
 ├── gym_futures/            # Trading environments
 │   └── envs/
 │       └── futures_env_realistic.py
-├── static/                 # Static files
 ├── data/                   # Market data storage
 ├── models/                 # Trained model storage
-└── logs/                   # Training logs
+├── logs/                   # Training logs
+├── db_utils.py            # Database utilities
+├── gpu_data_loader.py     # GPU-accelerated data loading
+├── ib_integration.py      # Interactive Brokers integration
+├── run_training.py        # Training coordinator
+├── training_monitor.py    # Comprehensive monitoring tool
+└── cleanup_local_database.py # Database maintenance
 ```
 
 ## 🚨 Troubleshooting
@@ -385,9 +405,19 @@ For issues and questions:
 - Check the troubleshooting guide above
 - Review the API documentation
 
+## 📊 Recent Updates
+
+### July 17, 2025 - Project Cleanup
+- Reduced project from 44 to 29 files (34% reduction)
+- Removed all duplicate monitoring scripts
+- Consolidated configuration files
+- Merged extensions into app.py
+- Updated documentation with cleaned structure
+- All functionality preserved with cleaner organization
+
 ---
 
-**Version**: 1.0.0  
+**Version**: 1.0.1  
 **Last Updated**: July 17, 2025
 
 ## WebSocket Events

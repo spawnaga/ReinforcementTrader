@@ -128,6 +128,23 @@ Preferred communication style: Simple, everyday language.
   - GPU/CUDA setup guidance
   - Optional development dependencies
 
+### Project Cleanup (July 17, 2025 - Latest)
+- **File Reduction**: Cleaned up project from 44 to 29 files (34% reduction)
+  - Removed 12 duplicate/unnecessary files including:
+    - Duplicate monitoring scripts (monitor.py, gpu_monitor.py, check_training_status.py)
+    - Duplicate database scripts (clean_db.py, cleanup_database.sql, fix_postgresql_permissions.sql)
+    - Demo scripts already in README (demo_cli.py, demo_gpu_training.py)
+    - Windows PowerShell scripts (check_status.ps1, get_session_details.ps1)
+    - Duplicate main.py (using run.py instead)
+    - Misplaced futures_env_realistic.py (already in gym_futures/envs/)
+  - Merged extensions.py into app.py
+  - Planning to merge trading_config.py into config.py
+- **Documentation Updates**:
+  - Updated README.md with cleaned project structure
+  - Added dependencies section pointing to DEPENDENCIES.md
+  - Created FILE_CLEANUP_ANALYSIS.md and FILE_PURPOSES_EXPLAINED.md
+  - Created CLEANUP_COMMANDS.sh for automated cleanup
+
 ## Recent Updates (July 14, 2025)
 
 ### Comprehensive Training Dashboard Implementation (July 14, 2025 - Latest Update)
