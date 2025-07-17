@@ -14,7 +14,7 @@ from pathlib import Path
 # Direct imports to avoid app.py
 from rl_algorithms.ane_ppo import ANEPPO
 from gym_futures.envs.futures_env import FuturesEnv
-from technical_indicators import add_all_indicators
+from technical_indicators import TechnicalIndicators, add_time_based_indicators
 
 # Configure logging
 logging.basicConfig(
@@ -77,11 +77,13 @@ def train_standalone():
     # Add technical indicators if not already present
     if 'RSI_14' not in df.columns:
         logger.info("Adding technical indicators...")
-        df = add_all_indicators(
-            df, 
-            indicators=['sin_time', 'cos_time', 'sin_weekday', 'cos_weekday', 
-                       'sin_hour', 'cos_hour', 'SMA', 'EMA', 'RSI', 'MACD', 'BB', 'ATR']
-        )
+        
+        # First add time-based indicators
+        df = add_time_based_indicators(df)
+        
+        # Then add technical indicators using TechnicalIndicators class
+        ti = TechnicalIndicators(df)
+        df = ti.calculate_indicators(['SMA', 'EMA', 'RSI', 'MACD', 'BB', 'ATR'])
     
     # Split data
     train_size = int(0.8 * len(df))
