@@ -190,7 +190,7 @@ class TrainingTracker:
         else:
             sharpe_ratio = 0
             
-        # Store in database
+        # Store in database - convert numpy types to Python native types
         with self.conn.cursor() as cur:
             cur.execute("""
                 INSERT INTO episode_metrics (
@@ -200,9 +200,19 @@ class TrainingTracker:
                     start_time, end_time, steps
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                self.session_id, self.current_episode, total_reward, total_profit,
-                num_trades, winning_trades, losing_trades, sharpe_ratio, win_rate,
-                int(avg_duration), self.episode_start_time, end_time, steps
+                self.session_id, 
+                int(self.current_episode),
+                float(total_reward),
+                float(total_profit),
+                int(num_trades),
+                int(winning_trades),
+                int(losing_trades),
+                float(sharpe_ratio),
+                float(win_rate),
+                int(avg_duration),
+                self.episode_start_time,
+                end_time,
+                int(steps)
             ))
             self.conn.commit()
             
@@ -242,15 +252,19 @@ class TrainingTracker:
                 rolling_sharpe = sharpe
                 rolling_win_rate = win_rate
                 
-            # Store learning progress
+            # Store learning progress - convert numpy types to Python native types
             cur.execute("""
                 INSERT INTO learning_progress (
                     session_id, episode_number, rolling_avg_reward,
                     rolling_avg_profit, rolling_sharpe_ratio, rolling_win_rate
                 ) VALUES (%s, %s, %s, %s, %s, %s)
             """, (
-                self.session_id, self.current_episode, rolling_reward,
-                rolling_profit, rolling_sharpe, rolling_win_rate
+                self.session_id, 
+                int(self.current_episode),
+                float(rolling_reward),
+                float(rolling_profit),
+                float(rolling_sharpe),
+                float(rolling_win_rate)
             ))
             self.conn.commit()
             
