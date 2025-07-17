@@ -259,8 +259,26 @@ def train_standalone():
     
     logger.info(f"Creating {max_states} states with step size {step_size} (from {len(train_data)} rows)")
     
-    # Initialize StandardScaler for normalizing state features (Grok AI recommendation)
+    # Initialize StandardScaler and fit on entire training data (Grok AI recommendation)
     scaler = StandardScaler()
+    
+    # Identify numeric columns to normalize
+    numeric_cols = train_data.select_dtypes(include=[np.number]).columns.tolist()
+    if 'timestamp' in numeric_cols:
+        numeric_cols.remove('timestamp')
+    
+    # Fit scaler on entire training dataset once
+    if len(numeric_cols) > 0:
+        logger.info(f"Fitting scaler on {len(train_data)} rows of training data...")
+        scaler.fit(train_data[numeric_cols])
+        
+        # Log normalization statistics
+        logger.info(f"Normalizing {len(numeric_cols)} numeric columns.")
+        close_idx = numeric_cols.index('close') if 'close' in numeric_cols else 0
+        logger.info(
+            f"Example - close price: mean={scaler.mean_[close_idx]:.2f}, "
+            f"std={scaler.scale_[close_idx]:.2f}"
+        )
     
     # Create states with sliding window
     states_created = 0
@@ -270,22 +288,9 @@ def train_standalone():
             
         window_data = train_data.iloc[i-window_size:i].copy()
         
-        # Normalize numeric columns to prevent price values (~1214) from dominating
-        numeric_cols = window_data.select_dtypes(include=[np.number]).columns
-        # Keep timestamp column unchanged
-        if 'timestamp' in numeric_cols:
-            numeric_cols = numeric_cols.drop('timestamp')
-        
-        # Fit and transform the numeric data
+        # Transform using the pre-fitted scaler
         if len(numeric_cols) > 0:
-            window_data[numeric_cols] = scaler.fit_transform(window_data[numeric_cols])
-            
-            # Log normalization info for debugging
-            if states_created == 0:
-                logger.info(
-                    f"Normalizing {len(numeric_cols)} numeric columns. "
-                    f"Example: close price scaled from ~1214 to mean=0, std=1"
-                )
+            window_data[numeric_cols] = scaler.transform(window_data[numeric_cols])
         
         state = TimeSeriesState(
             data=window_data,
