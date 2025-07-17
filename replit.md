@@ -108,7 +108,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 17, 2025)
 
-### Enhanced Logging with Step-by-Step Agent Tracking (July 17, 2025 - Latest)
+### Database Type Conversion Fixes (July 17, 2025 - Latest)
+- **Fixed All PostgreSQL Decimal Type Errors**: Resolved critical issues with numpy and Decimal types
+  - Fixed numpy float64/int64 conversion errors in all database INSERT operations
+  - Added explicit type conversions: int() for integers, float() for decimals
+  - Fixed Decimal arithmetic errors in get_learning_assessment method
+  - Training now runs smoothly without database type conversion errors
+  - All 7 tracking tables properly storing data with correct types
+
+### Enhanced Logging with Step-by-Step Agent Tracking (July 17, 2025)
 - **Complete Agent Decision Tracking**: Every single step is now logged
   - `algorithm.log`: Step-by-step agent decisions with timestamp, price, position, action, and P/L
   - Shows EXACTLY what the agent decides at EACH price bar (BUY/HOLD/SELL)
