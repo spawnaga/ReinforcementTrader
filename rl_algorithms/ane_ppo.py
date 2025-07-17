@@ -222,6 +222,7 @@ class ActorCritic(nn.Module):
 
         action_probs = F.softmax(action_logits, dim=-1)
         state_values = self.critic(processed_features.detach())  # Detach to prevent critic grads affecting actor
+        state_values = torch.clamp(state_values, -100, 100)  # Clip critic output (Grok AI)
         # Q-values for hybrid approach
         q_values = self.q_network(processed_features.detach())  # Detach for Q as well
 
@@ -379,6 +380,12 @@ class ANEPPO:
 
             with torch.no_grad():
                 action_probs, state_values, q_values, regime_probs = self.policy_network(state_tensor)
+                
+                # Log action probabilities to diagnose HOLD bias (Grok AI recommendation)
+                if action_probs.shape[-1] == 3:  # Ensure we have 3 actions
+                    logger.debug(f"Action probs: buy={action_probs[0,0]:.3f}, hold={action_probs[0,1]:.3f}, sell={action_probs[0,2]:.3f}")
+                    if action_probs[0,1] > 0.9:  # Warn if HOLD is dominant
+                        logger.warning(f"High HOLD probability: {action_probs[0,1]:.3f}")
                 
                 # Debug: Log critic's state value output (Grok AI recommendation)
                 if hasattr(state_values, 'item'):
