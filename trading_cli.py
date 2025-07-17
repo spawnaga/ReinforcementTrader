@@ -75,9 +75,9 @@ Examples:
     # Indicator options
     indicator_group = parser.add_argument_group('Technical Indicators')
     indicator_group.add_argument('--indicators', nargs='+', 
-                               default=['sin_time', 'cos_time', 'sin_weekday', 'cos_weekday',
+                               default=['sin_time', 'cos_time', 'sin_weekday', 'cos_weekday', 'sin_hour', 'cos_hour',
                                        'SMA', 'EMA', 'RSI', 'MACD', 'BB', 'ATR'],
-                               help='Indicators to use (default: time-based + common indicators)')
+                               help='Indicators to use (default: cyclical time features + common indicators)')
     indicator_group.add_argument('--list-indicators', action='store_true',
                                help='List all available indicators with descriptions')
     indicator_group.add_argument('--indicator-params', type=str,
