@@ -30,7 +30,10 @@ class TrainingTracker:
         
     def _get_connection(self):
         """Get PostgreSQL connection"""
-        return psycopg2.connect(os.environ['DATABASE_URL'])
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            raise ValueError("DATABASE_URL environment variable not set")
+        return psycopg2.connect(database_url)
         
     def _create_session(self, hyperparameters: Dict):
         """Create new training session in database"""
