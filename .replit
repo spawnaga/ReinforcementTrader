@@ -2,7 +2,7 @@ modules = ["python-3.11", "postgresql-16"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["cairo", "ffmpeg-full", "firefox", "freetype", "geckodriver", "ghostscript", "gitFull", "glibcLocales", "gobject-introspection", "gtk3", "iana-etc", "libcxx", "libxcrypt", "nodejs", "openssl", "pkg-config", "postgresql", "qhull", "ta-lib", "tcl", "tk", "xsimd"]
+packages = ["arrow-cpp", "cairo", "ffmpeg-full", "firefox", "freetype", "geckodriver", "ghostscript", "gitFull", "glibcLocales", "gobject-introspection", "gtk3", "iana-etc", "libcxx", "libxcrypt", "nodejs", "openssl", "pkg-config", "postgresql", "qhull", "ta-lib", "tcl", "tk", "xsimd"]
 
 [deployment]
 deploymentTarget = "autoscale"
