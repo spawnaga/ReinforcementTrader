@@ -106,6 +106,28 @@ Preferred communication style: Simple, everyday language.
 - **System Health**: Real-time resource monitoring with detailed debug logs
 - **WebSocket Debugging**: Full broadcast loop tracking with iteration counters
 
+## Recent Updates (July 17, 2025)
+
+### Documentation and CLI Updates (July 17, 2025 - Latest)
+- **Comprehensive README.md**: Updated with complete documentation including:
+  - Detailed CLI tool usage with all parameters
+  - GPU configuration options (--num-gpus, --gpu-ids)
+  - Training control (--episodes, --training-loops, --epochs-per-loop)
+  - Algorithm selection guide
+  - Technical indicator documentation
+  - Complete API reference with examples
+  - Troubleshooting guide
+  - Performance optimization tips
+- **Command-Line Interface Enhancements**:
+  - Added `--num-gpus` parameter for easy multi-GPU configuration
+  - Added `--training-loops` and `--epochs-per-loop` for fine-grained training control
+  - Complete control over hardware resources and training parameters
+- **Dependencies Documentation**: Created DEPENDENCIES.md with:
+  - Complete list of all required packages
+  - Installation instructions
+  - GPU/CUDA setup guidance
+  - Optional development dependencies
+
 ## Recent Updates (July 14, 2025)
 
 ### Comprehensive Training Dashboard Implementation (July 14, 2025 - Latest Update)
