@@ -16,6 +16,7 @@ from tqdm import tqdm
 import uuid
 from dotenv import load_dotenv
 import argparse
+from sklearn.preprocessing import StandardScaler
 
 # Load environment variables from .env file
 load_dotenv()
@@ -258,6 +259,9 @@ def train_standalone():
     
     logger.info(f"Creating {max_states} states with step size {step_size} (from {len(train_data)} rows)")
     
+    # Initialize StandardScaler for normalizing state features (Grok AI recommendation)
+    scaler = StandardScaler()
+    
     # Create states with sliding window
     states_created = 0
     for i in range(window_size, len(train_data), step_size):
@@ -265,6 +269,24 @@ def train_standalone():
             break
             
         window_data = train_data.iloc[i-window_size:i].copy()
+        
+        # Normalize numeric columns to prevent price values (~1214) from dominating
+        numeric_cols = window_data.select_dtypes(include=[np.number]).columns
+        # Keep timestamp column unchanged
+        if 'timestamp' in numeric_cols:
+            numeric_cols = numeric_cols.drop('timestamp')
+        
+        # Fit and transform the numeric data
+        if len(numeric_cols) > 0:
+            window_data[numeric_cols] = scaler.fit_transform(window_data[numeric_cols])
+            
+            # Log normalization info for debugging
+            if states_created == 0:
+                loggers['algorithm'].info(
+                    f"Normalizing {len(numeric_cols)} numeric columns. "
+                    f"Example: close price scaled from ~1214 to mean=0, std=1"
+                )
+        
         state = TimeSeriesState(
             data=window_data,
             close_price_identifier='close',
@@ -416,15 +438,49 @@ def train_standalone():
             # Take step in environment
             next_state, reward, done, info = env.step(action)
             
+            # Enhanced debugging based on Grok AI's recommendations
+            # 1. Log raw reward from env.step()
+            if episode >= 60:
+                loggers['algorithm'].debug(f"Episode {episode}, Step {step}: Raw reward from env.step() = {reward:.2f}")
+                
+                # 2. Check state values for price-like values
+                if isinstance(state, np.ndarray):
+                    state_min = np.min(state)
+                    state_max = np.max(state)
+                    price_like_values = state[(state >= 1000) & (state <= 5000)]
+                    if len(price_like_values) > 0:
+                        loggers['algorithm'].warning(
+                            f"Episode {episode}, Step {step}: State contains price-like values! "
+                            f"Found {len(price_like_values)} values in range [1000, 5000]: {price_like_values[:3]}"
+                        )
+                        loggers['algorithm'].warning(
+                            f"  State range: [{state_min:.2f}, {state_max:.2f}], shape: {state.shape}"
+                        )
+                
+                # 3. Track episode reward accumulation
+                before_accumulation = episode_reward
+                loggers['algorithm'].debug(
+                    f"Episode {episode}, Step {step}: Before accumulation: episode_reward={before_accumulation:.2f}"
+                )
+            
             # Debug: Check if reward is actually a large value from env
             if episode >= 50 and abs(reward) > 100:
                 loggers['algorithm'].error(
                     f"Episode {episode} LARGE RAW REWARD from env.step(): reward={reward:.2f}"
                 )
-                # Check if it's close to our suspicious value divided by steps
-                if abs(reward - 11725/200) < 10 or abs(reward - 11725/150) < 10:
+                # Check for our suspicious 1214 pattern
+                if 1200 <= abs(reward) <= 1250:
                     loggers['algorithm'].error(
-                        f"*** FOUND IT: Reward {reward:.2f} could accumulate to ~11725! ***"
+                        f"*** FOUND PRICE-LIKE REWARD: {reward:.2f} matches NQ price range! ***"
+                    )
+                    loggers['algorithm'].error(
+                        f"  Current price: {current_price:.2f}"
+                    )
+                    loggers['algorithm'].error(
+                        f"  Env position: {env.current_position}"
+                    )
+                    loggers['algorithm'].error(
+                        f"  Trades this episode: {env.trades_this_episode}"
                     )
             
             # Debug specific episode 52
@@ -523,6 +579,27 @@ def train_standalone():
             
             # Update state
             state = next_state
+            
+            # Enhanced debugging: Log episode reward after accumulation
+            if episode >= 60:
+                loggers['algorithm'].debug(
+                    f"Episode {episode}, Step {step}: After accumulation: episode_reward={episode_reward + reward:.2f}"
+                )
+                
+                # Try to get algorithm's value prediction
+                try:
+                    if hasattr(algorithm, 'critic') and hasattr(algorithm, '_state_to_tensor'):
+                        with torch.no_grad():
+                            state_tensor = algorithm._state_to_tensor(state)
+                            value = algorithm.critic(state_tensor).item()
+                            if abs(value) > 1000:
+                                loggers['algorithm'].warning(
+                                    f"Episode {episode}, Step {step}: Critic value prediction = {value:.2f} "
+                                    f"(PRICE-LIKE VALUE!)"
+                                )
+                except Exception as e:
+                    pass  # Ignore errors in value prediction
+            
             episode_reward += reward
             step += 1
             
@@ -559,6 +636,18 @@ def train_standalone():
         # Train algorithm
         if len(algorithm.experience_buffer) >= config['batch_size']:
             algorithm.train()
+        
+        # Debug: Log final episode reward (Grok AI recommendation)
+        if episode >= 60:
+            loggers['algorithm'].info(
+                f"Episode {episode} FINAL: episode_reward={episode_reward:.2f}, "
+                f"trades={env.trades_this_episode}, steps={step}"
+            )
+            # Check for our suspicious 1214 pattern
+            if 1200 <= abs(episode_reward) <= 1250 and env.trades_this_episode == 0:
+                loggers['algorithm'].error(
+                    f"*** FOUND 1214 BUG: Episode {episode} reward={episode_reward:.2f} with 0 trades! ***"
+                )
         
         # Track episode completion
         if tracker:

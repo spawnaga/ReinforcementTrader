@@ -378,7 +378,15 @@ class ANEPPO:
             state_tensor = self._state_to_tensor(state)
 
             with torch.no_grad():
-                action_probs, _, q_values, regime_probs = self.policy_network(state_tensor)
+                action_probs, state_values, q_values, regime_probs = self.policy_network(state_tensor)
+                
+                # Debug: Log critic's state value output (Grok AI recommendation)
+                if hasattr(state_values, 'item'):
+                    critic_value = state_values.item()
+                    if abs(critic_value) > 1000:
+                        logger.warning(f"CRITIC OUTPUT PRICE-LIKE VALUE: {critic_value:.2f}")
+                    elif abs(critic_value) > 100:
+                        logger.debug(f"Critic state value: {critic_value:.2f}")
 
                 # Hybrid action selection: combine policy and Q-values
                 policy_action = Categorical(action_probs).sample()
