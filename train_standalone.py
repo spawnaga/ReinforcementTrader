@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Standalone training script without circular imports
+Standalone training script with professional logging and tracking
 """
 import os
 import sys
@@ -12,6 +12,8 @@ from datetime import datetime
 from pathlib import Path
 import psutil
 import time
+from tqdm import tqdm
+import uuid
 
 # Direct imports to avoid app.py
 from rl_algorithms.ane_ppo import ANEPPO
@@ -19,11 +21,12 @@ from gym_futures.envs.futures_env import FuturesEnv
 from gym_futures.envs.utils import TimeSeriesState
 from technical_indicators import TechnicalIndicators, add_time_based_indicators
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+# Import professional logging and tracking
+from logging_config import setup_logging, get_loggers
+from training_tracker import TrainingTracker
+
+# Configure minimal console logging
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 class SimpleDataLoader:
@@ -172,16 +175,48 @@ def train_standalone():
         attention_dim=int(config.get('attention_dim', 256))  # Convert to int
     )
     
-    logger.info("Starting training...")
+    # Initialize professional logging and tracking
+    loggers = setup_logging()
+    session_id = datetime.now().strftime('%Y%m%d_%H%M%S') + '_' + str(uuid.uuid4())[:8]
     
-    # Training loop
+    # Initialize PostgreSQL tracker
+    try:
+        tracker = TrainingTracker(
+            session_id=session_id,
+            algorithm_name='ANE-PPO',
+            ticker=ticker,
+            hyperparameters=config
+        )
+    except Exception as e:
+        print(f"Note: PostgreSQL tracking not available: {e}")
+        tracker = None
+    
+    # Log training start
+    loggers['algorithm'].info("="*60)
+    loggers['algorithm'].info(f"Starting ANE-PPO training for {ticker}")
+    loggers['algorithm'].info(f"Episodes: {episodes}, Device: {device}")
+    loggers['algorithm'].info("="*60)
+    
+    # Training loop with tqdm progress bar
     all_rewards = []
     
-    for episode in range(episodes):
+    # Create main progress bar for episodes
+    episode_pbar = tqdm(range(episodes), desc="Training Episodes", unit="ep", 
+                       bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]')
+    
+    for episode in episode_pbar:
+        if tracker:
+            tracker.start_episode(episode)
+            
         state = env.reset()
         episode_reward = 0
         done = False
         step = 0
+        
+        # Create step progress bar
+        step_pbar = tqdm(total=config['max_steps'], desc=f"Episode {episode+1}", 
+                        unit="steps", leave=False,
+                        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}]')
         
         while not done and step < config['max_steps']:
             # Get action from algorithm
@@ -190,6 +225,15 @@ def train_standalone():
             # Take step in environment
             next_state, reward, done, info = env.step(action)
             
+            # Log algorithm decision
+            if tracker and step % 100 == 0:  # Log every 100 steps
+                tracker.log_algorithm_decision(
+                    step=step,
+                    action='BUY' if action == 0 else 'SELL' if action == 2 else 'HOLD',
+                    action_probs={'buy': 0.33, 'sell': 0.33, 'hold': 0.34},  # Placeholder
+                    reward=reward
+                )
+            
             # Store experience
             algorithm.store_experience(state, action, reward, next_state, done)
             
@@ -197,22 +241,46 @@ def train_standalone():
             state = next_state
             episode_reward += reward
             step += 1
+            
+            # Update step progress bar
+            step_pbar.update(1)
+            step_pbar.set_postfix({'reward': f'{episode_reward:.2f}'})
+        
+        step_pbar.close()
         
         # Train algorithm
         if len(algorithm.experience_buffer) >= config['batch_size']:
             algorithm.train()
         
+        # Track episode completion
+        if tracker:
+            tracker.end_episode(episode_reward, step)
+        
         all_rewards.append(episode_reward)
         
-        # Log progress
-        if (episode + 1) % 10 == 0:
-            avg_reward = sum(all_rewards[-10:]) / 10
-            logger.info(f"Episode {episode + 1}/{episodes}, Avg Reward: {avg_reward:.2f}, Steps: {step}")
+        # Update episode progress bar
+        avg_reward = sum(all_rewards[-10:]) / min(10, len(all_rewards))
+        episode_pbar.set_postfix({
+            'avg_reward': f'{avg_reward:.2f}',
+            'last_reward': f'{episode_reward:.2f}'
+        })
+        
+        # Check if agent is learning (every 50 episodes)
+        if tracker and (episode + 1) % 50 == 0:
+            assessment = tracker.get_learning_assessment()
+            if assessment.get('is_learning'):
+                loggers['performance'].info(
+                    f"✓ AGENT IS LEARNING! Reward improved by {assessment['reward_improvement']:.1%}"
+                )
+            else:
+                loggers['performance'].info(
+                    f"⚠ Agent not improving yet. Episode {episode+1}"
+                )
     
     # Save model
     model_dir = Path("models")
     model_dir.mkdir(exist_ok=True)
-    model_path = model_dir / f"{ticker}_ane_ppo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pt"
+    model_path = model_dir / f"{ticker}_ane_ppo_{session_id}.pt"
     
     torch.save({
         'model_state_dict': algorithm.policy_network.state_dict(),
@@ -222,15 +290,52 @@ def train_standalone():
         'action_dim': 3
     }, model_path)
     
-    logger.info(f"Model saved to {model_path}")
-    
-    logger.info("Training completed!")
-    
-    # Final statistics
+    # Calculate final statistics
     final_avg = sum(all_rewards[-20:]) / 20 if len(all_rewards) >= 20 else sum(all_rewards) / len(all_rewards)
-    logger.info(f"Final 20-episode average reward: {final_avg:.2f}")
-    logger.info(f"Best episode reward: {max(all_rewards):.2f}")
-    logger.info(f"Worst episode reward: {min(all_rewards):.2f}")
+    best_reward = max(all_rewards)
+    worst_reward = min(all_rewards)
+    
+    # Save checkpoint in tracker
+    if tracker:
+        tracker.save_checkpoint(
+            model_path=str(model_path),
+            episode=episodes,
+            avg_reward=final_avg,
+            best_reward=best_reward,
+            is_best=True
+        )
+    
+    # Log final summary
+    loggers['performance'].info("="*60)
+    loggers['performance'].info("TRAINING COMPLETED!")
+    loggers['performance'].info(f"Model saved to: {model_path}")
+    loggers['performance'].info(f"Final 20-episode average reward: {final_avg:.2f}")
+    loggers['performance'].info(f"Best episode reward: {best_reward:.2f}")
+    loggers['performance'].info(f"Worst episode reward: {worst_reward:.2f}")
+    
+    # Get final learning assessment
+    if tracker:
+        final_assessment = tracker.get_learning_assessment()
+        if final_assessment.get('is_learning'):
+            loggers['performance'].info(f"✓ AGENT LEARNED! Reward improved by {final_assessment['reward_improvement']:.1%}")
+            loggers['performance'].info(f"Win rate improved by {final_assessment['win_rate_improvement']:.1%}")
+        else:
+            loggers['performance'].info("⚠ Agent needs more episodes to show clear learning")
+    
+    loggers['performance'].info("="*60)
+    
+    # Close tracker
+    if tracker:
+        tracker.close()
+        
+    print("\n✓ Training completed! Check the logs/ folder for detailed logs:")
+    print(f"  • logs/latest/ → symlink to current session")
+    print(f"  • logs/{loggers['session_timestamp']}/ → this session's logs")
+    print(f"    - trading.log    → all trade executions")
+    print(f"    - positions.log  → position tracking") 
+    print(f"    - rewards.log    → reward calculations")
+    print(f"    - algorithm.log  → algorithm decisions")
+    print(f"    - performance.log → learning metrics")
 
 if __name__ == "__main__":
     train_standalone()

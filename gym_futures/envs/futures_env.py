@@ -304,14 +304,14 @@ class FuturesEnv(gym.Env):
 
             # Log trade entry to file
             trading_logger.debug(
-                f"TRADE ENTRY: timestamp={state.ts}, position_type=LONG, entry_price={self.entry_price}, target_price={state.price}, state_info={{'current_price': {state.price}, 'position_before': 0, 'position_after': 1}}")
+                f"TRADE ENTRY: timestamp={state.ts}, position_type=LONG, entry_price={self.entry_price}, state_info={{'current_price': {state.price}, 'position_before': 0, 'position_after': 1}}")
 
             if self.trading_logger:
                 self.trading_logger.log_trade_entry(
                     timestamp=state.ts,
                     position_type='LONG',
                     entry_price=self.entry_price,
-                    target_price=state.price,
+                    target_price=None,  # Let RL agent decide exit
                     session_id=self.session_id,
                     state_info={'current_price': state.price, 'position_before': 0, 'position_after': 1}
                 )
@@ -383,14 +383,14 @@ class FuturesEnv(gym.Env):
 
             # Log trade entry to file
             trading_logger.debug(
-                f"TRADE ENTRY: timestamp={state.ts}, position_type=SHORT, entry_price={self.entry_price}, target_price={state.price}, state_info={{'current_price': {state.price}, 'position_before': 0, 'position_after': -1}}")
+                f"TRADE ENTRY: timestamp={state.ts}, position_type=SHORT, entry_price={self.entry_price}, state_info={{'current_price': {state.price}, 'position_before': 0, 'position_after': -1}}")
 
             if self.trading_logger:
                 self.trading_logger.log_trade_entry(
                     timestamp=state.ts,
                     position_type='SHORT',
                     entry_price=self.entry_price,
-                    target_price=state.price,
+                    target_price=None,  # Let RL agent decide exit
                     session_id=self.session_id,
                     state_info={'current_price': state.price, 'position_before': 0, 'position_after': -1}
                 )
