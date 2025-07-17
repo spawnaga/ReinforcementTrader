@@ -247,23 +247,46 @@ class RealisticFuturesEnv(gym.Env):
             self.sell(state)
         # action == 1 is hold (do nothing)
         
-        # Get reward
+        # Get reward with comprehensive debugging
         reward = self.get_reward(state)
+        
+        # CRITICAL: Trace exact reward value
+        if abs(reward) > 100 or (self.episode_number < 25 and self.trades_this_episode == 0 and self.current_index > 190):
+            trading_logger.error(
+                f"STEP REWARD TRACE: Episode {self.episode_number}, Step {self.current_index}: "
+                f"get_reward returned {reward:.6f} | trades={self.trades_this_episode} | "
+                f"position={self.current_position} | total_reward_before={self.total_reward:.2f}"
+            )
         
         # CRITICAL DEBUG: Check if reward contains suspicious value
         if abs(reward) > 50:  # Individual step rewards should never be this large
             trading_logger.error(
                 f"SUSPICIOUS REWARD VALUE: Episode {self.episode_number}, Step {self.current_index}: "
                 f"get_reward() returned {reward:.2f} | price={state.price:.2f} | "
-                f"entry_price={self.entry_price} | total_net_profit={self.total_net_profit}"
+                f"entry_price={self.entry_price} | total_net_profit={self.total_net_profit} | "
+                f"position={self.current_position} | last_position={self.last_position} | "
+                f"trades_this_episode={self.trades_this_episode}"
             )
             # Check if reward is accidentally a price value
             if abs(reward - state.price) < 1 or abs(reward - state.price*4) < 1:
                 trading_logger.error(
                     f"*** BUG FOUND: Reward {reward:.2f} looks like price data! ***"
                 )
+            # Check if it's close to our magic number
+            if abs(abs(reward) - 11735) < 100:
+                trading_logger.error(
+                    f"*** FOUND THE 11735 BUG: reward={reward:.2f} at step {self.current_index} ***"
+                )
         
         self.total_reward += reward
+        
+        # DEBUG: Track reward accumulation when no trades
+        if self.trades_this_episode == 0 and abs(self.total_reward) > 1000:
+            trading_logger.error(
+                f"HUGE REWARD WITH NO TRADES: Episode {self.episode_number}, Step {self.current_index}: "
+                f"step_reward={reward:.2f}, total_reward={self.total_reward:.2f}, "
+                f"action={action}, position={self.current_position}"
+            )
         
         # Debug first step rewards in problematic episodes
         if self.episode_number >= 50 and self.current_index < 3:
@@ -429,14 +452,22 @@ class RealisticFuturesEnv(gym.Env):
     
     def get_reward(self, state: TimeSeriesState) -> float:
         """Calculate reward using realistic reward function with shaping and exploration bonus"""
-        # DEBUG: Log entry to get_reward
-        if self.episode_number < 10 and self.trading_logger:
+        # DEBUG: Log entry to get_reward with more detail
+        if self.episode_number < 25 and self.trading_logger and self.current_index < 5:
             self.trading_logger.info(
                 f"GET_REWARD CALLED: Episode {self.episode_number}, Step {self.current_index}, "
                 f"last_pos={self.last_position}, curr_pos={self.current_position}, "
                 f"last_closed_entry={self._last_closed_entry_price}, "
-                f"last_closed_exit={self._last_closed_exit_price}"
+                f"last_closed_exit={self._last_closed_exit_price}, "
+                f"state.price={state.price if hasattr(state, 'price') else 'NO PRICE'}"
             )
+        
+        # CRITICAL BUG CHECK: Ensure we're not accidentally returning state data as reward
+        if hasattr(state, 'price') and abs(state.price) > 1000:
+            if self.trading_logger:
+                self.trading_logger.warning(
+                    f"STATE PRICE IS LARGE: {state.price} at step {self.current_index}"
+                )
         
         # EXPLORATION BONUS: Small reward for opening positions in early episodes
         # This encourages the agent to explore trading rather than staying flat
@@ -450,6 +481,10 @@ class RealisticFuturesEnv(gym.Env):
                     self.trading_logger.info(
                         f"EXPLORATION BONUS: Returning ${exploration_bonus:.2f}"
                     )
+                
+                # DEBUG CHECK
+                if abs(exploration_bonus) > 100:
+                    self.trading_logger.error(f"HUGE EXPLORATION BONUS: {exploration_bonus}")
                 
                 return exploration_bonus
             return 0.0
@@ -626,8 +661,23 @@ class RealisticFuturesEnv(gym.Env):
                 holding_penalty = -0.5 * (self.holding_time - 100) / 100  # Gradually increase penalty
                 hold_reward += holding_penalty
                 
+            # DEBUG: Check hold_reward before clipping
+            if abs(hold_reward) > 1000:
+                self.trading_logger.error(
+                    f"HUGE HOLD REWARD BEFORE CLIP: {hold_reward} at step {self.current_index}, "
+                    f"entry_price={self.entry_price}, current_price={state.price}"
+                )
+            
             # Clip holding rewards to prevent exploitation
-            return np.clip(hold_reward, -100, 100)
+            clipped_reward = np.clip(hold_reward, -100, 100)
+            
+            # DEBUG: Check if clipping changed a large value
+            if abs(hold_reward - clipped_reward) > 0.01:
+                self.trading_logger.warning(
+                    f"HOLD REWARD CLIPPED: {hold_reward} -> {clipped_reward}"
+                )
+            
+            return clipped_reward
         
         # If we're flat and have made some trades, no penalty
         if self.current_position == 0 and self.trades_this_episode > 0:
@@ -643,16 +693,32 @@ class RealisticFuturesEnv(gym.Env):
             else:
                 penalty = -0.1  # Normal penalty in hard mode
                 
-            # Debug logging for no-trade penalties
-            if self.trading_logger and self.current_index == 51:
-                self.trading_logger.info(
-                    f"NO TRADE PENALTY: Episode {self.episode_number}, "
-                    f"applying {penalty} penalty per step for not trading"
+            # DEBUG: Track penalty accumulation
+            if self.trading_logger and (self.current_index == 51 or self.current_index == 100 or self.current_index == 150):
+                self.trading_logger.warning(
+                    f"NO TRADE PENALTY: Episode {self.episode_number}, Step {self.current_index}, "
+                    f"penalty={penalty}, total_reward_so_far={self.total_reward:.2f}"
+                )
+            
+            # CRITICAL: Check if penalty is being applied incorrectly
+            if abs(penalty) > 1:
+                self.trading_logger.error(
+                    f"PENALTY TOO LARGE: {penalty} at step {self.current_index}"
                 )
             
             return penalty
         
-        return 0.0
+        # FINAL DEBUG CHECK: Catch the exact bug
+        final_reward = 0.0
+        
+        # Log if we're about to return a suspicious value
+        if abs(final_reward) > 1000:
+            self.trading_logger.error(
+                f"ABOUT TO RETURN HUGE REWARD: {final_reward} at step {self.current_index}, "
+                f"episode {self.episode_number}, trades={self.trades_this_episode}"
+            )
+        
+        return final_reward
     
     def reset(self, seed=None, options=None):
         """Reset the environment for a new episode"""
