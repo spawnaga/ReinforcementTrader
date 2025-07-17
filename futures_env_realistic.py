@@ -250,6 +250,19 @@ class RealisticFuturesEnv(gym.Env):
         # Get reward with comprehensive debugging
         reward = self.get_reward(state)
         
+        # NEW DEBUG: Catch positive rewards when no trades
+        if self.trades_this_episode == 0 and reward > 100:
+            trading_logger.error(
+                f"*** POSITIVE REWARD WITH NO TRADES: Episode {self.episode_number}, Step {self.current_index}: "
+                f"reward={reward:.2f} (close to 1214?), state.price={state.price:.2f}, "
+                f"position={self.current_position}, last_position={self.last_position}"
+            )
+            # Check if it's close to our suspicious values
+            if 1200 < reward < 1600:
+                trading_logger.error(
+                    f"*** FOUND THE BUG: Reward {reward:.2f} matches the 1214-1570 pattern! ***"
+                )
+        
         # CRITICAL: Trace exact reward value
         if abs(reward) > 100 or (self.episode_number < 25 and self.trades_this_episode == 0 and self.current_index > 190):
             trading_logger.error(
@@ -329,6 +342,39 @@ class RealisticFuturesEnv(gym.Env):
                     f"Episode {self.episode_number}, Step {self.current_index}: "
                     f"Observation contains large value! Max abs value: {np.max(np.abs(obs)):.2f}"
                 )
+        
+        # CRITICAL DEBUG: Check what we're about to return
+        if self.episode_number >= 60 and self.trades_this_episode == 0 and reward > 100:
+            trading_logger.error(
+                f"*** ABOUT TO RETURN FROM STEP: Episode {self.episode_number}, Step {self.current_index}: "
+                f"obs.sum()={np.sum(obs):.2f}, reward={reward:.2f}, "
+                f"obs.shape={obs.shape}, first 5 obs values={obs[:5] if len(obs) > 5 else obs}"
+            )
+            # Check if obs sum is close to 1214
+            if 1200 < np.sum(obs) < 1600:
+                trading_logger.error(
+                    f"*** OBSERVATION SUM MATCHES REWARD PATTERN: {np.sum(obs):.2f} ***"
+                )
+            
+            # NEW DEBUG: Check if obs mean or any division could produce 1214
+            obs_mean = np.mean(obs)
+            if 1200 < obs_mean < 1600:
+                trading_logger.error(
+                    f"*** OBSERVATION MEAN ({obs_mean:.2f}) IS IN REWARD RANGE! ***"
+                )
+            
+            # Check if price divided by something gives 1214
+            if hasattr(self.states[self.current_index], 'price'):
+                price = self.states[self.current_index].price
+                trading_logger.error(
+                    f"Current price: {price}, price/2.75 = {price/2.75:.2f}"
+                )
+                
+            # CRITICAL: Print exact return values
+            trading_logger.error(
+                f"EXACT RETURN VALUES: obs type={type(obs)}, reward type={type(reward)}, "
+                f"reward value={reward}, done={self.done}"
+            )
         
         return obs, reward, self.done, {}
     
@@ -460,6 +506,14 @@ class RealisticFuturesEnv(gym.Env):
                 f"last_closed_entry={self._last_closed_entry_price}, "
                 f"last_closed_exit={self._last_closed_exit_price}, "
                 f"state.price={state.price if hasattr(state, 'price') else 'NO PRICE'}"
+            )
+        
+        # NEW DEBUG: Trace reward path for episodes with issues
+        if self.episode_number >= 60 and self.trades_this_episode == 0:
+            self.trading_logger.warning(
+                f"REWARD PATH DEBUG: Episode {self.episode_number}, Step {self.current_index}, "
+                f"last_pos={self.last_position}, curr_pos={self.current_position}, "
+                f"trades={self.trades_this_episode}, entry_price={self.entry_price}"
             )
         
         # CRITICAL BUG CHECK: Ensure we're not accidentally returning state data as reward
@@ -693,23 +747,58 @@ class RealisticFuturesEnv(gym.Env):
             else:
                 penalty = -0.1  # Normal penalty in hard mode
                 
+            # CRITICAL DEBUG: Check what's happening in episode 61+
+            if self.episode_number >= 60:
+                if self.trading_logger:
+                    self.trading_logger.log_error(
+                        "no_trade_path",
+                        f"ABOUT TO RETURN NO-TRADE PENALTY: Episode {self.episode_number}, Step {self.current_index}",
+                        {
+                            "penalty": penalty,
+                            "trades": self.trades_this_episode,
+                            "position": self.current_position,
+                            "price": state.price if state else None
+                        }
+                    )
+                
+                # CRITICAL: Check if state price could be causing issue
+                if state and hasattr(state, 'price'):
+                    price_div_2_75 = state.price / 2.75
+                    if 1200 < price_div_2_75 < 1600:
+                        self.trading_logger.log_error(
+                            "price_division_bug",
+                            f"*** FOUND BUG: price/2.75 = {price_div_2_75:.2f} is in reward range! ***",
+                            {"price": state.price, "tick_size": self.tick_size}
+                        )
+                
             # DEBUG: Track penalty accumulation
             if self.trading_logger and (self.current_index == 51 or self.current_index == 100 or self.current_index == 150):
-                self.trading_logger.warning(
-                    f"NO TRADE PENALTY: Episode {self.episode_number}, Step {self.current_index}, "
-                    f"penalty={penalty}, total_reward_so_far={self.total_reward:.2f}"
+                self.trading_logger.log_error(
+                    "penalty_tracking",
+                    f"NO TRADE PENALTY: Episode {self.episode_number}, Step {self.current_index}",
+                    {"penalty": penalty, "total_reward": self.total_reward}
                 )
             
             # CRITICAL: Check if penalty is being applied incorrectly
             if abs(penalty) > 1:
-                self.trading_logger.error(
-                    f"PENALTY TOO LARGE: {penalty} at step {self.current_index}"
+                self.trading_logger.log_error(
+                    "penalty_error",
+                    f"PENALTY TOO LARGE: {penalty} at step {self.current_index}",
+                    {}
                 )
             
             return penalty
         
         # FINAL DEBUG CHECK: Catch the exact bug
         final_reward = 0.0
+        
+        # NEW DEBUG: Log what path we're taking when we have 0 trades
+        if self.episode_number >= 60 and self.trades_this_episode == 0:
+            self.trading_logger.error(
+                f"FELL THROUGH TO END: Episode {self.episode_number}, Step {self.current_index}, "
+                f"position={self.current_position}, entry_price={self.entry_price}, "
+                f"About to return: {final_reward}"
+            )
         
         # Log if we're about to return a suspicious value
         if abs(final_reward) > 1000:
@@ -819,7 +908,7 @@ class RealisticFuturesEnv(gym.Env):
             # For now, we use the same data but with easier parameters
             
             if self.trading_logger:
-                self.trading_logger.info(f"CURRICULUM: Easy stage (Episode {self.episode_number})")
+                self.trading_logger.log_state_debug("curriculum", f"Easy stage (Episode {self.episode_number})")
                 
         elif self.episode_number < 150:
             # MEDIUM STAGE: Normal trading conditions
@@ -829,7 +918,7 @@ class RealisticFuturesEnv(gym.Env):
             self.slippage_ticks = 2  # Normal slippage
             
             if self.trading_logger:
-                self.trading_logger.info(f"CURRICULUM: Medium stage (Episode {self.episode_number})")
+                self.trading_logger.log_state_debug("curriculum", f"Medium stage (Episode {self.episode_number})")
                 
         else:
             # HARD STAGE: Challenging conditions
@@ -844,7 +933,7 @@ class RealisticFuturesEnv(gym.Env):
             # - Add market impact modeling
             
             if self.trading_logger:
-                self.trading_logger.info(f"CURRICULUM: Hard stage (Episode {self.episode_number})")
+                self.trading_logger.log_state_debug("curriculum", f"Hard stage (Episode {self.episode_number})")
         
         # Gradually reduce episode length to make it harder
         # Start with full data, then use less as training progresses
