@@ -100,10 +100,22 @@ class TrainingTracker:
                     exit_reason, state_features
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                self.session_id, self.current_episode, self.current_trade_number,
-                entry_time, exit_time, position_type, entry_price, exit_price,
-                profit, commission, slippage, net_profit, profit_ticks,
-                duration_minutes, exit_reason, json.dumps(state_features) if state_features else None
+                self.session_id, 
+                int(self.current_episode), 
+                int(self.current_trade_number),
+                entry_time, 
+                exit_time, 
+                position_type, 
+                float(entry_price), 
+                float(exit_price),
+                float(profit), 
+                float(commission), 
+                float(slippage), 
+                float(net_profit), 
+                float(profit_ticks),
+                int(duration_minutes), 
+                exit_reason, 
+                json.dumps(state_features) if state_features else None
             ))
             self.conn.commit()
             
@@ -137,8 +149,13 @@ class TrainingTracker:
                     current_price, unrealized_pnl, account_value
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, (
-                self.session_id, timestamp, self.current_episode,
-                position, current_price, unrealized_pnl, account_value
+                self.session_id, 
+                timestamp, 
+                int(self.current_episode),
+                int(position), 
+                float(current_price), 
+                float(unrealized_pnl), 
+                float(account_value)
             ))
             self.conn.commit()
             
@@ -160,9 +177,15 @@ class TrainingTracker:
                     action_probabilities, q_values, policy_loss, value_loss, reward
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                self.session_id, self.current_episode, step, action,
-                json.dumps(action_probs), json.dumps(q_values) if q_values else None,
-                policy_loss, value_loss, reward
+                self.session_id, 
+                int(self.current_episode), 
+                int(step), 
+                action,
+                json.dumps(action_probs), 
+                json.dumps(q_values) if q_values else None,
+                float(policy_loss) if policy_loss is not None else None, 
+                float(value_loss) if value_loss is not None else None, 
+                float(reward)
             ))
             self.conn.commit()
             
@@ -242,10 +265,10 @@ class TrainingTracker:
             recent_episodes = cur.fetchall()
             
             if recent_episodes:
-                rolling_reward = np.mean([e['total_reward'] for e in recent_episodes])
-                rolling_profit = np.mean([e['total_profit'] for e in recent_episodes])
-                rolling_sharpe = np.mean([e['sharpe_ratio'] for e in recent_episodes])
-                rolling_win_rate = np.mean([e['win_rate'] for e in recent_episodes])
+                rolling_reward = np.mean([float(e[0]) for e in recent_episodes])
+                rolling_profit = np.mean([float(e[1]) for e in recent_episodes])
+                rolling_sharpe = np.mean([float(e[2]) for e in recent_episodes])
+                rolling_win_rate = np.mean([float(e[3]) for e in recent_episodes])
             else:
                 rolling_reward = reward
                 rolling_profit = profit
@@ -280,8 +303,13 @@ class TrainingTracker:
                     avg_reward, best_reward, model_path, is_best
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, (
-                self.session_id, checkpoint_name, episode,
-                avg_reward, best_reward, model_path, is_best
+                self.session_id, 
+                checkpoint_name, 
+                int(episode),
+                float(avg_reward), 
+                float(best_reward), 
+                model_path, 
+                is_best
             ))
             self.conn.commit()
             
