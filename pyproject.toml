@@ -1,7 +1,7 @@
 [project]
-name = "repl-nix-workspace"
+name = "reinforcement-trader"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI-powered trading system with reinforcement learning"
 requires-python = ">=3.11"
 dependencies = [
     "email-validator>=2.2.0",
@@ -35,6 +35,15 @@ dependencies = [
     "pyarrow>=20.0.0",
     "tqdm>=4.67.1",
 ]
+
+[tool.setuptools]
+packages = ["gym_futures", "rl_algorithms"]
+include-package-data = false
+
+[tool.setuptools.package-dir]
+"" = "."
+"gym_futures" = "gym_futures"
+"rl_algorithms" = "rl_algorithms"
 
 [[tool.uv.index]]
 explicit = true
