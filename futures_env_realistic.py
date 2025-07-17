@@ -144,8 +144,8 @@ class RealisticFuturesEnv(gym.Env):
         # Setup trading logger
         if enable_trading_logger:
             from trading_logger import TradingLogger
-            log_dir = f"logs/trading/session_{session_id}" if session_id else "logs/trading"
-            self.trading_logger = TradingLogger(log_dir=log_dir)
+            # Use simple logs directory - don't create subdirectories for each session
+            self.trading_logger = TradingLogger(log_dir="logs")
         else:
             self.trading_logger = None
         

@@ -45,7 +45,7 @@ class TradingLogger:
     Comprehensive logger for all trading activities
     """
     
-    def __init__(self, log_dir: str = "logs/trading"):
+    def __init__(self, log_dir: str = "logs"):
         """
         Initialize the trading logger
         
@@ -53,12 +53,11 @@ class TradingLogger:
             log_dir: Directory to store log files
         """
         self.log_dir = Path(log_dir)
-        # Create log directory if it doesn't exist
-        self.log_dir.mkdir(parents=True, exist_ok=True)
+        # Create log directory if it doesn't exist (only once)
         self.log_dir.mkdir(parents=True, exist_ok=True)
         
-        # Create timestamp for this session
-        self.session_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Don't create separate files for each timestamp - use single files
+        # self.session_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
         # Setup different loggers for different aspects
         self.setup_loggers()
@@ -72,38 +71,39 @@ class TradingLogger:
     def setup_loggers(self):
         """Setup specialized loggers for different trading aspects"""
         
+        # Use single log files instead of creating new ones with timestamps
         # Main trading logger
         self.trade_logger = self._create_logger(
             'trading',
-            f'trading_{self.session_timestamp}.log',
+            'trading.log',
             level=logging.INFO
         )
         
         # Position logger
         self.position_logger = self._create_logger(
             'positions',
-            f'positions_{self.session_timestamp}.log',
+            'positions.log',
             level=logging.INFO
         )
         
         # Reward logger
         self.reward_logger = self._create_logger(
             'rewards',
-            f'rewards_{self.session_timestamp}.log',
+            'rewards.log',
             level=logging.INFO
         )
         
         # Error logger
         self.error_logger = self._create_logger(
             'errors',
-            f'errors_{self.session_timestamp}.log',
+            'errors.log',
             level=logging.WARNING
         )
         
-        # Debug logger
+        # Debug logger (only create if debug mode)
         self.debug_logger = self._create_logger(
             'debug',
-            f'debug_{self.session_timestamp}.log',
+            'debug.log',
             level=logging.DEBUG
         )
         
