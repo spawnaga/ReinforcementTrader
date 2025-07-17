@@ -347,20 +347,28 @@ class TrainingTracker:
             comparison = cur.fetchone()
             
             if comparison and comparison['early_reward'] is not None:
+                # Convert Decimal types to float
+                early_reward = float(comparison['early_reward'])
+                recent_reward = float(comparison['recent_reward'])
+                early_profit = float(comparison['early_profit']) if comparison['early_profit'] is not None else 0.0
+                recent_profit = float(comparison['recent_profit']) if comparison['recent_profit'] is not None else 0.0
+                early_win_rate = float(comparison['early_win_rate']) if comparison['early_win_rate'] is not None else 0.0
+                recent_win_rate = float(comparison['recent_win_rate']) if comparison['recent_win_rate'] is not None else 0.0
+                
                 return {
-                    'is_learning': comparison['recent_reward'] > comparison['early_reward'],
-                    'reward_improvement': (comparison['recent_reward'] - comparison['early_reward']) / (abs(comparison['early_reward']) + 1e-6),
-                    'profit_improvement': (comparison['recent_profit'] - comparison['early_profit']) / (abs(comparison['early_profit']) + 1e-6),
-                    'win_rate_improvement': comparison['recent_win_rate'] - comparison['early_win_rate'],
+                    'is_learning': recent_reward > early_reward,
+                    'reward_improvement': (recent_reward - early_reward) / (abs(early_reward) + 1e-6),
+                    'profit_improvement': (recent_profit - early_profit) / (abs(early_profit) + 1e-6),
+                    'win_rate_improvement': recent_win_rate - early_win_rate,
                     'early_metrics': {
-                        'reward': comparison['early_reward'],
-                        'profit': comparison['early_profit'],
-                        'win_rate': comparison['early_win_rate']
+                        'reward': early_reward,
+                        'profit': early_profit,
+                        'win_rate': early_win_rate
                     },
                     'recent_metrics': {
-                        'reward': comparison['recent_reward'],
-                        'profit': comparison['recent_profit'],
-                        'win_rate': comparison['recent_win_rate']
+                        'reward': recent_reward,
+                        'profit': recent_profit,
+                        'win_rate': recent_win_rate
                     }
                 }
             else:
