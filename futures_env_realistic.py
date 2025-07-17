@@ -510,11 +510,12 @@ class RealisticFuturesEnv(gym.Env):
         
         # NEW DEBUG: Trace reward path for episodes with issues
         if self.episode_number >= 60 and self.trades_this_episode == 0:
-            self.trading_logger.warning(
-                f"REWARD PATH DEBUG: Episode {self.episode_number}, Step {self.current_index}, "
-                f"last_pos={self.last_position}, curr_pos={self.current_position}, "
-                f"trades={self.trades_this_episode}, entry_price={self.entry_price}"
-            )
+            if self.trading_logger:
+                self.trading_logger.warning(
+                    f"REWARD PATH DEBUG: Episode {self.episode_number}, Step {self.current_index}, "
+                    f"last_pos={self.last_position}, curr_pos={self.current_position}, "
+                    f"trades={self.trades_this_episode}, entry_price={self.entry_price}"
+                )
         
         # CRITICAL BUG CHECK: Ensure we're not accidentally returning state data as reward
         if hasattr(state, 'price') and abs(state.price) > 1000:
@@ -538,7 +539,8 @@ class RealisticFuturesEnv(gym.Env):
                 
                 # DEBUG CHECK
                 if abs(exploration_bonus) > 100:
-                    self.trading_logger.error(f"HUGE EXPLORATION BONUS: {exploration_bonus}")
+                    if self.trading_logger:
+                        self.trading_logger.error(f"HUGE EXPLORATION BONUS: {exploration_bonus}")
                 
                 return exploration_bonus
             return 0.0
