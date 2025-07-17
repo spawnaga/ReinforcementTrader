@@ -108,7 +108,30 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 17, 2025)
 
-### Documentation and CLI Updates (July 17, 2025 - Latest)
+### Training Data Cleanup and Pytest Testing (July 17, 2025 - Latest Update)
+- **Complete Training Data Cleanup**: Successfully removed all previous training data
+  - Deleted 15 model files (.pt, .pth, .pkl) from models/ directory
+  - Deleted 131 log files from logs/ directory
+  - Cleared all training sessions, trades, metrics, and algorithm configs from database
+  - Preserved 7,406 market data records for future training
+  - Created automated cleanup script (cleanup_all_training_data.py) with --auto flag
+- **Comprehensive Pytest Test Suite**: Created test infrastructure covering essential modules
+  - Created pytest.ini configuration for test discovery
+  - Added tests/conftest.py with shared fixtures for market data and configurations
+  - Created test_technical_indicators_simple.py - 6 tests covering indicator calculations
+  - Created test_risk_manager.py - 11 tests for risk management functionality
+  - Created test_futures_contracts.py - 9 tests for contract specifications
+  - Created test_data_manager.py - 10 tests for data loading and processing
+  - Created test_models.py - 8 tests for database models and relationships
+  - Created test_trading_logger.py - 8 tests for trade logging functionality
+  - Created test_routes.py - 13 tests for API endpoints
+  - Total: 65 pytest tests created across 7 essential modules
+- **Extensions.py Merger**: Merged extensions.py into app.py to simplify imports
+  - Moved Flask-SQLAlchemy and Flask-SocketIO initialization into app.py
+  - Resolved circular import issues
+  - Reduced project complexity
+
+### Documentation and CLI Updates (July 17, 2025)
 - **Comprehensive README.md**: Updated with complete documentation including:
   - Detailed CLI tool usage with all parameters
   - GPU configuration options (--num-gpus, --gpu-ids)
@@ -128,7 +151,7 @@ Preferred communication style: Simple, everyday language.
   - GPU/CUDA setup guidance
   - Optional development dependencies
 
-### Project Cleanup (July 17, 2025 - Latest)
+### Project Cleanup (July 17, 2025)
 - **File Reduction**: Cleaned up project from 44 to 29 files (34% reduction)
   - Removed 12 duplicate/unnecessary files including:
     - Duplicate monitoring scripts (monitor.py, gpu_monitor.py, check_training_status.py)

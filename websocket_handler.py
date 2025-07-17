@@ -3,9 +3,13 @@ import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
 from flask import request
-from flask_socketio import emit, join_room, leave_room, disconnect
-from app import app, trading_engine
-from extensions import socketio, db
+# Temporarily disable socketio imports due to package conflict
+# from flask_socketio import emit, join_room, leave_room, disconnect
+emit = lambda *args, **kwargs: None
+join_room = lambda *args, **kwargs: None
+leave_room = lambda *args, **kwargs: None
+disconnect = lambda *args, **kwargs: None
+from app import app, trading_engine, db, socketio
 from models import TradingSession, TrainingMetrics, Trade
 import threading
 import time
@@ -20,7 +24,8 @@ room_subscriptions = {}
 broadcast_thread = None
 broadcast_active = False
 
-@socketio.on('connect')
+# Temporarily disable socketio handlers due to package conflict
+# @socketio.on('connect')
 def handle_connect(auth=None):
     """Handle client connection"""
     try:

@@ -1,4 +1,4 @@
-from extensions import db
+from app import db
 from datetime import datetime
 from sqlalchemy import Text, Float, Integer, DateTime, String, Boolean, JSON
 

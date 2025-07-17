@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 from flask import current_app
 
-from extensions import db
+from app import db
 from models import TradingSession, Trade, MarketData, TrainingMetrics
 from gym_futures.envs.futures_env import FuturesEnv
 from futures_env_realistic import RealisticFuturesEnv
@@ -419,7 +419,7 @@ class TradingEngine:
                         self._save_model(session_id, algorithm, episode)
 
                     # Emit real-time updates
-                    from extensions import socketio
+                    from app import socketio
                     socketio.emit('training_update', {
                         'session_id': session_id,
                         'episode': episode,
@@ -755,7 +755,7 @@ class TradingEngine:
     @retry_on_db_error(max_retries=3, delay=1.0)
     def _save_episode_trades(self, session_id: int, env):
         """Save trades from the episode to database"""
-        from extensions import db
+        from app import db
         from app import app
         from models import Trade
         
@@ -833,7 +833,7 @@ class TradingEngine:
     @retry_on_db_error(max_retries=3, delay=1.0)
     def _save_training_metrics(self, session_id: int, episode: int, reward: float, loss: float, metrics: Dict):
         """Save training metrics to database with retry logic"""
-        from extensions import db
+        from app import db
         from app import app
         try:
             with app.app_context():
@@ -856,7 +856,7 @@ class TradingEngine:
     @retry_on_db_error(max_retries=3, delay=1.0)
     def _update_session_stats(self, session_id: int, episode: int, reward: float, metrics: Dict):
         """Update session statistics with retry logic"""
-        from extensions import db
+        from app import db
         from app import app
         try:
             with app.app_context():
@@ -890,7 +890,7 @@ class TradingEngine:
 
     def _end_session(self, session_id: int, status: str):
         """End a training session"""
-        from extensions import db, socketio
+        from app import db, socketio
         from app import app
         try:
             # Update database
