@@ -108,29 +108,34 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 17, 2025)
 
-### Professional Logging and Tracking System (July 17, 2025 - Latest)
-- **Comprehensive Logging Infrastructure**: Created multi-file logging system
-  - `logging_config.py`: Professional logging setup with 5 separate log files
-  - `trading.log`: All trade executions with entry/exit prices and P&L
-  - `positions.log`: Real-time position tracking and account values
-  - `rewards.log`: Reward calculations and cumulative performance
-  - `algorithm.log`: Algorithm decisions and hyperparameters
-  - `performance.log`: High-level metrics and learning assessment
-- **PostgreSQL Training Tracker**: Full database tracking system
-  - `training_tracker.py`: Comprehensive tracking with 7 database tables
-  - Training sessions, episode metrics, trades, positions, algorithm metrics
-  - Model checkpoints and learning progress tracking
-  - Quick learning assessment queries to check if agent is improving
-  - Performance views for easy analysis
-- **Enhanced User Experience**:
-  - tqdm progress bars for real-time training visualization
-  - Nested progress bars for episodes and steps
-  - Console shows only essential progress, detailed logs in files
+### Enhanced Logging with Step-by-Step Agent Tracking (July 17, 2025 - Latest)
+- **Complete Agent Decision Tracking**: Every single step is now logged
+  - `algorithm.log`: Step-by-step agent decisions with timestamp, price, position, action, and P/L
+  - Shows EXACTLY what the agent decides at EACH price bar (BUY/HOLD/SELL)
+  - Example: `Step 1 | Time: 2008-01-02 08:30:00 | Price: $3601.50 | Position: FLAT | Action: BUY`
+- **Comprehensive Trade Logging with Timestamps**:
+  - `trading.log`: Full trade lifecycle with entry/exit times and hold duration
+  - Example: `CLOSED LONG | Entry: 2008-01-02 08:30:00 @ $3601.50 | Exit: 2008-01-02 10:15:00 @ $3625.75 | Held: 45 steps`
+  - `positions.log`: Position open/close events with duration tracking
+  - `rewards.log`: All rewards with timestamps and context
+  - `performance.log`: Episode summaries with win rate, profit factor, learning progress
+- **Multi-GPU Support Added**: Complete infrastructure for 4x RTX 3090 training
+  - Created `MULTI_GPU_SETUP.md`: Comprehensive guide for Ubuntu setup
+  - Created `setup_multi_gpu.sh`: Automated installation script
+  - Enhanced `train_standalone.py` with command-line GPU configuration
+  - Added `--num-gpus` and `--gpu-ids` parameters for flexible GPU usage
+  - ANE-PPO algorithm updated with DataParallel support
+  - NVLink optimization for 600 GB/s GPU-to-GPU communication
+- **PostgreSQL Fixed**: Resolved connection issues
+  - Fixed URL encoding for special characters in passwords
+  - Now uses Replit's DATABASE_URL for cloud deployment
+  - All 7 tracking tables properly initialized
+  - Full session tracking, trade history, and learning metrics stored
+- **Previous Logging Features Retained**:
+  - tqdm progress bars for visual training feedback
+  - Learning assessment every 10 episodes (more frequent than before)
   - Automatic symlink to latest session logs
-  - Demo script (`demo_logging.py`) to showcase the system
-- **Fixed Target Price Issue**: Removed hardcoded profit targets
-  - RL agent now decides exit strategies based on learning
-  - No fixed 2% profit targets limiting agent potential
+  - No hardcoded profit targets - agent learns exit strategies
 
 ### Standalone Training Script Created (July 17, 2025)
 - **Created train_standalone.py**: Completely avoids circular imports by not importing from app.py
