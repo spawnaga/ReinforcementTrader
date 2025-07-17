@@ -236,74 +236,93 @@ class TradingEngine:
                 # Load market data with strict limits
                 logger.info(f"Loading limited NQ market data for session {session_id}")
                 
-                # Load from database which has 7,406 records
-                try:
-                    from sqlalchemy import text
-                    with db.engine.connect() as conn:
-                        # First check how many records we have
-                        count_query = text("SELECT COUNT(*) FROM market_data WHERE symbol = 'NQ'")
-                        total_count = conn.execute(count_query).scalar()
-                        logger.info(f"Database has {total_count} total NQ records")
-                        
-                        # Get data configuration from session
-                        data_config = config.get('parameters', {}).get('dataConfig', {})
-                        range_type = data_config.get('type', 'all')
-                        logger.info(f"Data configuration: {data_config}")
-                        
-                        # Build query based on data configuration
-                        if range_type == 'percentage':
-                            percentage = data_config.get('percentage', 100)
-                            limit = int(total_count * percentage / 100)
-                            limit = min(limit, 500)  # Cap at 500 for memory
-                            query = text(f"""
-                                SELECT * FROM market_data 
-                                WHERE symbol = 'NQ' 
-                                ORDER BY timestamp DESC 
-                                LIMIT {limit}
-                            """)
-                            market_data = pd.read_sql(query, conn)
+                # Check if we have custom data for this session
+                if self.active_sessions[session_id].get('use_custom_data'):
+                    logger.info(f"Using custom data for session {session_id}")
+                    market_data = self.active_sessions[session_id].get('training_data')
+                    if market_data is None:
+                        logger.error(f"No custom data found for session {session_id}")
+                        self._end_session(session_id, 'error')
+                        return
+                else:
+                    # Load from database which has 7,406 records
+                    try:
+                        from sqlalchemy import text
+                        with db.engine.connect() as conn:
+                            # First check how many records we have
+                            count_query = text("SELECT COUNT(*) FROM market_data WHERE symbol = 'NQ'")
+                            total_count = conn.execute(count_query).scalar()
+                            logger.info(f"Database has {total_count} total NQ records")
                             
-                        elif range_type == 'daterange':
-                            start_date = data_config.get('startDate')
-                            end_date = data_config.get('endDate')
-                            query = text("""
-                                SELECT * FROM market_data 
-                                WHERE symbol = 'NQ' 
-                                AND timestamp >= :start_date 
-                                AND timestamp <= :end_date
-                                ORDER BY timestamp
-                                LIMIT 500
-                            """)
-                            market_data = pd.read_sql(query, conn, params={
-                                'start_date': start_date,
-                                'end_date': end_date
-                            })
+                            # Get data configuration from session
+                            data_config = config.get('parameters', {}).get('dataConfig', {})
+                            range_type = data_config.get('type', 'all')
+                            logger.info(f"Data configuration: {data_config}")
                             
-                        elif range_type == 'timeperiod':
-                            period = data_config.get('period', 'all')
-                            if period != 'all':
-                                from datetime import datetime, timedelta
-                                period_map = {
-                                    '1month': 30, '3months': 90, '6months': 180,
-                                    '1year': 365, '2years': 730, '3years': 1095,
-                                    '5years': 1825, '10years': 3650
-                                }
-                                days = period_map.get(period, 365)
-                                end_date = datetime.now()
-                                start_date = end_date - timedelta(days=days)
-                                
+                            # Build query based on data configuration
+                            if range_type == 'percentage':
+                                percentage = data_config.get('percentage', 100)
+                                limit = int(total_count * percentage / 100)
+                                limit = min(limit, 500)  # Cap at 500 for memory
+                                query = text(f"""
+                                    SELECT * FROM market_data 
+                                    WHERE symbol = 'NQ' 
+                                    ORDER BY timestamp DESC 
+                                    LIMIT {limit}
+                                """)
+                                market_data = pd.read_sql(query, conn)
+                            
+                            elif range_type == 'daterange':
+                                start_date = data_config.get('startDate')
+                                end_date = data_config.get('endDate')
                                 query = text("""
                                     SELECT * FROM market_data 
                                     WHERE symbol = 'NQ' 
-                                    AND timestamp >= :start_date
+                                    AND timestamp >= :start_date 
+                                    AND timestamp <= :end_date
                                     ORDER BY timestamp
                                     LIMIT 500
                                 """)
                                 market_data = pd.read_sql(query, conn, params={
-                                    'start_date': start_date.strftime('%Y-%m-%d')
+                                    'start_date': start_date,
+                                    'end_date': end_date
                                 })
+                            
+                            elif range_type == 'timeperiod':
+                                period = data_config.get('period', 'all')
+                                if period != 'all':
+                                    from datetime import datetime, timedelta
+                                    period_map = {
+                                        '1month': 30, '3months': 90, '6months': 180,
+                                        '1year': 365, '2years': 730, '3years': 1095,
+                                        '5years': 1825, '10years': 3650
+                                    }
+                                    days = period_map.get(period, 365)
+                                    end_date = datetime.now()
+                                    start_date = end_date - timedelta(days=days)
+                                    
+                                    query = text("""
+                                        SELECT * FROM market_data 
+                                        WHERE symbol = 'NQ' 
+                                        AND timestamp >= :start_date
+                                        ORDER BY timestamp
+                                        LIMIT 500
+                                    """)
+                                    market_data = pd.read_sql(query, conn, params={
+                                        'start_date': start_date.strftime('%Y-%m-%d')
+                                    })
+                                else:
+                                    # Load all data but with limit
+                                    limit = min(total_count, 500)
+                                    query = text(f"""
+                                        SELECT * FROM market_data 
+                                        WHERE symbol = 'NQ' 
+                                        ORDER BY timestamp DESC 
+                                        LIMIT {limit}
+                                    """)
+                                    market_data = pd.read_sql(query, conn)
                             else:
-                                # Load all data but with limit
+                                # Default: load limited data
                                 limit = min(total_count, 500)
                                 query = text(f"""
                                     SELECT * FROM market_data 
@@ -312,39 +331,29 @@ class TradingEngine:
                                     LIMIT {limit}
                                 """)
                                 market_data = pd.read_sql(query, conn)
-                        else:
-                            # Default: load limited data
-                            limit = min(total_count, 500)
-                            query = text(f"""
-                                SELECT * FROM market_data 
-                                WHERE symbol = 'NQ' 
-                                ORDER BY timestamp DESC 
-                                LIMIT {limit}
-                            """)
-                            market_data = pd.read_sql(query, conn)
                         
-                    if market_data is None or len(market_data) == 0:
-                        logger.error(f"No market data available in database for session {session_id}")
+                        if market_data is None or len(market_data) == 0:
+                            logger.error(f"No market data available in database for session {session_id}")
+                            self._end_session(session_id, 'error')
+                            return
+                            
+                        # Sort by timestamp ascending after limiting
+                        market_data = market_data.sort_values('timestamp')
+                        
+                        # Rename columns to match what the rest of the code expects
+                        market_data = market_data.rename(columns={
+                            'open_price': 'open',
+                            'high_price': 'high',
+                            'low_price': 'low',
+                            'close_price': 'close'
+                        })
+                        
+                        logger.info(f"Loaded {len(market_data)} rows from database")
+                        
+                    except Exception as e:
+                        logger.error(f"Error loading market data: {str(e)}")
                         self._end_session(session_id, 'error')
                         return
-                        
-                    # Sort by timestamp ascending after limiting
-                    market_data = market_data.sort_values('timestamp')
-                    
-                    # Rename columns to match what the rest of the code expects
-                    market_data = market_data.rename(columns={
-                        'open_price': 'open',
-                        'high_price': 'high',
-                        'low_price': 'low',
-                        'close_price': 'close'
-                    })
-                    
-                    logger.info(f"Loaded {len(market_data)} rows from database")
-                    
-                except Exception as e:
-                    logger.error(f"Error loading market data: {str(e)}")
-                    self._end_session(session_id, 'error')
-                    return
 
                 logger.info(f"Using {len(market_data):,} rows of market data for session {session_id}")
                 logger.debug(f"Market data columns: {list(market_data.columns)}")
@@ -991,3 +1000,96 @@ class TradingEngine:
         except Exception as e:
             logger.error(f"Optimization error: {e}")
             return {'success': False, 'error': str(e)}
+    
+    def start_training_with_data(self, session_id: int, training_data: pd.DataFrame, 
+                                test_data: Optional[pd.DataFrame] = None, ticker: str = 'NQ') -> bool:
+        """
+        Start training with pre-loaded data
+        
+        Args:
+            session_id: Session ID
+            training_data: Training data DataFrame
+            test_data: Optional test data DataFrame
+            ticker: Ticker symbol
+            
+        Returns:
+            True if training started successfully
+        """
+        try:
+            if session_id not in self.active_sessions:
+                logger.error(f"Session {session_id} not found")
+                return False
+                
+            # Store data in session
+            self.active_sessions[session_id]['training_data'] = training_data
+            self.active_sessions[session_id]['test_data'] = test_data
+            self.active_sessions[session_id]['ticker'] = ticker
+            
+            # Start training with custom data flag
+            self.active_sessions[session_id]['use_custom_data'] = True
+            
+            # Get config from session
+            config = self.active_sessions[session_id]['config']
+            
+            # Start the training loop
+            return self.start_training(session_id, config)
+            
+        except Exception as e:
+            logger.error(f"Error starting training with data: {str(e)}")
+            return False
+    
+    def create_training_session(self, algorithm_type: str, config: dict) -> int:
+        """
+        Create a new training session with configuration
+        
+        Args:
+            algorithm_type: Type of algorithm to use
+            config: Algorithm configuration
+            
+        Returns:
+            Session ID
+        """
+        try:
+            from app import app, db
+            from models import TradingSession
+            
+            with app.app_context():
+                # Create session in database
+                session = TradingSession(
+                    session_name=f"{algorithm_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+                    algorithm_type=algorithm_type,
+                    status='created',
+                    total_episodes=config.get('episodes', 1000),
+                    episode=0,
+                    total_profit=0.0,
+                    sharpe_ratio=0.0,
+                    max_drawdown=0.0,
+                    win_rate=0.0,
+                    trade_count=0
+                )
+                db.session.add(session)
+                db.session.commit()
+                
+                session_id = session.id
+                
+                # Add algorithm type to config
+                config['algorithm_type'] = algorithm_type
+                
+                # Create in-memory session
+                self.active_sessions[session_id] = {
+                    'status': 'created',
+                    'config': config,
+                    'algorithm_type': algorithm_type,
+                    'created_at': datetime.utcnow(),
+                    'episode': 0,
+                    'total_reward': 0.0,
+                    'metrics': {},
+                    'trades': []
+                }
+            
+            logger.info(f"Created training session {session_id}")
+            return session_id
+            
+        except Exception as e:
+            logger.error(f"Error creating training session: {str(e)}")
+            raise

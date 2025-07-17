@@ -8,6 +8,9 @@ from pathlib import Path
 import yfinance as yf
 from extensions import db
 from models import MarketData
+from trading_config import get_config
+from technical_indicators import TechnicalIndicators, add_time_based_indicators
+from futures_contracts import get_contract
 from gpu_data_loader import GPUDataLoader
 
 logger = logging.getLogger(__name__)
@@ -544,3 +547,45 @@ class DataManager:
         except Exception as e:
             logger.error(f"Error validating data: {str(e)}")
             return False
+    
+    def load_data_from_file(self, filepath: str) -> pd.DataFrame:
+        """Load data from a CSV or TXT file"""
+        try:
+            if filepath.endswith('.csv'):
+                df = pd.read_csv(filepath)
+            elif filepath.endswith('.txt'):
+                df = pd.read_csv(filepath, delimiter='\t')
+            else:
+                raise ValueError(f"Unsupported file type: {filepath}")
+            
+            # Standardize column names
+            df.columns = df.columns.str.lower()
+            
+            # Ensure timestamp column exists
+            if 'timestamp' in df.columns and not pd.api.types.is_datetime64_any_dtype(df['timestamp']):
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+            
+            logger.info(f"Loaded {len(df)} rows from {filepath}")
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error loading data from {filepath}: {e}")
+            raise
+            
+    def filter_by_date(self, df: pd.DataFrame, start_date: Optional[str] = None, 
+                      end_date: Optional[str] = None) -> pd.DataFrame:
+        """Filter dataframe by date range"""
+        if 'timestamp' not in df.columns:
+            logger.warning("No timestamp column found, returning unfiltered data")
+            return df
+            
+        if start_date:
+            start_dt = pd.to_datetime(start_date)
+            df = df[df['timestamp'] >= start_dt]
+            
+        if end_date:
+            end_dt = pd.to_datetime(end_date)
+            df = df[df['timestamp'] <= end_dt]
+            
+        logger.info(f"Filtered data to {len(df)} rows")
+        return df
