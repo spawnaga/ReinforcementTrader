@@ -411,7 +411,7 @@ class RealisticFuturesEnv(gym.Env):
                     tick_size=self.tick_size
                 )
         
-        # Small reward for holding (encourages patience)
+        # Small reward for holding (encourages patience) but penalize holding too long
         if self.current_position != 0 and self.entry_price is not None:
             position_type = 'long' if self.current_position == 1 else 'short'
             hold_reward = calculate_reward(
@@ -427,6 +427,12 @@ class RealisticFuturesEnv(gym.Env):
                 session_id=self.session_id,
                 tick_size=self.tick_size
             )
+            
+            # Add penalty for holding too long to encourage closing positions
+            if self.holding_time > 100:  # After 100 steps
+                holding_penalty = -0.5 * (self.holding_time - 100) / 100  # Gradually increase penalty
+                hold_reward += holding_penalty
+                
             # Clip holding rewards to prevent exploitation
             return np.clip(hold_reward, -100, 100)
         
