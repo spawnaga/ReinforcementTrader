@@ -194,10 +194,10 @@ def train_standalone():
     states = []
     window_size = 50  # Look back window for each state
     
-    # Ensure timestamp column exists as 'time' for TimeSeriesState
-    if 'timestamp' in train_data.columns and 'time' not in train_data.columns:
-        train_data = train_data.copy()  # Create explicit copy to avoid warning
-        train_data['time'] = train_data['timestamp']
+    # Ensure timestamp column exists
+    if 'timestamp' not in train_data.columns:
+        logger.error("No timestamp column found in training data!")
+        return
     
     # Rename price columns if they have database names
     if 'close_price' in train_data.columns:
@@ -226,7 +226,7 @@ def train_standalone():
         state = TimeSeriesState(
             data=window_data,
             close_price_identifier='close',
-            timestamp_identifier='time'
+            timestamp_identifier='timestamp'  # Changed from 'time' to 'timestamp'
         )
         states.append(state)
         states_created += 1
