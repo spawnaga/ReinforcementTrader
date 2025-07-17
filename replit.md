@@ -108,7 +108,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 17, 2025)
 
-### Database Type Conversion Fixes (July 17, 2025 - Latest)
+### Continuous Learning Documentation Created (July 17, 2025 - Latest)
+- **Created Comprehensive Training Guides**: Documented RL trading system architecture
+  - Created TRADING_SYSTEM_MATHEMATICAL_EXPLANATION.md with full mathematical framework
+  - Created TRADING_SYSTEM_SIMPLE_EXPLANATION.md with intuitive explanations
+  - Created CONTINUOUS_TRAINING_GUIDE.md explaining why train/test split differs in RL
+  - Explained that trading RL learns HOW to trade, not memorize specific prices
+  - Documented future improvements: rolling windows, online learning, market regime adaptation
+
+### Database Type Conversion Fixes (July 17, 2025)
 - **Fixed All PostgreSQL Decimal Type Errors**: Resolved critical issues with numpy and Decimal types
   - Fixed numpy float64/int64 conversion errors in all database INSERT operations
   - Added explicit type conversions: int() for integers, float() for decimals
