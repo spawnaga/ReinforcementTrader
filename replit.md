@@ -134,6 +134,11 @@ Preferred communication style: Simple, everyday language.
   - Old log files may still show the bug, but new runs are correct
 
 ### Critical Reward Bug Fixes (July 17, 2025 - Latest)
+- **Fixed AttributeError in Trading Logger**: Fixed 'NoneType' object has no attribute 'warning' at episode 57
+  - Root cause: `self.trading_logger` was None when code tried to use warning() method
+  - Fixed by adding null checks before using trading_logger in futures_env_realistic.py
+  - Added `if self.trading_logger:` checks on lines 516 and 545
+  - Training now continues successfully past episode 57 without AttributeError
 - **Fixed Duplicate Logging Issue**: Logs were appearing twice due to multiple setup_logging() calls
   - Changed train_standalone.py to use get_loggers() instead of setup_logging() (singleton pattern)
   - Added handlers.clear() to all loggers in logging_config.py to prevent duplicate handlers
