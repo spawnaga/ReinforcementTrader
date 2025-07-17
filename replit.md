@@ -118,6 +118,10 @@ Preferred communication style: Simple, everyday language.
   - Fixed by reorganizing reward logic: Hold rewards for positions, 0 for flat after trading, penalty only for truly not trading
   - Made penalties curriculum-based: -0.05 (easy), -0.075 (medium), -0.1 (hard)
   - Now rewards properly reflect actual trading performance and position changes
+- **Fixed Timestamp Logging**: All logs (rewards.log, algorithm.log, trading.log, positions.log) now show historical market data timestamps
+  - Root cause: Timestamp identifier mismatch - code was looking for 'time' column but data had 'timestamp' column
+  - Fixed by updating timestamp identifier from 'time' to 'timestamp' in state creation
+  - Now logs show actual historical timestamps (e.g., 2008-01-02) instead of current wall clock time (2025-07-17)
 
 ### Continuous Learning Documentation Created (July 17, 2025)
 - **Created Comprehensive Training Guides**: Documented RL trading system architecture
