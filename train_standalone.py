@@ -14,6 +14,7 @@ from pathlib import Path
 # Direct imports to avoid app.py
 from rl_algorithms.ane_ppo import ANEPPO
 from gym_futures.envs.futures_env import FuturesEnv
+from gym_futures.envs.utils import TimeSeriesState
 from technical_indicators import TechnicalIndicators, add_time_based_indicators
 
 # Configure logging
@@ -91,16 +92,34 @@ def train_standalone():
     test_data = df[train_size:]
     logger.info(f"Training samples: {len(train_data)}, Test samples: {len(test_data)}")
     
-    # Create environment
+    # Create TimeSeriesState objects from training data
+    states = []
+    window_size = 50  # Look back window for each state
+    
+    # Ensure timestamp column exists as 'time' for TimeSeriesState
+    if 'timestamp' in train_data.columns and 'time' not in train_data.columns:
+        train_data['time'] = train_data['timestamp']
+    
+    logger.info(f"Creating TimeSeriesState objects with window size {window_size}")
+    
+    # Create states with sliding window
+    for i in range(window_size, len(train_data)):
+        window_data = train_data.iloc[i-window_size:i].copy()
+        state = TimeSeriesState(
+            data=window_data,
+            close_price_identifier='close',
+            timestamp_identifier='time'
+        )
+        states.append(state)
+    
+    logger.info(f"Created {len(states)} TimeSeriesState objects")
+    
+    # Create environment with correct parameters
     env = FuturesEnv(
-        data=train_data,
-        ticker=ticker,
-        initial_balance=100000,
-        tick_size=config['tick_size'],
+        states=states,
         value_per_tick=config['value_per_tick'],
-        execution_cost_per_order=config['execution_cost_per_order'],
-        slippage_ticks=config['slippage_ticks'],
-        min_holding_periods=config['min_holding_periods']
+        tick_size=config['tick_size'],
+        execution_cost_per_order=config['execution_cost_per_order']
     )
     
     # Get feature count
