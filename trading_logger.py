@@ -57,7 +57,7 @@ class TradingLogger:
         self.log_dir.mkdir(parents=True, exist_ok=True)
         
         # Don't create separate files for each timestamp - use single files
-        # self.session_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.session_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
         # Setup different loggers for different aspects
         self.setup_loggers()
