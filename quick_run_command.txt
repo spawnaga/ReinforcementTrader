@@ -1,0 +1,8 @@
+# Run training with your actual data file:
+python train_standalone.py --data-path /path/to/your/5M_row_NQ_data.csv --num-gpus 4 --episodes 100
+
+# For debugging the 11,725 issue, start with fewer episodes:
+python train_standalone.py --data-path /path/to/your/5M_row_NQ_data.csv --num-gpus 4 --episodes 60
+
+# The TA-Lib errors are fine - the system will use fallback implementations
+# The IndexError happened because test_nq_data.csv only has 100 rows
