@@ -56,7 +56,7 @@ def handle_connect(auth=None):
         logger.error(f"Error handling connection: {str(e)}")
         emit('error', {'message': 'Connection error'})
 
-@socketio.on('join_session')
+# @socketio.on('join_session')
 def handle_join_session(data):
     """Handle client joining a session room"""
     try:
@@ -82,7 +82,7 @@ def handle_join_session(data):
         logger.error(f"Error joining session: {str(e)}")
         emit('error', {'message': 'Failed to join session'})
 
-@socketio.on('disconnect')
+# @socketio.on('disconnect')
 def handle_disconnect(*args, **kwargs):
     """Handle client disconnection"""
     try:
@@ -109,7 +109,7 @@ def handle_disconnect(*args, **kwargs):
     except Exception as e:
         logger.error(f"Error handling disconnection: {str(e)}")
 
-@socketio.on('subscribe_session')
+# @socketio.on('subscribe_session')
 def handle_subscribe_session(data):
     """Subscribe to training session updates"""
     try:
@@ -153,7 +153,7 @@ def handle_subscribe_session(data):
         logger.error(f"Error subscribing to session: {str(e)}")
         emit('error', {'message': 'Subscription error'})
 
-@socketio.on('unsubscribe_session')
+# @socketio.on('unsubscribe_session')
 def handle_unsubscribe_session(data):
     """Unsubscribe from training session updates"""
     try:
@@ -184,7 +184,7 @@ def handle_unsubscribe_session(data):
         logger.error(f"Error unsubscribing from session: {str(e)}")
         emit('error', {'message': 'Unsubscription error'})
 
-@socketio.on('start_ai_analysis')
+# @socketio.on('start_ai_analysis')
 def handle_start_ai_analysis(data):
     """Start AI analysis for a session"""
     try:
@@ -223,7 +223,7 @@ def handle_start_ai_analysis(data):
         logger.error(f"Error starting AI analysis: {str(e)}")
         emit('error', {'message': 'AI analysis error'})
 
-@socketio.on('stop_ai_analysis')
+# @socketio.on('stop_ai_analysis')
 def handle_stop_ai_analysis():
     """Stop AI analysis"""
     try:
@@ -243,7 +243,7 @@ def handle_stop_ai_analysis():
         logger.error(f"Error stopping AI analysis: {str(e)}")
         emit('error', {'message': 'AI analysis stop error'})
 
-@socketio.on('request_ai_update')
+# @socketio.on('request_ai_update')
 def handle_request_ai_update(data):
     """Request AI update for current market conditions"""
     try:
@@ -270,7 +270,7 @@ def handle_request_ai_update(data):
         logger.error(f"Error requesting AI update: {str(e)}")
         emit('error', {'message': 'AI update error'})
 
-@socketio.on('request_real_time_update')
+# @socketio.on('request_real_time_update')
 def handle_request_real_time_update(data):
     """Request real-time updates for a session"""
     try:
@@ -290,7 +290,7 @@ def handle_request_real_time_update(data):
         logger.error(f"Error requesting real-time update: {str(e)}")
         emit('error', {'message': 'Real-time update error'})
 
-@socketio.on('request_system_status')
+# @socketio.on('request_system_status')
 def handle_request_system_status():
     """Request current system status"""
     try:
@@ -301,7 +301,7 @@ def handle_request_system_status():
         logger.error(f"Error requesting system status: {str(e)}")
         emit('error', {'message': 'System status error'})
 
-@socketio.on('subscribe_market_data')
+# @socketio.on('subscribe_market_data')
 def handle_subscribe_market_data(data):
     """Subscribe to market data updates"""
     try:
@@ -331,7 +331,7 @@ def handle_subscribe_market_data(data):
         logger.error(f"Error subscribing to market data: {str(e)}")
         emit('error', {'message': 'Market data subscription error'})
 
-@socketio.on('place_manual_trade')
+# @socketio.on('place_manual_trade')
 def handle_place_manual_trade(data):
     """Handle manual trade placement"""
     try:
@@ -372,7 +372,7 @@ def handle_place_manual_trade(data):
         logger.error(f"Error placing manual trade: {str(e)}")
         emit('error', {'message': 'Trade placement error'})
 
-@socketio.on('request_performance_metrics')
+# @socketio.on('request_performance_metrics')
 def handle_request_performance_metrics(data):
     """Request performance metrics for a session"""
     try:
@@ -389,7 +389,7 @@ def handle_request_performance_metrics(data):
         logger.error(f"Error requesting performance metrics: {str(e)}")
         emit('error', {'message': 'Performance metrics error'})
 
-@socketio.on('update_risk_parameters')
+# @socketio.on('update_risk_parameters')
 def handle_update_risk_parameters(data):
     """Update risk management parameters"""
     try:
@@ -922,13 +922,13 @@ def get_network_io() -> float:
         return 0.0
 
 # Error handlers
-@socketio.on_error()
+# @socketio.on_error()
 def error_handler(e):
     """Handle WebSocket errors"""
     logger.error(f"WebSocket error: {str(e)}")
     emit('error', {'message': 'An error occurred'})
 
-@socketio.on_error_default
+# @socketio.on_error_default
 def default_error_handler(e):
     """Handle default WebSocket errors"""
     logger.error(f"Default WebSocket error: {str(e)}")
