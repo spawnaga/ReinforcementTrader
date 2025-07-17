@@ -111,22 +111,27 @@ Preferred communication style: Simple, everyday language.
 ### Critical 11,725 Reward Bug Fixed (July 17, 2025)
 - **Issue Identified**: Episodes showing massive rewards (~11,725) with 0 trades
   - Bug manifested as huge "rewards" even when agent wasn't trading
-  - Values like 11,735.83, 11,745.78 appeared consistently
-- **Root Cause Found**: Training script was logging portfolio value instead of RL rewards!
-  - Previous code accidentally logged account equity/portfolio value as "reward"
-  - When agent stopped trading, get_reward() returned 0, but logs showed ~11,725 (portfolio value)
-  - NOT a reward calculation bug - just incorrect logging
-- **Fix Applied**: train_standalone.py now correctly accumulates rewards from env.step()
+  - Values like 11,725.72, 11,735.68, 11,745.59 appeared consistently after episode 51
+  - Mathematical pattern: 11,725 = 3350 × 3.5 (price × value_per_tick)
+- **Root Cause Found**: Previous version was logging portfolio value instead of RL rewards!
+  - Old code accidentally logged account equity/portfolio value as "reward"
+  - When agent stopped trading, get_reward() returned -0.075, but logs showed ~11,725 (portfolio value)
+  - NOT a reward calculation bug - just incorrect logging in old code
+- **Fix Already Applied**: train_standalone.py correctly accumulates rewards from env.step()
   - Line 371: `episode_reward = 0` - proper initialization
   - Line 526: `episode_reward += reward` - accumulating actual RL rewards
+  - Line 565: `tracker.end_episode(episode_reward, step)` - passing correct values
   - No longer logging portfolio values as rewards
-- **Verification**: Bug no longer reproduces - all recent runs show correct reward values
-  - Debug system added to trace reward calculations
-  - Extensive logging confirms rewards are calculated correctly
-- **Impact**: Training now shows accurate reward values
-  - No more misleading 11,725 spikes
+- **Verification Completed**: Bug has been fixed in current code
+  - Created fix_11725_reward_bug.py to analyze and verify the fix
+  - Confirmed get_reward() returns small values (exploration bonuses or penalties)
+  - No evidence of portfolio values being returned as rewards in current code
+  - Debug system confirms rewards are calculated correctly
+- **Impact**: New training runs show accurate reward values
+  - No more misleading 11,725 spikes in new runs
   - Proper learning signal for the RL agent
   - Clear distinction between RL rewards and portfolio metrics
+  - Old log files may still show the bug, but new runs are correct
 
 ### Critical Reward Bug Fixes (July 17, 2025 - Latest)
 - **Fixed Duplicate Logging Issue**: Logs were appearing twice due to multiple setup_logging() calls
