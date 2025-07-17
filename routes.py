@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from app import app, trading_engine
-from extensions import db, socketio
+from app import db, socketio
 from models import TradingSession, Trade, MarketData, TrainingMetrics, AlgorithmConfig
 from datetime import datetime, timezone
 import json

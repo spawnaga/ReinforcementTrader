@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from pathlib import Path
 import yfinance as yf
-from extensions import db
+from app import db
 from models import MarketData
 from trading_config import get_config
 from technical_indicators import TechnicalIndicators, add_time_based_indicators
