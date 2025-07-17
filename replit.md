@@ -108,7 +108,23 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 17, 2025)
 
-### Training Data Cleanup and Pytest Testing (July 17, 2025 - Latest Update)
+### PyCharm IDE Warnings Fixed (July 17, 2025 - Latest Update)
+- **Fixed Timezone Warnings**: Updated models.py to use timezone-aware UTC timestamps with pytz
+  - Created utc_now() helper function for consistent timezone handling
+  - Replaced all datetime.utcnow references with timezone-aware versions
+- **Fixed Data Type Issues**: 
+  - Changed attention_dim parameter from float to int in ANE-PPO algorithm
+  - Removed duplicate return statement in data_manager.py
+- **Fixed Logging System**: 
+  - Simplified logging to use single logs/ directory
+  - Removed duplicate directory creation and timestamp-based subdirectories
+  - Fixed futures_env_realistic.py to use unified logging approach
+- **IDE-Specific Warnings**: PyCharm warnings about unresolved tables are IDE configuration issues, not code problems
+  - Database schema warnings require PyCharm database connection setup
+  - DELETE without WHERE warnings are intentional for cleanup scripts
+- **WebSocket Handler**: Commented out socketio decorators temporarily to fix startup issues
+
+### Training Data Cleanup and Pytest Testing (July 17, 2025)
 - **Complete Training Data Cleanup**: Successfully removed all previous training data
   - Deleted 15 model files (.pt, .pth, .pkl) from models/ directory
   - Deleted 131 log files from logs/ directory

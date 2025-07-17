@@ -256,7 +256,7 @@ class ANEPPO:
                  max_grad_norm: float = 0.5, n_steps: int = 2048, batch_size: int = 64,
                  n_epochs: int = 10, genetic_population_size: int = 50,
                  genetic_mutation_rate: float = 0.1, genetic_crossover_rate: float = 0.8,
-                 attention_heads: int = 8, attention_dim: float = 256, transformer_layers: int = 6):
+                 attention_heads: int = 8, attention_dim: int = 256, transformer_layers: int = 6):
 
         self.env = env
         self.device = device
