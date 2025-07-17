@@ -481,33 +481,4 @@ class RealisticFuturesEnv(gym.Env):
                   f"Trades: {self.trades_this_episode}, Holding Time: {self.holding_time}")
 
 
-# Instructions for implementation:
-print("""
-To implement this realistic trading environment:
-
-1. Save this file as gym_futures/envs/futures_env_realistic.py
-
-2. Update your training_engine.py to use RealisticFuturesEnv:
-   - Change: from gym_futures.envs import FuturesEnv
-   - To: from gym_futures.envs.futures_env_realistic import RealisticFuturesEnv
-
-3. Update environment creation with realistic parameters:
-   env = RealisticFuturesEnv(
-       states=states,
-       value_per_tick=5.0,  # NQ value per tick
-       tick_size=0.25,      # NQ tick size
-       execution_cost_per_order=5.0,  # $5 per side
-       min_holding_periods=10,  # Hold for at least 10 time steps
-       max_trades_per_episode=5,  # Maximum 5 trades per episode
-       slippage_ticks=2,  # 0-2 tick slippage
-       session_id=session_id
-   )
-
-4. Restart training with these realistic constraints
-
-Expected improvements:
-- Fewer but more meaningful trades
-- Realistic profit/loss patterns
-- Better preparation for live trading
-- No instant trading exploits
-""")
+# This file implements the RealisticFuturesEnv with proper constraints
