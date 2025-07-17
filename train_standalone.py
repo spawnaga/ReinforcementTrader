@@ -14,6 +14,10 @@ import psutil
 import time
 from tqdm import tqdm
 import uuid
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Direct imports to avoid app.py
 from rl_algorithms.ane_ppo import ANEPPO

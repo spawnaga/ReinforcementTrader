@@ -30,6 +30,10 @@ class TrainingTracker:
         
     def _get_connection(self):
         """Get PostgreSQL connection"""
+        # Try to load from .env if not already loaded
+        from dotenv import load_dotenv
+        load_dotenv()
+        
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:
             raise ValueError("DATABASE_URL environment variable not set")
