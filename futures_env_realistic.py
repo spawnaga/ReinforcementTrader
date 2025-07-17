@@ -186,35 +186,38 @@ class RealisticFuturesEnv(gym.Env):
     
     def _can_trade(self) -> bool:
         """Check if trading is allowed based on constraints"""
-        # Debug for episodes where trading stops
-        if hasattr(self, 'episode_number') and self.episode_number >= 15 and self.episode_number <= 20 and self.current_index < 5:
-            trading_logger.error(
-                f"Episode {self.episode_number} _can_trade CHECK at index {self.current_index}: "
-                f"states_traded={self.current_index in self.states_traded}, "
-                f"gap_check={self.current_index - self.last_trade_index}, "
-                f"trade_limit={self.trades_this_episode}/{self.max_trades_per_episode}, "
-                f"holding_check={self.holding_time}/{self.min_holding_periods} if position"
+        # Complete _can_trade debugging (Grok AI recommendation)
+        if self.trading_logger:
+            self.trading_logger.debug(
+                f"_can_trade: episode={self.episode_number}, current_position={self.current_position}, "
+                f"trades_this_episode={self.trades_this_episode}, min_holding_periods={self.min_holding_periods}"
             )
         
         # Check if already traded at this state (anti-exploitation)
         if self.current_index in self.states_traded:
-            trading_logger.debug(f"Already traded at state index {self.current_index}")
+            if self.trading_logger:
+                self.trading_logger.debug(f"Already traded at state index {self.current_index}")
             return False
         
         # Check minimum gap between trades (anti-exploitation)
         if self.current_index - self.last_trade_index < 5:
-            trading_logger.debug(f"Too soon since last trade: {self.current_index - self.last_trade_index} steps")
+            if self.trading_logger:
+                self.trading_logger.debug(f"Too soon since last trade: {self.current_index - self.last_trade_index} steps")
             return False
         
         # Check trade limit
         if self.trades_this_episode >= self.max_trades_per_episode:
-            trading_logger.debug(f"Trade limit reached: {self.trades_this_episode}/{self.max_trades_per_episode}")
+            if self.trading_logger:
+                self.trading_logger.debug(f"Trade limit reached: {self.trades_this_episode}/{self.max_trades_per_episode}")
             return False
         
-        # Check holding period
-        if self.current_position != 0 and self.holding_time < self.min_holding_periods:
-            trading_logger.debug(f"Minimum holding period not met: {self.holding_time}/{self.min_holding_periods}")
-            return False
+        # Check holding period (Grok AI specific check)
+        if self.current_position != 0 and hasattr(self, '_entry_step') and self._entry_step is not None:
+            steps_held = self.current_index - self._entry_step
+            if steps_held < self.min_holding_periods:
+                if self.trading_logger:
+                    self.trading_logger.debug(f"Cannot trade: holding period {steps_held} < {self.min_holding_periods}")
+                return False
         
         return True
     
@@ -260,12 +263,20 @@ class RealisticFuturesEnv(gym.Env):
         # Get reward with comprehensive debugging
         reward = self.get_reward(state)
         
-        # NEW DEBUG: Catch positive rewards when no trades
-        if self.trades_this_episode == 0 and reward > 100:
-            trading_logger.error(
-                f"*** POSITIVE REWARD WITH NO TRADES: Episode {self.episode_number}, Step {self.current_index}: "
-                f"reward={reward:.2f} (close to 1214?), state.price={state.price:.2f}, "
-                f"position={self.current_position}, last_position={self.last_position}"
+        # Add exploration bonus for taking BUY or SELL actions (Grok AI recommendation)
+        if action in [0, 2] and self.episode_number < 100:  # BUY or SELL in early episodes
+            exploration_bonus = 0.1 * (1.0 - self.episode_number / 100.0)  # Decay over episodes
+            reward += exploration_bonus
+            if self.trading_logger and self.episode_number < 25:
+                self.trading_logger.info(
+                    f"EXPLORATION BONUS: Added {exploration_bonus:.3f} for action {action}"
+                )
+        
+        # Log detailed reward information (Grok AI recommendation)
+        if self.trading_logger:
+            self.trading_logger.debug(
+                f"Step reward: {reward:.2f}, position={self.current_position}, "
+                f"trades_this_episode={self.trades_this_episode}, action={action}"
             )
             # Check if it's close to our suspicious values
             if 1200 < reward < 1600:
@@ -390,6 +401,13 @@ class RealisticFuturesEnv(gym.Env):
     
     def buy(self, state: TimeSeriesState):
         """Execute buy order with realistic constraints"""
+        # Log min_holding_periods verification (Grok AI recommendation)
+        if self.trading_logger:
+            self.trading_logger.debug(
+                f"Buy: episode={self.episode_number}, current_position={self.current_position}, "
+                f"trades_this_episode={self.trades_this_episode}, min_holding_periods={self.min_holding_periods}"
+            )
+        
         if not self._can_trade():
             return
         
@@ -431,6 +449,7 @@ class RealisticFuturesEnv(gym.Env):
             self.entry_time = state.ts
             self.entry_id = str(uuid4())
             self.holding_time = 0
+            self._entry_step = self.current_index  # Track entry step for holding period
             
             # Track successful trade (anti-exploitation)
             self.states_traded.add(self.current_index)
@@ -449,6 +468,13 @@ class RealisticFuturesEnv(gym.Env):
     
     def sell(self, state: TimeSeriesState):
         """Execute sell order with realistic constraints"""
+        # Log min_holding_periods verification (Grok AI recommendation)
+        if self.trading_logger:
+            self.trading_logger.debug(
+                f"Sell: episode={self.episode_number}, current_position={self.current_position}, "
+                f"trades_this_episode={self.trades_this_episode}, min_holding_periods={self.min_holding_periods}"
+            )
+        
         if not self._can_trade():
             return
         
@@ -490,6 +516,7 @@ class RealisticFuturesEnv(gym.Env):
             self.entry_time = state.ts
             self.entry_id = str(uuid4())
             self.holding_time = 0
+            self._entry_step = self.current_index  # Track entry step for holding period
             
             # Track successful trade (anti-exploitation)
             self.states_traded.add(self.current_index)
@@ -508,14 +535,12 @@ class RealisticFuturesEnv(gym.Env):
     
     def get_reward(self, state: TimeSeriesState) -> float:
         """Calculate reward using realistic reward function with shaping and exploration bonus"""
-        # DEBUG: Log entry to get_reward with more detail
-        if self.episode_number < 25 and self.trading_logger and self.current_index < 5:
-            self.trading_logger.info(
-                f"GET_REWARD CALLED: Episode {self.episode_number}, Step {self.current_index}, "
-                f"last_pos={self.last_position}, curr_pos={self.current_position}, "
-                f"last_closed_entry={self._last_closed_entry_price}, "
-                f"last_closed_exit={self._last_closed_exit_price}, "
-                f"state.price={state.price if hasattr(state, 'price') else 'NO PRICE'}"
+        # Complete reward debugging (Grok AI recommendation)
+        if self.trading_logger:
+            self.trading_logger.debug(
+                f"get_reward: episode={self.episode_number}, current_position={self.current_position}, "
+                f"last_position={self.last_position}, entry_price={self.entry_price}, "
+                f"exit_price={self._last_closed_exit_price}, trades_this_episode={getattr(self, 'trades_this_episode', 0)}"
             )
         
         # NEW DEBUG: Trace reward path for episodes with issues
@@ -854,6 +879,7 @@ class RealisticFuturesEnv(gym.Env):
         self.exit_price = None
         self._last_closed_entry_price = None
         self._last_closed_exit_price = None
+        self._entry_step = None  # Reset entry step tracking
         
         # CRITICAL FIX: Reset anti-exploitation tracking for new episode
         self.states_traded.clear()  # Clear the set of traded indices

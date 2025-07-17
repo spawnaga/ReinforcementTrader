@@ -191,7 +191,7 @@ def train_standalone():
         'gae_lambda': 0.95,
         'clip_range': 0.2,
         'value_coef': 0.5,
-        'entropy_coef': 0.05,  # Increased from 0.01 to encourage exploration (Grok AI)
+        'entropy_coef': 0.1,  # Further increased to 0.1 per Grok AI recommendation
         'transformer_layers': args.transformer_layers,
         'attention_dim': args.attention_dim,
         'tick_size': 0.25,
@@ -204,8 +204,9 @@ def train_standalone():
         'gradient_accumulation_steps': args.gradient_accumulation_steps,
         'training_loops': args.training_loops,
         'epochs_per_loop': args.epochs_per_loop,
-        'max_trades_per_episode': 20,  # Increased from 10 to encourage trading (Grok AI)
-        'fill_probability': 0.95  # Default fill probability
+        'max_trades_per_episode': 30,  # Further increased to 30 per Grok AI
+        'min_holding_periods': 5,  # Reduced from 10 to allow quicker trades (Grok AI)
+        'fill_probability': 1.0  # Set to 1.0 to ensure all orders fill (Grok AI)
     }
     
     logger.info(f"Starting {ticker} training on {device}")
@@ -262,23 +263,35 @@ def train_standalone():
     # Initialize StandardScaler and fit on entire training data (Grok AI recommendation)
     scaler = StandardScaler()
     
-    # Identify numeric columns to normalize
-    numeric_cols = train_data.select_dtypes(include=[np.number]).columns.tolist()
-    if 'timestamp' in numeric_cols:
-        numeric_cols.remove('timestamp')
+    # CRITICAL FIX: Preserve actual prices for trading
+    # Store actual price columns before normalization
+    train_data = train_data.copy()  # Create a copy to avoid SettingWithCopyWarning
+    train_data['actual_open'] = train_data['open']
+    train_data['actual_high'] = train_data['high']
+    train_data['actual_low'] = train_data['low']
+    train_data['actual_close'] = train_data['close']
     
-    # Fit scaler on entire training dataset once
+    # Identify numeric columns to normalize (exclude OHLC and actual price columns per Grok AI)
+    numeric_cols = train_data.select_dtypes(include=[np.number]).columns.tolist()
+    exclude_cols = ['timestamp', 'open', 'high', 'low', 'close', 'volume',
+                   'actual_open', 'actual_high', 'actual_low', 'actual_close']
+    numeric_cols = [col for col in numeric_cols if col not in exclude_cols]
+    
+    # Fit scaler on entire training dataset once (only non-price features)
     if len(numeric_cols) > 0:
         logger.info(f"Fitting scaler on {len(train_data)} rows of training data...")
+        logger.info(f"Normalizing only technical indicators: {numeric_cols}")
         scaler.fit(train_data[numeric_cols])
         
+        # Apply normalization to the entire dataset
+        train_data[numeric_cols] = scaler.transform(train_data[numeric_cols])
+        
         # Log normalization statistics
-        logger.info(f"Normalizing {len(numeric_cols)} numeric columns.")
-        if 'close' in numeric_cols:
-            close_idx = numeric_cols.index('close')
+        logger.info(f"Normalized {len(numeric_cols)} technical indicator columns.")
+        if numeric_cols:
             logger.info(
-                f"Example - close price: mean={scaler.mean_[close_idx]:.2f}, "
-                f"std={scaler.scale_[close_idx]:.2f}"
+                f"Example normalized feature - {numeric_cols[0]}: mean={scaler.mean_[0]:.2f}, "
+                f"std={scaler.scale_[0]:.2f}"
             )
     
     # Create states with sliding window
@@ -289,17 +302,32 @@ def train_standalone():
             
         window_data = train_data.iloc[i-window_size:i].copy()
         
-        # Transform using the pre-fitted scaler
-        if len(numeric_cols) > 0:
-            window_data[numeric_cols] = scaler.transform(window_data[numeric_cols])
-        
+        # No need to transform here - already normalized the entire dataset
+        # CRITICAL: Use actual_close for price, keep normalized features for neural network
         state = TimeSeriesState(
             data=window_data,
-            close_price_identifier='close',
-            timestamp_identifier='timestamp'  # Changed from 'time' to 'timestamp'
+            close_price_identifier='actual_close',  # Use actual prices for trading
+            timestamp_identifier='timestamp'
         )
         states.append(state)
         states_created += 1
+        
+        # Log first state features for debugging (Grok AI recommendation)
+        if states_created == 1 and len(numeric_cols) > 0:
+            state_data = window_data[numeric_cols].values
+            logger.info(
+                f"Sample state features after normalization: "
+                f"min={np.min(state_data):.2f}, max={np.max(state_data):.2f}, "
+                f"mean={np.mean(state_data):.2f}, std={np.std(state_data):.2f}"
+            )
+        
+        # Log first state features for debugging (Grok AI recommendation)
+        if states_created == 1:
+            logger.info(
+                f"Sample state features after normalization: "
+                f"actual_close={window_data['actual_close'].iloc[-1]:.2f}, "
+                f"normalized features: {list(window_data[numeric_cols].iloc[-1].values[:3]) if numeric_cols else 'None'}"
+            )
         
         # Progress logging
         if states_created % 1000 == 0:
@@ -386,6 +414,9 @@ def train_standalone():
     
     # Training loop with tqdm progress bar
     all_rewards = []
+    
+    # Track consecutive no-trade episodes (Grok AI recommendation)
+    no_trade_episodes = 0
     
     # Create main progress bar for episodes
     episode_pbar = tqdm(range(episodes), desc="Training Episodes", unit="ep", 
@@ -669,6 +700,30 @@ def train_standalone():
             tracker.end_episode(episode_reward, step)
         
         all_rewards.append(episode_reward)
+        
+        # Track consecutive no-trade episodes and reset policy if needed (Grok AI recommendation)
+        if env.trades_this_episode == 0:
+            no_trade_episodes += 1
+            loggers['algorithm'].warning(
+                f"No trades in episode {episode}. Consecutive no-trade episodes: {no_trade_episodes}"
+            )
+            
+            # Reset policy if too many consecutive no-trade episodes
+            if no_trade_episodes >= 3:
+                loggers['algorithm'].warning(
+                    f"POLICY RESET: {no_trade_episodes} consecutive no-trade episodes. "
+                    f"Re-initializing policy network to encourage exploration."
+                )
+                # Reset the policy network weights using ActorCritic's _init_weights
+                algorithm.policy_network.apply(algorithm.policy_network._init_weights)
+                # Reset the optimizer using adaptive learning rate (Grok AI)
+                algorithm.optimizer = torch.optim.Adam(
+                    algorithm.policy_network.parameters(), 
+                    lr=algorithm.adaptive_lr
+                )
+                no_trade_episodes = 0
+        else:
+            no_trade_episodes = 0  # Reset counter when trades occur
         
         # Debug reward accumulation
         if abs(episode_reward) > 10000 or (episode > 45 and env.trades_this_episode == 0):
