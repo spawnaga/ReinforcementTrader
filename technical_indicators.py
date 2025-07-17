@@ -129,7 +129,7 @@ class TechnicalIndicators:
         
         for indicator in indicators:
             if indicator in ['sin_time', 'cos_time', 'sin_weekday', 'cos_weekday', 
-                           'hour', 'minute', 'day_of_week']:
+                           'sin_hour', 'cos_hour', 'hour', 'minute', 'day_of_week']:
                 # Time-based indicators already calculated
                 continue
                 
