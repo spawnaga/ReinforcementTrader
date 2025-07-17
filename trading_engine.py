@@ -1058,13 +1058,15 @@ class TradingEngine:
                 session = TradingSession(
                     session_name=f"{algorithm_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
                     algorithm_type=algorithm_type,
+                    parameters=config,
                     status='created',
                     total_episodes=config.get('episodes', 1000),
+                    current_episode=0,
                     total_profit=0.0,
-                    sharpe_ratio=0.0,
-                    max_drawdown=0.0,
+                    total_trades=0,
                     win_rate=0.0,
-                    trade_count=0
+                    sharpe_ratio=0.0,
+                    max_drawdown=0.0
                 )
                 db.session.add(session)
                 db.session.commit()
