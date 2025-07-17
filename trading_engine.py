@@ -1060,7 +1060,6 @@ class TradingEngine:
                     algorithm_type=algorithm_type,
                     status='created',
                     total_episodes=config.get('episodes', 1000),
-                    total_episodes=config.get("episodes", 1000),
                     total_profit=0.0,
                     sharpe_ratio=0.0,
                     max_drawdown=0.0,
