@@ -108,7 +108,25 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 17, 2025)
 
-### Large Data File Support (July 17, 2025 - Latest)
+### Standalone Training Script Created (July 17, 2025 - Latest)
+- **Created train_standalone.py**: Completely avoids circular imports by not importing from app.py
+  - Loads data directly from CSV files without database dependencies
+  - Uses SimpleDataLoader class for direct file loading
+  - Properly initializes ANEPPO with env parameter
+  - Fixed all method calls (get_action, experience_buffer, policy_network)
+  - Limited to 10,000 TimeSeriesState objects to avoid memory issues
+- **Removed Problematic Files**: Cleaned up 8 files with circular imports
+  - Removed: clear_and_run.py, train_local.py, check_training_status.py
+  - Removed: demo_cli.py, demo_gpu_training.py, fix_local_issues.py
+  - Removed: fix_trading_engine.py, cleanup_local_database.py
+  - Project now has 33 Python files (down from 41)
+- **Training Configuration**:
+  - Uses start_training.sh as the main entry point
+  - Supports RTX 4090 GPU acceleration
+  - Processes 4.3 million rows efficiently with step-based sampling
+  - Shows progress every 10 episodes with detailed metrics
+
+### Large Data File Support (July 17, 2025)
 - **Enhanced Data Loading for 6M Row Files**: Created comprehensive data loading pipeline
   - Created `load_large_nq_data.py` for efficiently loading 302MB+ data files
   - Created `test_load_data.py` for quick data verification
