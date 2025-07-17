@@ -10,6 +10,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from pathlib import Path
+import psutil
+import time
 
 # Direct imports to avoid app.py
 from rl_algorithms.ane_ppo import ANEPPO
@@ -102,8 +104,18 @@ def train_standalone():
     
     logger.info(f"Creating TimeSeriesState objects with window size {window_size}")
     
+    # Limit states for initial training to avoid memory issues
+    max_states = 10000  # Start with 10k states instead of 3.4M
+    step_size = max(1, (len(train_data) - window_size) // max_states)
+    
+    logger.info(f"Creating {max_states} states with step size {step_size} (from {len(train_data)} rows)")
+    
     # Create states with sliding window
-    for i in range(window_size, len(train_data)):
+    states_created = 0
+    for i in range(window_size, len(train_data), step_size):
+        if states_created >= max_states:
+            break
+            
         window_data = train_data.iloc[i-window_size:i].copy()
         state = TimeSeriesState(
             data=window_data,
@@ -111,6 +123,16 @@ def train_standalone():
             timestamp_identifier='time'
         )
         states.append(state)
+        states_created += 1
+        
+        # Progress logging
+        if states_created % 1000 == 0:
+            logger.info(f"Created {states_created}/{max_states} states...")
+            # Log memory usage
+            import psutil
+            process = psutil.Process()
+            mem_info = process.memory_info()
+            logger.info(f"Memory usage: {mem_info.rss / 1024 / 1024 / 1024:.2f} GB")
     
     logger.info(f"Created {len(states)} TimeSeriesState objects")
     
