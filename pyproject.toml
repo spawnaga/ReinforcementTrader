@@ -34,6 +34,7 @@ dependencies = [
     "requests>=2.32.4",
     "pyarrow>=20.0.0",
     "socketio>=0.2.1",
+    "tqdm>=4.67.1",
 ]
 
 [[tool.uv.index]]

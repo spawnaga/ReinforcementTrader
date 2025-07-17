@@ -199,6 +199,15 @@ def train_standalone():
         train_data = train_data.copy()  # Create explicit copy to avoid warning
         train_data['time'] = train_data['timestamp']
     
+    # Rename price columns if they have database names
+    if 'close_price' in train_data.columns:
+        train_data = train_data.rename(columns={
+            'open_price': 'open',
+            'high_price': 'high',
+            'low_price': 'low',
+            'close_price': 'close'
+        })
+    
     logger.info(f"Creating TimeSeriesState objects with window size {window_size}")
     
     # Limit states for initial training to avoid memory issues
@@ -328,7 +337,12 @@ def train_standalone():
             # Get current timestamp and price from state
             timestamp = state.ts if hasattr(state, 'ts') else datetime.now()
             # Fix: Get price from state.price instead of state.current_price
-            current_price = state.price if hasattr(state, 'price') else env.current_price if hasattr(env, 'current_price') else 0
+            if hasattr(state, 'price') and state.price is not None:
+                current_price = float(state.price)
+            elif hasattr(env, 'current_price') and env.current_price is not None:
+                current_price = float(env.current_price)
+            else:
+                current_price = 0.0
             
             # Log agent's decision BEFORE taking action
             action_names = {0: 'BUY', 1: 'HOLD', 2: 'SELL'}
