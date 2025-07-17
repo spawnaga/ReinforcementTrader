@@ -2,6 +2,46 @@
 
 A comprehensive, GPU-accelerated trading system with reinforcement learning algorithms, supporting multiple futures contracts with full control over hardware, algorithms, and training parameters.
 
+## 🚀 Quick Setup Guide
+
+### 1. Install PostgreSQL Database
+```bash
+# Ubuntu/WSL2
+sudo apt update
+sudo apt install postgresql postgresql-contrib -y
+pip install psycopg2-binary
+
+# Start PostgreSQL (WSL2)
+sudo service postgresql start
+```
+
+### 2. Setup Database
+```bash
+# Automated setup
+python setup_database.py
+
+# Or manual setup - see POSTGRESQL_SETUP.md for details
+```
+
+### 3. Prepare Your Data
+```bash
+# Process your futures data with technical indicators
+python prepare_data_local.py --file ./data/NQ.txt
+```
+
+### 4. Start Training
+```bash
+python trading_cli.py --train \
+    --algorithm ane_ppo \
+    --ticker NQ \
+    --data-source ./data/processed/NQ_train_processed.csv \
+    --device gpu \
+    --num-gpus 1 \
+    --episodes 100
+```
+
+For detailed PostgreSQL setup instructions, see [POSTGRESQL_SETUP.md](POSTGRESQL_SETUP.md).
+
 ## 🚀 Key Features
 
 - **Multi-GPU Support**: Utilize up to 4 GPUs with automatic detection and configuration
