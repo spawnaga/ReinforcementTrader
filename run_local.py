@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
 """
-Simple run script for the AI Trading System API
+Simple local run script for the AI Trading System API without SocketIO
+This version works without websocket support for easy local testing
 
 Usage:
-    python run.py
+    python run_local.py
 """
 
 import os
 import sys
 import logging
 from app import app
-try:
-    from app import socketio
-except ImportError:
-    socketio = None
 
 # Configure logging
 logging.basicConfig(
@@ -22,15 +19,15 @@ logging.basicConfig(
 )
 
 def main():
-    """Run the Flask application with SocketIO support"""
+    """Run the Flask application without SocketIO"""
     
     # Get port from environment or default
     port = int(os.environ.get('PORT', 5000))
     
     print("\n" + "="*60)
-    print("AI Trading System API")
+    print("AI Trading System API (Local Version)")
     print("="*60)
-    print(f"Starting server on http://0.0.0.0:{port}")
+    print(f"Starting server on http://localhost:{port}")
     print("\nAPI Endpoints:")
     print("  GET  /health              - Health check")
     print("  GET  /api/sessions         - List all sessions")
@@ -38,30 +35,17 @@ def main():
     print("  POST /api/stop_training    - Stop training")
     print("  GET  /api/trades           - Get trades")
     print("  GET  /api/market_data      - Get market data")
-    print("\nWebSocket Events:")
-    print("  - performance_update")
-    print("  - trade_update")
-    print("  - session_update")
+    print("\nNote: WebSocket features are disabled in this version")
     print("="*60 + "\n")
     
-    # Run the app with or without SocketIO
+    # Run the app without SocketIO
     try:
-        if socketio:
-            socketio.run(
-                app,
-                host='0.0.0.0',
-                port=port,
-                debug=False,
-                use_reloader=False
-            )
-        else:
-            print("\nNote: Running without WebSocket support")
-            app.run(
-                host='0.0.0.0',
-                port=port,
-                debug=False,
-                use_reloader=False
-            )
+        app.run(
+            host='0.0.0.0',
+            port=port,
+            debug=False,
+            use_reloader=False
+        )
     except KeyboardInterrupt:
         print("\nShutting down gracefully...")
         sys.exit(0)
