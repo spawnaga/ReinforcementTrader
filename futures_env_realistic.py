@@ -429,18 +429,41 @@ class RealisticFuturesEnv(gym.Env):
     
     def get_reward(self, state: TimeSeriesState) -> float:
         """Calculate reward using realistic reward function with shaping and exploration bonus"""
+        # DEBUG: Log entry to get_reward
+        if self.episode_number < 10 and self.trading_logger:
+            self.trading_logger.info(
+                f"GET_REWARD CALLED: Episode {self.episode_number}, Step {self.current_index}, "
+                f"last_pos={self.last_position}, curr_pos={self.current_position}, "
+                f"last_closed_entry={self._last_closed_entry_price}, "
+                f"last_closed_exit={self._last_closed_exit_price}"
+            )
+        
         # EXPLORATION BONUS: Small reward for opening positions in early episodes
         # This encourages the agent to explore trading rather than staying flat
         if self.last_position == 0 and self.current_position != 0:
             if hasattr(self, 'episode_number') and self.episode_number < 100:
                 # Larger exploration bonus in early episodes, decreasing over time
                 exploration_bonus = 0.5 * (1.0 - self.episode_number / 100.0)
+                
+                # DEBUG: Log exploration bonus
+                if self.episode_number < 10 and self.trading_logger:
+                    self.trading_logger.info(
+                        f"EXPLORATION BONUS: Returning ${exploration_bonus:.2f}"
+                    )
+                
                 return exploration_bonus
             return 0.0
         
         # Calculate reward for closed positions
         if self.current_position == 0 and self.last_position != 0:
             base_reward = 0.0
+            
+            # DEBUG: Log when calculating reward for closed position
+            if self.episode_number < 10 and self.trading_logger:
+                self.trading_logger.info(
+                    f"CALCULATING REWARD FOR CLOSED POSITION: last_pos={self.last_position}"
+                )
+            
             if self.last_position == 1:  # Closed long
                 base_reward = calculate_reward(
                     timestamp=state.ts,
@@ -456,6 +479,14 @@ class RealisticFuturesEnv(gym.Env):
                     tick_size=self.tick_size
                 )
             else:  # Closed short
+                # DEBUG: Log before calling calculate_reward
+                if self.episode_number < 10 and self.trading_logger:
+                    gross_profit = ((self._last_closed_entry_price - self._last_closed_exit_price) / self.tick_size) * self.value_per_tick
+                    self.trading_logger.info(
+                        f"BEFORE calculate_reward: entry={self._last_closed_entry_price}, "
+                        f"exit={self._last_closed_exit_price}, gross_profit=${gross_profit:.2f}"
+                    )
+                
                 base_reward = calculate_reward(
                     timestamp=state.ts,
                     action='EXIT',
@@ -469,6 +500,25 @@ class RealisticFuturesEnv(gym.Env):
                     session_id=self.session_id,
                     tick_size=self.tick_size
                 )
+                
+                # DEBUG: Log after calling calculate_reward
+                if self.episode_number < 10 and self.trading_logger:
+                    self.trading_logger.info(
+                        f"AFTER calculate_reward: base_reward=${base_reward:.2f}"
+                    )
+            
+            # CRITICAL FIX: Scale down large rewards to prevent learning instability
+            # Rewards over $100 are scaled down logarithmically
+            if abs(base_reward) > 100:
+                sign = 1 if base_reward > 0 else -1
+                scaled_reward = sign * (100 + 10 * np.log(abs(base_reward) / 100))
+                
+                if self.trading_logger:
+                    self.trading_logger.warning(
+                        f"REWARD SCALING: Large reward ${base_reward:.2f} scaled to ${scaled_reward:.2f}"
+                    )
+                
+                base_reward = scaled_reward
             
             # CURRICULUM-BASED REWARD SHAPING
             if self.episode_number < 50:
