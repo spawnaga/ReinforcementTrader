@@ -33,7 +33,10 @@ trading_logger.setLevel(logging.DEBUG)
 
 def calculate_reward(timestamp, action, position_before, position_after, entry_price, exit_price, position_type,
                      value_per_tick, execution_cost, session_id, tick_size):
-    """Calculate the reward for a trading action with realistic costs"""
+    """Calculate the reward for a trading action with realistic costs
+    
+    Note: position_before is kept for API compatibility but not used in calculations
+    """
     if entry_price is None or exit_price is None:
         return 0.0
 

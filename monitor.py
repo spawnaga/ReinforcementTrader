@@ -12,6 +12,9 @@ import socketio
 import time
 from datetime import datetime
 import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TradingMonitor:
     def __init__(self, api_url):
@@ -55,8 +58,8 @@ class TradingMonitor:
             response = requests.get(f"{self.api_url}/api/status")
             if response.ok:
                 return response.json()
-        except:
-            pass
+        except (requests.RequestException, ValueError) as e:
+            logger.warning(f"Failed to get system status: {e}")
         return None
         
     def get_active_sessions(self):
@@ -65,8 +68,8 @@ class TradingMonitor:
             response = requests.get(f"{self.api_url}/api/sessions?status=running")
             if response.ok:
                 return response.json()
-        except:
-            pass
+        except (requests.RequestException, ValueError) as e:
+            logger.warning(f"Failed to get active sessions: {e}")
         return []
         
     def get_gpu_info(self):
@@ -89,8 +92,8 @@ class TradingMonitor:
                             'memory_util': float(parts[5])
                         })
                 return gpus
-        except:
-            pass
+        except (subprocess.CalledProcessError, ValueError, ImportError) as e:
+            logger.warning(f"Failed to get GPU info: {e}")
         return []
     
     def monitor(self):
@@ -103,8 +106,8 @@ class TradingMonitor:
         try:
             health = requests.get(f"{self.api_url}/health").json()
             print(f"✅ System Status: {health['status']}")
-        except:
-            print("❌ System is not responding")
+        except (requests.RequestException, ValueError) as e:
+            print(f"❌ System is not responding: {e}")
             return
             
         # Show GPU information

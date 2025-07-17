@@ -96,8 +96,8 @@ class GPUMonitor:
                             'memory_mb': float(parts[2])
                         })
                 return processes
-        except:
-            pass
+        except (subprocess.CalledProcessError, ValueError, IndexError) as e:
+            logger.warning(f"Failed to get process GPU usage: {e}")
         return []
         
     def get_system_metrics(self):
