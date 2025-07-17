@@ -1,1 +1,0 @@
-python train_standalone.py --episodes 30 --ticker NQ --algorithm ane_ppo

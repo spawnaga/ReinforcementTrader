@@ -1,2 +1,0 @@
-To monitor logs in real-time while training:
-tail -f logs/latest/*.log | grep -E '(GET_REWARD|STEP REWARD|NO TRADE|REWARD SCALING|HUGE HOLD)'
