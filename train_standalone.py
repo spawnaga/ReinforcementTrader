@@ -140,12 +140,17 @@ def train_standalone():
     
     logger.info(f"Created {len(states)} TimeSeriesState objects")
     
-    # Create environment with correct parameters
+    # Generate session ID early for use in environment
+    session_id = datetime.now().strftime('%Y%m%d_%H%M%S') + '_' + str(uuid.uuid4())[:8]
+    
+    # Create environment with session_id and disable old trading logger
     env = FuturesEnv(
         states=states,
         value_per_tick=config['value_per_tick'],
         tick_size=config['tick_size'],
-        execution_cost_per_order=config['execution_cost_per_order']
+        execution_cost_per_order=config['execution_cost_per_order'],
+        session_id=session_id,
+        enable_trading_logger=False  # Use our new logging system instead
     )
     
     # Get feature count
@@ -177,7 +182,7 @@ def train_standalone():
     
     # Initialize professional logging and tracking
     loggers = setup_logging()
-    session_id = datetime.now().strftime('%Y%m%d_%H%M%S') + '_' + str(uuid.uuid4())[:8]
+    # session_id already created above for use in FuturesEnv
     
     # Initialize PostgreSQL tracker
     try:
@@ -224,6 +229,44 @@ def train_standalone():
             
             # Take step in environment
             next_state, reward, done, info = env.step(action)
+            
+            # Log trades if any occurred
+            if hasattr(env, 'trades') and len(env.trades) > 0:
+                last_trade = env.trades[-1]
+                if len(last_trade) >= 5:  # Check if trade info is complete
+                    # Extract trade details
+                    if env.current_position == 0 and env.last_position != 0:
+                        # Trade was closed
+                        position_type = 'LONG' if env.last_position == 1 else 'SHORT'
+                        entry_price = env._last_closed_entry_price
+                        exit_price = env._last_closed_exit_price
+                        if entry_price and exit_price:
+                            profit = (exit_price - entry_price) * config['value_per_tick'] if position_type == 'LONG' else (entry_price - exit_price) * config['value_per_tick']
+                            profit -= 2 * config['execution_cost_per_order']
+                            
+                            # Log to our professional logging system
+                            loggers['trading'].info(
+                                f"Trade #{len(env.trades)} | {position_type} | "
+                                f"Entry: ${entry_price:.2f} Exit: ${exit_price:.2f} | "
+                                f"Net P/L: ${profit:.2f}"
+                            )
+                            loggers['rewards'].info(
+                                f"Episode {episode+1} Trade {len(env.trades)}: "
+                                f"${profit:.2f} | Total Episode P/L: ${episode_reward:.2f}"
+                            )
+                            
+                            # Track trade in PostgreSQL if available
+                            if tracker and hasattr(state, 'ts'):
+                                tracker.log_trade(
+                                    entry_time=env.entry_time,
+                                    exit_time=state.ts,
+                                    position_type=position_type,
+                                    entry_price=entry_price,
+                                    exit_price=exit_price,
+                                    profit=profit,
+                                    commission=config['execution_cost_per_order'],
+                                    slippage=0
+                                )
             
             # Log algorithm decision
             if tracker and step % 100 == 0:  # Log every 100 steps
