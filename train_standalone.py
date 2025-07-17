@@ -100,6 +100,7 @@ def train_standalone():
     
     # Ensure timestamp column exists as 'time' for TimeSeriesState
     if 'timestamp' in train_data.columns and 'time' not in train_data.columns:
+        train_data = train_data.copy()  # Create explicit copy to avoid warning
         train_data['time'] = train_data['timestamp']
     
     logger.info(f"Creating TimeSeriesState objects with window size {window_size}")
