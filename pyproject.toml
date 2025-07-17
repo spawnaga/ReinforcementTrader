@@ -32,6 +32,8 @@ dependencies = [
     "pytest-cov>=6.2.1",
     "pytest-mock>=3.14.1",
     "requests>=2.32.4",
+    "pyarrow>=20.0.0",
+    "socketio>=0.2.1",
 ]
 
 [[tool.uv.index]]

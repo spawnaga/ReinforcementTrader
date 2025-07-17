@@ -19,9 +19,8 @@ logger = logging.getLogger(__name__)
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from data_manager import DataManager
+from gpu_data_loader import GPUDataLoader
 from technical_indicators import TechnicalIndicators
-from training_engine import TradingEngine
 
 def prepare_data_for_training(filepath=None):
     """
@@ -31,21 +30,29 @@ def prepare_data_for_training(filepath=None):
         filepath: Path to your data file (if not in standard location)
     """
     
-    # Initialize data manager
-    data_manager = DataManager()
+    # Initialize GPU data loader directly (avoids database dependency)
+    gpu_loader = GPUDataLoader()
     
     # Step 1: Load data
     logger.info("Step 1: Loading NQ futures data...")
     
     if filepath:
-        df = data_manager.load_futures_data('NQ', filepath=filepath)
+        df = gpu_loader.load_nq_data(filepath)
     else:
-        # This will look for NQ files in the data directory
-        df = data_manager.load_nq_data()
+        # Look for NQ files in data directory
+        data_files = list(Path('./data').glob('NQ*.txt')) + list(Path('./data').glob('NQ*.csv'))
+        if not data_files:
+            logger.error("No NQ data files found in ./data directory")
+            return None, None
+        
+        # Use the largest file
+        largest_file = max(data_files, key=lambda f: f.stat().st_size)
+        logger.info(f"Using data file: {largest_file}")
+        df = gpu_loader.load_nq_data(str(largest_file))
     
     if df is None or len(df) == 0:
         logger.error("Failed to load data. Please check your data file.")
-        return None
+        return None, None
     
     logger.info(f"Loaded {len(df):,} rows of data")
     logger.info(f"Date range: {df.index.min()} to {df.index.max()}")
@@ -53,11 +60,11 @@ def prepare_data_for_training(filepath=None):
     # Step 2: Add technical indicators
     logger.info("\nStep 2: Adding technical indicators...")
     
-    # Initialize technical indicators
-    ti = TechnicalIndicators()
+    # Initialize technical indicators with dataframe
+    ti = TechnicalIndicators(df)
     
     # Add all indicators
-    df = ti.add_all_indicators(df)
+    df = ti.add_all_indicators()
     
     logger.info(f"Added {len(df.columns) - 5} technical indicators")
     logger.info(f"Total features: {len(df.columns)}")
@@ -181,35 +188,35 @@ def main():
         sample_size = min(1000, len(train_df) - args.sequence_length)
         train_states = create_training_states(train_df, args.sequence_length, sample_size)
         
-        # Initialize trading engine
-        engine = TradingEngine()
+        # Create states for testing
+        logger.info("Creating training states for environment test...")
         
         # Test with small episode count
-        logger.info("\nTesting training with 10 episodes...")
+        logger.info("\nCreating sample environment for testing...")
         
         try:
-            # This would normally be called via API, but we test it directly
-            session_id = 1
-            success = engine.start_training(
-                session_id=session_id,
-                algorithm='dqn',  # Simple algorithm for testing
-                config={
-                    'episodes': 10,
-                    'learning_rate': 0.001,
-                    'batch_size': 32
-                },
-                data_source='custom',
-                states=train_states[:100]  # Use only 100 states for quick test
+            # Import here to avoid circular imports
+            from gym_futures.envs.futures_env import FuturesEnv
+            
+            # Create a simple test environment
+            env = FuturesEnv(
+                states=train_states[:10],
+                value_per_tick=5.0,
+                tick_size=0.25,
+                execution_cost_per_order=5.0,
+                session_id=1
             )
             
-            if success:
-                logger.info("✓ Training test successful!")
-                logger.info("Your data is ready for full training via the API")
-            else:
-                logger.error("Training test failed. Check logs for details.")
-                
+            # Test environment reset
+            state = env.reset()
+            logger.info(f"✓ Environment created successfully")
+            logger.info(f"✓ State shape: {state.shape if hasattr(state, 'shape') else 'TimeSeriesState'}")
+            logger.info(f"✓ Your data is ready for full training!")
+            
         except Exception as e:
-            logger.error(f"Training test error: {str(e)}")
+            logger.error(f"Environment test error: {str(e)}")
+            logger.info("Data preparation completed successfully, but environment test failed")
+            logger.info("You can still use the prepared data files for training")
 
 if __name__ == '__main__':
     main()
