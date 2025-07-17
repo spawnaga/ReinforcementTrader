@@ -47,6 +47,8 @@ Examples:
                               help='Device to use for training (default: auto-detect)')
     hardware_group.add_argument('--gpu-ids', nargs='+', type=int,
                               help='Specific GPU IDs to use (e.g., --gpu-ids 0 1 2)')
+    hardware_group.add_argument('--num-gpus', type=int,
+                              help='Number of GPUs to use (auto-selects first N GPUs)')
     hardware_group.add_argument('--num-workers', type=int, default=4,
                               help='Number of worker threads (default: 4)')
     
@@ -97,6 +99,10 @@ Examples:
                               help='Number of training episodes (default: 1000)')
     training_group.add_argument('--max-steps', type=int, default=200,
                               help='Max steps per episode (default: 200)')
+    training_group.add_argument('--training-loops', type=int, default=1,
+                              help='Number of training loops per episode (default: 1)')
+    training_group.add_argument('--epochs-per-loop', type=int, default=1,
+                              help='Number of epochs per training loop (default: 1)')
     training_group.add_argument('--batch-size', type=int, default=32,
                               help='Batch size for training (default: 32)')
     training_group.add_argument('--learning-rate', type=float, default=3e-4,
