@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Direct imports to avoid app.py
-from rl_algorithms.ane_ppo import ANE_PPO
+from rl_algorithms.ane_ppo import ANEPPO
 from gym_futures.envs.futures_env import FuturesEnv
 from technical_indicators import add_all_indicators
 
@@ -113,7 +113,7 @@ def train_standalone():
     logger.info(f"State dimension: {state_dim}")
     
     # Create algorithm
-    algorithm = ANE_PPO(
+    algorithm = ANEPPO(
         state_dim=state_dim,
         action_dim=3,  # Buy, Sell, Hold
         config=config,
