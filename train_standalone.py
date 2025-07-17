@@ -282,7 +282,7 @@ def train_standalone():
             
             # Log normalization info for debugging
             if states_created == 0:
-                loggers['algorithm'].info(
+                logger.info(
                     f"Normalizing {len(numeric_cols)} numeric columns. "
                     f"Example: close price scaled from ~1214 to mean=0, std=1"
                 )
