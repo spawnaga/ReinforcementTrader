@@ -51,7 +51,17 @@ nvidia-smi nvlink -s || print_warning "NVLink status could not be determined"
 # Step 2: Install system dependencies
 print_status "Installing system dependencies..."
 sudo apt update
-sudo apt install -y python3-pip python3-venv python3-dev build-essential libpq-dev postgresql postgresql-contrib
+
+# Fix potential Python version conflicts
+print_status "Fixing Python dependencies..."
+sudo apt install -y python3-pip python3-dev build-essential libpq-dev postgresql postgresql-contrib || {
+    print_warning "Some packages failed to install, attempting fixes..."
+    
+    # Try to fix python3-venv separately
+    sudo apt install -y python3.12-venv || sudo apt install -y python3-venv || {
+        print_warning "python3-venv installation failed, will use pip instead"
+    }
+}
 
 # Step 3: Create Python virtual environment
 print_status "Creating Python virtual environment..."
