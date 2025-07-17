@@ -157,10 +157,18 @@ def train_standalone():
     
     # Create algorithm
     algorithm = ANEPPO(
-        state_dim=state_dim,
-        action_dim=3,  # Buy, Sell, Hold
-        config=config,
-        device=device
+        env=env,
+        device=device,
+        learning_rate=config.get('learning_rate', 0.0003),
+        gamma=config.get('gamma', 0.99),
+        gae_lambda=config.get('gae_lambda', 0.95),
+        clip_range=config.get('clip_range', 0.2),
+        entropy_coef=config.get('entropy_coef', 0.01),
+        value_loss_coef=config.get('value_coef', 0.5),
+        batch_size=config.get('batch_size', 32),
+        n_epochs=config.get('update_epochs', 10),
+        transformer_layers=config.get('transformer_layers', 4),
+        attention_dim=int(config.get('attention_dim', 256))  # Convert to int
     )
     
     logger.info("Starting training...")
@@ -176,7 +184,7 @@ def train_standalone():
         
         while not done and step < config['max_steps']:
             # Get action from algorithm
-            action = algorithm.select_action(state)
+            action = algorithm.get_action(state)
             
             # Take step in environment
             next_state, reward, done, info = env.step(action)
@@ -190,7 +198,7 @@ def train_standalone():
             step += 1
         
         # Train algorithm
-        if len(algorithm.memory) >= config['batch_size']:
+        if len(algorithm.experience_buffer) >= config['batch_size']:
             algorithm.train()
         
         all_rewards.append(episode_reward)
@@ -206,10 +214,10 @@ def train_standalone():
     model_path = model_dir / f"{ticker}_ane_ppo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pt"
     
     torch.save({
-        'model_state_dict': algorithm.actor_critic.state_dict(),
+        'model_state_dict': algorithm.policy_network.state_dict(),
         'config': config,
         'final_rewards': all_rewards[-20:],
-        'state_dim': state_dim,
+        'state_dim': algorithm.input_dim,
         'action_dim': 3
     }, model_path)
     
