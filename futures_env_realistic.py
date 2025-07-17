@@ -218,6 +218,9 @@ class RealisticFuturesEnv(gym.Env):
         if self.current_position != 0:
             self.holding_time += 1
         
+        # Store position before action for reward calculation
+        self.last_position = self.current_position
+        
         # Map action to function
         if action == 0:
             self.buy(state)
@@ -288,7 +291,6 @@ class RealisticFuturesEnv(gym.Env):
             
         elif self.current_position == 0:
             # Opening long position
-            self.last_position = self.current_position
             self.current_position = 1
             self.entry_price = self._apply_slippage(state.price, 1)
             self.entry_time = state.ts
@@ -348,7 +350,6 @@ class RealisticFuturesEnv(gym.Env):
             
         elif self.current_position == 0:
             # Opening short position
-            self.last_position = self.current_position
             self.current_position = -1
             self.entry_price = self._apply_slippage(state.price, -1)
             self.entry_time = state.ts
