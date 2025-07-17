@@ -64,13 +64,22 @@ class SimpleDataLoader:
         
         # Convert timestamp if it's in nanoseconds
         if 'timestamp' in df.columns:
-            # Check if timestamp is in nanoseconds (very large numbers)
-            if df['timestamp'].iloc[0] > 1e15:
-                logger.info("Converting nanosecond timestamps to datetime...")
-                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ns')
-            elif not pd.api.types.is_datetime64_any_dtype(df['timestamp']):
-                # Try to convert to datetime if not already
-                df['timestamp'] = pd.to_datetime(df['timestamp'])
+            # First, try to convert timestamp to numeric to check if it's nanoseconds
+            try:
+                # Convert to numeric for comparison
+                first_timestamp = pd.to_numeric(df['timestamp'].iloc[0])
+                
+                # Check if timestamp is in nanoseconds (very large numbers)
+                if first_timestamp > 1e15:
+                    logger.info("Converting nanosecond timestamps to datetime...")
+                    df['timestamp'] = pd.to_datetime(df['timestamp'].astype(float), unit='ns')
+                elif not pd.api.types.is_datetime64_any_dtype(df['timestamp']):
+                    # Try to convert to datetime if not already
+                    df['timestamp'] = pd.to_datetime(df['timestamp'])
+            except (ValueError, TypeError):
+                # If conversion to numeric fails, try direct datetime conversion
+                if not pd.api.types.is_datetime64_any_dtype(df['timestamp']):
+                    df['timestamp'] = pd.to_datetime(df['timestamp'])
                 
         logger.info(f"Loaded {len(df)} rows")
         if 'timestamp' in df.columns:
