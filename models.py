@@ -1,13 +1,18 @@
 from app import db
 from datetime import datetime
 from sqlalchemy import Text, Float, Integer, DateTime, String, Boolean, JSON
+import pytz
+
+# Helper function for timezone-aware UTC timestamps
+def utc_now():
+    return datetime.now(pytz.UTC)
 
 class TradingSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_name = db.Column(db.String(100), nullable=False)
     algorithm_type = db.Column(db.String(50), nullable=False)
     parameters = db.Column(JSON)
-    start_time = db.Column(db.DateTime, default=datetime.utcnow)
+    start_time = db.Column(db.DateTime, default=utc_now)
     end_time = db.Column(db.DateTime)
     status = db.Column(db.String(20), default='active')
     total_episodes = db.Column(db.Integer, default=0)
@@ -47,7 +52,7 @@ class TrainingMetrics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.Integer, db.ForeignKey('trading_session.id'), nullable=False)
     episode = db.Column(db.Integer, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=utc_now)
     reward = db.Column(db.Float, nullable=False)
     loss = db.Column(db.Float)
     epsilon = db.Column(db.Float)
@@ -62,5 +67,5 @@ class AlgorithmConfig(db.Model):
     parameters = db.Column(JSON, nullable=False)
     description = db.Column(Text)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utc_now)
+    updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
