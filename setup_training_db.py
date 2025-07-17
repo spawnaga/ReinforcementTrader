@@ -4,6 +4,10 @@ Setup PostgreSQL database schemas for training tracking
 import os
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 def setup_database():
     """Create all necessary tables for training tracking"""
