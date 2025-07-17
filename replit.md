@@ -106,6 +106,28 @@ Preferred communication style: Simple, everyday language.
 - **System Health**: Real-time resource monitoring with detailed debug logs
 - **WebSocket Debugging**: Full broadcast loop tracking with iteration counters
 
+## Recent Updates (July 17, 2025 - Latest)
+
+### Major Project Cleanup (July 17, 2025 - 15:00)
+- **Removed 60+ Duplicate Files**: Cleaned up redundant debug scripts, test files, and installation scripts
+  - Removed duplicate debug scripts (debug_11725_reward.py, debug_1214_reward.py, etc.)
+  - Removed obsolete test files (test_11725_bug.py, test_env_return_bug.py, etc.)
+  - Removed duplicate database scripts (clean_db.py, setup_database.py, etc.)
+  - Removed duplicate installation scripts (install_all_deps.sh, manual_setup_gpu.sh, etc.)
+  - Cleaned attached_assets directory and Python cache files
+  - Created backup in backup_before_cleanup/ directory
+- **Fixed setuptools Configuration**: Updated pyproject.toml to properly define packages
+  - Changed project name to "reinforcement-trader"
+  - Added tool.setuptools configuration to specify only gym_futures and rl_algorithms as packages
+  - Resolved "Multiple top-level packages discovered" error
+- **Database Schema Fixes**: Created fix_database_tables.py to add missing tables
+  - Adds algorithm_config table with default configurations
+  - Fixes market_data table missing 'symbol' column
+  - Creates cont_fut table for futures contracts
+- **Reward Bug Analysis**: The 1214.79 values in logs are portfolio values being incorrectly logged as rewards
+  - This happens after episode 60 when agent stops trading (0 trades)
+  - Created fix_reward_logging_bug.py for analysis
+
 ## Recent Updates (July 17, 2025)
 
 ### Critical 11,725 Reward Bug Fixed (July 17, 2025)
