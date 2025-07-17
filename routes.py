@@ -13,9 +13,8 @@ import websocket_handler
 
 logger = logging.getLogger(__name__)
 
-# Initialize trading engine here to avoid circular imports
-from trading_engine import TradingEngine
-trading_engine = TradingEngine()
+# Trading engine will be initialized later to avoid circular imports
+trading_engine = None
 
 # ---------------------------------------------------------------------------
 # API Health Check and Root
@@ -55,6 +54,14 @@ def training_dashboard():
 # Training Control API Endpoints
 # ---------------------------------------------------------------------------
 
+def get_trading_engine():
+    """Get or create trading engine instance"""
+    global trading_engine
+    if trading_engine is None:
+        from trading_engine import TradingEngine
+        trading_engine = TradingEngine()
+    return trading_engine
+
 @app.route('/api/start_training', methods=['POST'])
 @retry_on_db_error()
 def start_training():
@@ -77,7 +84,7 @@ def start_training():
         logger.info(f"Created training session with ID: {session.id}")
         
         # Start training in background
-        success = trading_engine.start_training(session.id, data)
+        success = get_trading_engine().start_training(session.id, data)
         
         if success:
             logger.info(f"Training started successfully for session {session.id}")
@@ -114,7 +121,7 @@ def stop_training():
             session.end_time = datetime.now(timezone.utc)
             db.session.commit()
             
-            trading_engine.stop_training(session_id)
+            get_trading_engine().stop_training(session_id)
             
             return jsonify({
                 'success': True,
@@ -248,7 +255,7 @@ def handle_session(session_id):
                 
             # Stop training if active
             if session.status == 'active':
-                trading_engine.stop_training(session_id)
+                get_trading_engine().stop_training(session_id)
                 
             # Delete related data
             Trade.query.filter_by(session_id=session_id).delete()
@@ -287,7 +294,7 @@ def start_session(session_id):
         if 'dataConfig' in data:
             config['parameters']['dataConfig'] = data['dataConfig']
         
-        success = trading_engine.start_training(session_id, config)
+        success = get_trading_engine().start_training(session_id, config)
         
         if success:
             session.status = 'active'
@@ -309,7 +316,7 @@ def pause_session(session_id):
         if not session:
             return jsonify({'error': 'Session not found'}), 404
             
-        trading_engine.pause_training(session_id)
+        get_trading_engine().pause_training(session_id)
         session.status = 'paused'
         db.session.commit()
         
@@ -328,7 +335,7 @@ def stop_session(session_id):
         if not session:
             return jsonify({'error': 'Session not found'}), 404
             
-        trading_engine.stop_training(session_id)
+        get_trading_engine().stop_training(session_id)
         session.status = 'stopped'
         session.end_time = datetime.now(timezone.utc)
         db.session.commit()

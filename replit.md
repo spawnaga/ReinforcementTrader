@@ -125,6 +125,9 @@ Preferred communication style: Simple, everyday language.
   - Cached loads: ~30 seconds
   - PostgreSQL integration for production-scale data management
 - **Created LOADING_LARGE_DATA_GUIDE.md**: Comprehensive guide for handling large datasets
+- **Added Cyclical Hour Features**: Implemented sin_hour and cos_hour indicators for cyclical hour encoding
+  - User can now exclude raw time features (hour, minute, day_of_week) while keeping all cyclical features
+  - Command supports: sin_time, cos_time, sin_weekday, cos_weekday, sin_hour, cos_hour
 
 ## Recent Updates (July 17, 2025)
 

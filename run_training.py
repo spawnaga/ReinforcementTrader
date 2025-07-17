@@ -96,7 +96,8 @@ def run_training(config: TradingConfig):
     train_df, test_df, contract = prepare_data(config)
     
     # Initialize trading engine
-    from app import trading_engine
+    from trading_engine import TradingEngine
+    trading_engine = TradingEngine()
     
     # Create algorithm config
     algorithm = config.get('algorithms.primary')

@@ -218,6 +218,12 @@ class TradingConfig:
             
     def get_indicators(self) -> List[str]:
         """Get combined list of all indicators to use"""
+        # If technical indicators are explicitly set (not default), use only those
+        technical = self.config['indicators']['technical']
+        if technical and technical != ['SMA', 'EMA', 'RSI', 'MACD', 'BB', 'ATR']:
+            # User has explicitly set indicators, use only those
+            return technical
+        # Otherwise combine time-based and technical
         return (self.config['indicators']['time_based'] + 
                 self.config['indicators']['technical'])
                 

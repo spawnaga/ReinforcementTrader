@@ -35,6 +35,8 @@ class TechnicalIndicators:
         'cos_time': 'Cosine of time of day (cyclical feature)',
         'sin_weekday': 'Sine of day of week (cyclical feature)', 
         'cos_weekday': 'Cosine of day of week (cyclical feature)',
+        'sin_hour': 'Sine of hour (cyclical feature)',
+        'cos_hour': 'Cosine of hour (cyclical feature)',
         'hour': 'Hour of day (0-23)',
         'minute': 'Minute of hour (0-59)',
         'day_of_week': 'Day of week (0-6, Monday=0)',
@@ -278,31 +280,40 @@ def add_time_based_indicators(df: pd.DataFrame, use_cudf: bool = False) -> pd.Da
             if HAS_CUDF and hasattr(minutes, 'to_pandas'):
                 minutes_np = minutes.to_pandas().values
                 weekday_np = weekday.to_pandas().values
+                hour_np = hour.to_pandas().values
             else:
                 minutes_np = minutes.values if hasattr(minutes, 'values') else np.array(minutes)
                 weekday_np = weekday.values if hasattr(weekday, 'values') else np.array(weekday)
+                hour_np = hour.values if hasattr(hour, 'values') else np.array(hour)
 
             # Ensure arrays are valid
             minutes_np = np.nan_to_num(minutes_np, nan=0.0)
             weekday_np = np.nan_to_num(weekday_np, nan=0.0)
+            hour_np = np.nan_to_num(hour_np, nan=0.0)
 
             # Perform trigonometric operations on CPU
             sin_time_vals = np.sin(2 * np.pi * (minutes_np / MINUTES_IN_DAY))
             cos_time_vals = np.cos(2 * np.pi * (minutes_np / MINUTES_IN_DAY))
             sin_weekday_vals = np.sin(2 * np.pi * (weekday_np / WEEKDAYS))
             cos_weekday_vals = np.cos(2 * np.pi * (weekday_np / WEEKDAYS))
+            sin_hour_vals = np.sin(2 * np.pi * (hour_np / 24))
+            cos_hour_vals = np.cos(2 * np.pi * (hour_np / 24))
 
             # Ensure no NaN values in trigonometric results
             sin_time_vals = np.nan_to_num(sin_time_vals, nan=0.0)
             cos_time_vals = np.nan_to_num(cos_time_vals, nan=1.0)
             sin_weekday_vals = np.nan_to_num(sin_weekday_vals, nan=0.0)
             cos_weekday_vals = np.nan_to_num(cos_weekday_vals, nan=1.0)
+            sin_hour_vals = np.nan_to_num(sin_hour_vals, nan=0.0)
+            cos_hour_vals = np.nan_to_num(cos_hour_vals, nan=1.0)
 
             # Assign back to dataframe
             df["sin_time"] = sin_time_vals
             df["cos_time"] = cos_time_vals
             df["sin_weekday"] = sin_weekday_vals
             df["cos_weekday"] = cos_weekday_vals
+            df["sin_hour"] = sin_hour_vals
+            df["cos_hour"] = cos_hour_vals
 
         except Exception as e:
             logger.warning(f"Trigonometric operations failed: {e}, using fallback")
