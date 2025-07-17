@@ -108,7 +108,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 17, 2025)
 
-### Agent Stops Trading After Episode 50 Investigation (July 17, 2025 - In Progress)
+### Agent Stops Trading After Episode 50 Investigation (July 17, 2025 - Ongoing)
 - **Issue Identified**: Agent completely stops trading (0 trades) after episode 50
   - Episodes 0-50: Agent trades actively (10 trades per episode)
   - Episodes 51+: Agent makes 0 trades but shows rewards of ~11,725-11,745
@@ -133,6 +133,12 @@ Preferred communication style: Simple, everyday language.
   - Environment was using DEFAULT values (max_trades=5) instead of curriculum values (10→7→5)
   - This explains why agent stopped trading after hitting 5 trades early in training
   - Fixed by passing ALL config parameters to RealisticFuturesEnv constructor
+- **Latest Updates (July 17, 2025)**:
+  - Fixed missing observation_space error in RealisticFuturesEnv by adding default shape (60,) when no states exist
+  - Created debug_11725_reward.py script to systematically investigate the mysterious 11,725 reward value
+  - Created test_nq_data.csv with 100 rows of realistic NQ futures data around 14,880 price level
+  - Confirmed training runs successfully with small episodes (1 episode, 10 steps shows normal rewards ~0.77)
+  - IndexError occurs when running many episodes due to insufficient test data (need more than 100 rows)
 
 ### Critical Reward Bug Fixes (July 17, 2025 - Latest)
 - **Fixed Duplicate Logging Issue**: Logs were appearing twice due to multiple setup_logging() calls
