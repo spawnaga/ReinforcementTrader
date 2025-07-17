@@ -144,6 +144,9 @@ class RealisticFuturesEnv(gym.Env):
         self.last_trade_index = -10  # Ensure minimum gap between trades
         self.trades_at_current_state = 0  # Prevent multiple trades at same state
         
+        # Episode tracking for curriculum learning
+        self.episode_number = 0
+        
         # Setup trading logger
         if enable_trading_logger:
             from trading_logger import TradingLogger
@@ -372,19 +375,25 @@ class RealisticFuturesEnv(gym.Env):
                 )
     
     def get_reward(self, state: TimeSeriesState) -> float:
-        """Calculate reward using realistic reward function"""
+        """Calculate reward using realistic reward function with shaping and exploration bonus"""
         # Small penalty for not trading to encourage action
         if self.trades_this_episode == 0 and self.current_index > 50:
             return -0.1  # Small penalty per step for not trading
         
-        # No reward for opening positions
+        # EXPLORATION BONUS: Small reward for opening positions in early episodes
+        # This encourages the agent to explore trading rather than staying flat
         if self.last_position == 0 and self.current_position != 0:
+            if hasattr(self, 'episode_number') and self.episode_number < 100:
+                # Larger exploration bonus in early episodes, decreasing over time
+                exploration_bonus = 0.5 * (1.0 - self.episode_number / 100.0)
+                return exploration_bonus
             return 0.0
         
         # Calculate reward for closed positions
         if self.current_position == 0 and self.last_position != 0:
+            base_reward = 0.0
             if self.last_position == 1:  # Closed long
-                return calculate_reward(
+                base_reward = calculate_reward(
                     timestamp=state.ts,
                     action='EXIT',
                     position_before=self.last_position,
@@ -398,7 +407,7 @@ class RealisticFuturesEnv(gym.Env):
                     tick_size=self.tick_size
                 )
             else:  # Closed short
-                return calculate_reward(
+                base_reward = calculate_reward(
                     timestamp=state.ts,
                     action='EXIT',
                     position_before=self.last_position,
@@ -411,6 +420,96 @@ class RealisticFuturesEnv(gym.Env):
                     session_id=self.session_id,
                     tick_size=self.tick_size
                 )
+            
+            # CURRICULUM-BASED REWARD SHAPING
+            if self.episode_number < 50:
+                # EASY STAGE: Big rewards for profitable trades, reduced penalties for losses
+                if base_reward > 0:
+                    # Add 40% bonus for profitable trades in early episodes
+                    profit_bonus = base_reward * 0.4
+                    # Add bigger fixed bonus for any profitable trade
+                    fixed_bonus = 25.0
+                    total_reward = base_reward + profit_bonus + fixed_bonus
+                    
+                    if self.trading_logger:
+                        self.trading_logger.log_reward_calculation(
+                            "CURRICULUM EASY: PROFITABLE TRADE",
+                            timestamp=state.ts,
+                            details={
+                                'episode': self.episode_number,
+                                'base_reward': base_reward,
+                                'profit_bonus': profit_bonus,
+                                'fixed_bonus': fixed_bonus,
+                                'total_reward': total_reward
+                            }
+                        )
+                    return total_reward
+                else:
+                    # Reduce losses by 30% to encourage exploration
+                    loss_reduction = abs(base_reward) * 0.3
+                    reduced_loss = base_reward + loss_reduction
+                    
+                    if self.trading_logger:
+                        self.trading_logger.log_reward_calculation(
+                            "CURRICULUM EASY: LOSS REDUCTION",
+                            timestamp=state.ts,
+                            details={
+                                'episode': self.episode_number,
+                                'base_loss': base_reward,
+                                'reduction': loss_reduction,
+                                'final_loss': reduced_loss
+                            }
+                        )
+                    return max(reduced_loss, -200.0)  # Cap losses at -$200 in easy mode
+                    
+            elif self.episode_number < 150:
+                # MEDIUM STAGE: Moderate bonuses
+                if base_reward > 0:
+                    profit_bonus = base_reward * 0.25
+                    fixed_bonus = 15.0
+                    total_reward = base_reward + profit_bonus + fixed_bonus
+                    
+                    if self.trading_logger:
+                        self.trading_logger.log_reward_calculation(
+                            "CURRICULUM MEDIUM: PROFITABLE TRADE",
+                            timestamp=state.ts,
+                            details={
+                                'episode': self.episode_number,
+                                'base_reward': base_reward,
+                                'profit_bonus': profit_bonus,
+                                'fixed_bonus': fixed_bonus,
+                                'total_reward': total_reward
+                            }
+                        )
+                    return total_reward
+                else:
+                    # Small loss reduction
+                    loss_reduction = abs(base_reward) * 0.15
+                    return max(base_reward + loss_reduction, -350.0)
+                    
+            else:
+                # HARD STAGE: Minimal bonuses (realistic)
+                if base_reward > 0:
+                    profit_bonus = base_reward * 0.1
+                    fixed_bonus = 5.0
+                    total_reward = base_reward + profit_bonus + fixed_bonus
+                    
+                    if self.trading_logger:
+                        self.trading_logger.log_reward_calculation(
+                            "CURRICULUM HARD: PROFITABLE TRADE",
+                            timestamp=state.ts,
+                            details={
+                                'episode': self.episode_number,
+                                'base_reward': base_reward,
+                                'profit_bonus': profit_bonus,
+                                'fixed_bonus': fixed_bonus,
+                                'total_reward': total_reward
+                            }
+                        )
+                    return total_reward
+                else:
+                    # Full losses, realistic trading
+                    return max(base_reward, -500.0)  # Cap losses at -$500 per trade
         
         # Small reward for holding (encourages patience) but penalize holding too long
         if self.current_position != 0 and self.entry_price is not None:
@@ -444,6 +543,10 @@ class RealisticFuturesEnv(gym.Env):
         # Handle seed if provided (for compatibility)
         if seed is not None:
             np.random.seed(seed)
+            
+        # CURRICULUM LEARNING: Adjust episode parameters based on episode number
+        self._apply_curriculum_learning()
+        
         self.current_index = 0
         self.done = False
         self.current_position = 0
@@ -462,6 +565,9 @@ class RealisticFuturesEnv(gym.Env):
         self.states_traded.clear()
         self.last_trade_index = -10
         self.trades_at_current_state = 0
+        
+        # Increment episode number for next episode
+        self.episode_number += 1
         
         if len(self.states) > 0:
             return self._get_observation(self.states[0])
@@ -493,6 +599,61 @@ class RealisticFuturesEnv(gym.Env):
             obs = np.append(obs, self.current_position)
         
         return obs.astype(np.float32)
+    
+    def _apply_curriculum_learning(self):
+        """Apply curriculum learning by adjusting difficulty based on episode number"""
+        # CURRICULUM STAGES:
+        # Stage 1 (Episodes 0-50): Easy - trending markets, more trades allowed, smaller penalties
+        # Stage 2 (Episodes 51-150): Medium - normal market conditions
+        # Stage 3 (Episodes 151+): Hard - more volatile markets, stricter constraints
+        
+        if self.episode_number < 50:
+            # EASY STAGE: Help agent learn basic trading
+            self.max_trades_per_episode = 10  # Allow more trades to explore
+            self.min_holding_periods = 5  # Shorter holding requirement
+            self.execution_cost_per_order = 2.5  # Lower costs
+            self.slippage_ticks = 1  # Less slippage
+            
+            # Select trending market data (easier to predict)
+            # In real implementation, this would filter for trending periods
+            # For now, we use the same data but with easier parameters
+            
+            if self.trading_logger:
+                self.trading_logger.info(f"CURRICULUM: Easy stage (Episode {self.episode_number})")
+                
+        elif self.episode_number < 150:
+            # MEDIUM STAGE: Normal trading conditions
+            self.max_trades_per_episode = 7  # Moderate trade limit
+            self.min_holding_periods = 8  # Medium holding period
+            self.execution_cost_per_order = 5.0  # Normal costs
+            self.slippage_ticks = 2  # Normal slippage
+            
+            if self.trading_logger:
+                self.trading_logger.info(f"CURRICULUM: Medium stage (Episode {self.episode_number})")
+                
+        else:
+            # HARD STAGE: Challenging conditions
+            self.max_trades_per_episode = 5  # Strict trade limit
+            self.min_holding_periods = 10  # Long holding period
+            self.execution_cost_per_order = 7.5  # Higher costs
+            self.slippage_ticks = 3  # More slippage
+            
+            # Could also:
+            # - Select more volatile market periods
+            # - Reduce episode length
+            # - Add market impact modeling
+            
+            if self.trading_logger:
+                self.trading_logger.info(f"CURRICULUM: Hard stage (Episode {self.episode_number})")
+        
+        # Gradually reduce episode length to make it harder
+        # Start with full data, then use less as training progresses
+        if self.episode_number < 50:
+            self.limit = min(len(self.states), 300)  # Shorter episodes initially
+        elif self.episode_number < 150:
+            self.limit = min(len(self.states), 200)  # Standard episode length
+        else:
+            self.limit = min(len(self.states), 150)  # Shorter, harder episodes
     
     def render(self, mode='human'):
         """Render the environment"""

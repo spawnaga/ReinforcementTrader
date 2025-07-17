@@ -36,6 +36,7 @@ def setup_logging():
     # 1. Trading Logger - All trade executions
     trading_logger = logging.getLogger('trading')
     trading_logger.setLevel(logging.INFO)
+    trading_logger.handlers.clear()
     trading_handler = logging.FileHandler(session_dir / 'trading.log')
     trading_handler.setFormatter(detailed_format)
     trading_logger.addHandler(trading_handler)
@@ -44,6 +45,7 @@ def setup_logging():
     # 2. Positions Logger - Position tracking
     positions_logger = logging.getLogger('positions')
     positions_logger.setLevel(logging.INFO)
+    positions_logger.handlers.clear()
     positions_handler = logging.FileHandler(session_dir / 'positions.log')
     positions_handler.setFormatter(simple_format)
     positions_logger.addHandler(positions_handler)
@@ -52,6 +54,7 @@ def setup_logging():
     # 3. Rewards Logger - Reward tracking and analysis
     rewards_logger = logging.getLogger('rewards')
     rewards_logger.setLevel(logging.INFO)
+    rewards_logger.handlers.clear()
     rewards_handler = logging.FileHandler(session_dir / 'rewards.log')
     rewards_handler.setFormatter(simple_format)
     rewards_logger.addHandler(rewards_handler)
@@ -60,6 +63,8 @@ def setup_logging():
     # 4. Algorithm Logger - Algorithm performance and decisions
     algorithm_logger = logging.getLogger('algorithm')
     algorithm_logger.setLevel(logging.INFO)
+    # Clear any existing handlers to prevent duplicates
+    algorithm_logger.handlers.clear()
     algorithm_handler = logging.FileHandler(session_dir / 'algorithm.log')
     algorithm_handler.setFormatter(detailed_format)
     algorithm_logger.addHandler(algorithm_handler)
@@ -68,6 +73,7 @@ def setup_logging():
     # 5. Performance Logger - High-level metrics
     performance_logger = logging.getLogger('performance')
     performance_logger.setLevel(logging.INFO)
+    performance_logger.handlers.clear()
     performance_handler = logging.FileHandler(session_dir / 'performance.log')
     performance_handler.setFormatter(simple_format)
     performance_logger.addHandler(performance_handler)

@@ -288,7 +288,8 @@ def train_standalone():
         logger.info(f"Multi-GPU training enabled with {len(gpu_ids)} GPUs")
     
     # Initialize professional logging and tracking
-    loggers = setup_logging()
+    # Use get_loggers() instead of setup_logging() to avoid duplicate handlers
+    loggers = get_loggers()
     # session_id already created above for use in FuturesEnv
     
     # Initialize PostgreSQL tracker
