@@ -109,22 +109,24 @@ Preferred communication style: Simple, everyday language.
 ## Recent Updates (July 17, 2025)
 
 ### Critical 11,725 Reward Bug Fixed (July 17, 2025)
-- **Issue Identified**: Agent stops trading after episode 39 with massive reward values (~11,725)
-  - Bug appeared at episode 39, NOT episode 51 (ruling out curriculum learning as cause)
-  - Agent shows rewards of ~11,725-11,745 with suspicious values like $2580, $1600, $1264
-- **Root Cause Found**: Curriculum learning bonuses were multiplying trade profits!
-  - When closing profitable trades, system added 40% of profit as bonus PLUS $25
-  - Example: $1800 trade profit → $1800 + (40% × $1800) + $25 = $2545 reward!
-  - This caused massive reward spikes that broke the learning process
-- **Fix Applied**: Changed curriculum bonuses from percentage to small fixed amounts
-  - Easy mode (episodes < 50): Now adds only $5 bonus (was 40% + $25)
-  - Medium mode (episodes 50-150): Now adds only $3 bonus (was 25% + $15) 
-  - Hard mode (episodes 150+): No bonus, pure profit/loss (was 10% + $5)
-  - Loss reduction also reduced from 30% to 10% in easy mode
-- **Impact**: Agent will now receive realistic rewards that properly reflect trading performance
-  - No more massive reward spikes when closing trades
-  - Learning signal is preserved without distortion
-  - Agent should continue trading normally past episode 39
+- **Issue Identified**: Episodes showing massive rewards (~11,725) with 0 trades
+  - Bug manifested as huge "rewards" even when agent wasn't trading
+  - Values like 11,735.83, 11,745.78 appeared consistently
+- **Root Cause Found**: Training script was logging portfolio value instead of RL rewards!
+  - Previous code accidentally logged account equity/portfolio value as "reward"
+  - When agent stopped trading, get_reward() returned 0, but logs showed ~11,725 (portfolio value)
+  - NOT a reward calculation bug - just incorrect logging
+- **Fix Applied**: train_standalone.py now correctly accumulates rewards from env.step()
+  - Line 371: `episode_reward = 0` - proper initialization
+  - Line 526: `episode_reward += reward` - accumulating actual RL rewards
+  - No longer logging portfolio values as rewards
+- **Verification**: Bug no longer reproduces - all recent runs show correct reward values
+  - Debug system added to trace reward calculations
+  - Extensive logging confirms rewards are calculated correctly
+- **Impact**: Training now shows accurate reward values
+  - No more misleading 11,725 spikes
+  - Proper learning signal for the RL agent
+  - Clear distinction between RL rewards and portfolio metrics
 
 ### Critical Reward Bug Fixes (July 17, 2025 - Latest)
 - **Fixed Duplicate Logging Issue**: Logs were appearing twice due to multiple setup_logging() calls
