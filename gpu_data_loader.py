@@ -91,9 +91,17 @@ class GPUDataLoader:
         file_size_mb = os.path.getsize(filepath) / (1024 * 1024)
         logger.info(f"Processing file: {filepath} (Size: {file_size_mb:.2f} MB)")
         
-        # Detect file format
-        is_txt = filepath.endswith('.txt')
-        sep = '\t' if is_txt else ','
+        # Detect separator by examining first line
+        with open(filepath, 'r') as f:
+            first_line = f.readline()
+        
+        # Check if comma or tab separated
+        if ',' in first_line:
+            sep = ','
+        elif '\t' in first_line:
+            sep = '\t'
+        else:
+            sep = ','  # Default to comma
         
         # For very large files, use chunked reading
         if file_size_mb > 100 or (max_rows and max_rows > 1000000):

@@ -166,13 +166,16 @@ class DataManager:
             return None
     
     def _load_from_file(self, symbol: str) -> Optional[pd.DataFrame]:
-        """Load data from CSV file using GPU-accelerated loader for large files"""
+        """Load data from CSV/TXT file using GPU-accelerated loader for large files"""
         try:
             # Look for various file formats including .txt files
             possible_files = [
                 f"{symbol}_1min.csv",
                 f"{symbol}_data.csv",
                 f"{symbol}.csv",
+                f"{symbol}_1min.txt",
+                f"{symbol}_data.txt",
+                f"{symbol}.txt",
                 f"{symbol}_test_data.txt",
                 f"{symbol}.txt",
                 "nq_data.csv",
