@@ -270,6 +270,10 @@ class ANEPPO:
         self.n_steps = n_steps
         self.batch_size = batch_size
         self.n_epochs = n_epochs
+        
+        # Multi-GPU support
+        self.use_multi_gpu = False
+        self.gpu_ids = []
 
         # Determine input dimension from environment
         self.input_dim = self._get_input_dimension()
@@ -281,6 +285,9 @@ class ANEPPO:
             attention_dim=attention_dim,
             transformer_layers=transformer_layers
         ).to(device)
+        
+        # Store original single-GPU model reference
+        self.single_gpu_model = self.policy_network
 
         self.optimizer = optim.Adam(self.policy_network.parameters(), lr=learning_rate)
         self.scheduler = optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=1000)
@@ -315,15 +322,39 @@ class ANEPPO:
         # Multi-GPU support flag
         self.multi_gpu_enabled = False
 
-    def enable_multi_gpu(self, gpu_count: int):
+    def enable_multi_gpu(self, gpu_ids=None):
         """Enable multi-GPU training using DataParallel"""
-        if gpu_count > 1 and torch.cuda.is_available():
-            try:
-                self.policy_network = nn.DataParallel(self.policy_network)
-                self.multi_gpu_enabled = True
-                logger.info(f"Multi-GPU training enabled with {gpu_count} GPUs")
-            except Exception as e:
-                logger.error(f"Failed to enable multi-GPU: {e}")
+        if not torch.cuda.is_available():
+            logger.warning("CUDA not available, cannot enable multi-GPU")
+            return
+        
+        # If gpu_ids not specified, use all available GPUs
+        if gpu_ids is None:
+            gpu_count = torch.cuda.device_count()
+            if gpu_count < 2:
+                logger.warning(f"Only {gpu_count} GPU(s) available, multi-GPU not needed")
+                return
+            gpu_ids = list(range(gpu_count))
+        
+        # Validate gpu_ids
+        if len(gpu_ids) < 2:
+            logger.warning(f"Only {len(gpu_ids)} GPU(s) specified, multi-GPU not needed")
+            return
+        
+        try:
+            logger.info(f"Enabling multi-GPU training on devices: {gpu_ids}")
+            self.policy_network = nn.DataParallel(self.policy_network, device_ids=gpu_ids)
+            self.multi_gpu_enabled = True
+            self.gpu_ids = gpu_ids
+            
+            # Log GPU information
+            for gpu_id in gpu_ids:
+                if gpu_id < torch.cuda.device_count():
+                    name = torch.cuda.get_device_name(gpu_id)
+                    mem = torch.cuda.get_device_properties(gpu_id).total_memory / 1024**3
+                    logger.info(f"  GPU {gpu_id}: {name} ({mem:.1f} GB)")
+        except Exception as e:
+            logger.error(f"Failed to enable multi-GPU: {e}")
     
     def _get_input_dimension(self) -> int:
         """Determine input dimension from environment"""
