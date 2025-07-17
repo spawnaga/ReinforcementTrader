@@ -40,6 +40,9 @@ def retry_on_db_error(max_retries=3, delay=0.5, backoff=2):
                 except Exception as e:
                     # For non-operational errors, raise immediately
                     raise
+            
+            # This should never be reached, but satisfies PyCharm's control flow analysis
+            raise OperationalError("Max retries exhausted")
                     
         return wrapper
     return decorator
