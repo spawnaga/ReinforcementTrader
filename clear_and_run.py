@@ -1,37 +1,59 @@
 #!/usr/bin/env python3
-"""Clear Python cache and run training"""
-
+"""
+Clear any stuck sessions and run training
+"""
 import os
 import sys
-import shutil
+import psycopg2
+from urllib.parse import urlparse
 
-# Clear __pycache__ directories
-print("Clearing Python cache...")
-for root, dirs, files in os.walk('.'):
-    if '__pycache__' in dirs:
-        pycache_path = os.path.join(root, '__pycache__')
-        print(f"Removing {pycache_path}")
-        shutil.rmtree(pycache_path)
+# Get database URL from environment
+from dotenv import load_dotenv
+load_dotenv()
 
-# Clear .pyc files
-for root, dirs, files in os.walk('.'):
-    for file in files:
-        if file.endswith('.pyc'):
-            pyc_path = os.path.join(root, file)
-            print(f"Removing {pyc_path}")
-            os.remove(pyc_path)
+DATABASE_URL = os.getenv('DATABASE_URL')
 
-print("✓ Cache cleared")
+def clear_active_sessions():
+    """Clear any stuck active sessions"""
+    try:
+        # Parse database URL
+        result = urlparse(DATABASE_URL)
+        
+        # Connect to database
+        conn = psycopg2.connect(
+            database=result.path[1:],
+            user=result.username,
+            password=result.password,
+            host=result.hostname,
+            port=result.port
+        )
+        
+        with conn.cursor() as cur:
+            # Update any active sessions to completed
+            cur.execute("""
+                UPDATE trading_sessions 
+                SET is_active = false, 
+                    end_time = CURRENT_TIMESTAMP 
+                WHERE is_active = true
+            """)
+            
+            rows_updated = cur.rowcount
+            conn.commit()
+            
+            if rows_updated > 0:
+                print(f"✓ Cleared {rows_updated} stuck session(s)")
+            else:
+                print("✓ No stuck sessions found")
+                
+        conn.close()
+        
+    except Exception as e:
+        print(f"Warning: Could not clear sessions: {e}")
+        print("Continuing anyway...")
 
-# Now run the training command
-print("\nStarting training...")
-os.system("""python trading_cli.py --train \
-    --algorithm ane_ppo \
-    --ticker NQ \
-    --data-source ./data/processed/NQ_train_processed.csv \
-    --device gpu \
-    --num-gpus 1 \
-    --use-transformer \
-    --use-genetic \
-    --episodes 100 \
-    --indicators sin_time cos_time sin_weekday cos_weekday sin_hour cos_hour SMA EMA RSI MACD BB ATR""")
+if __name__ == "__main__":
+    print("Clearing any stuck sessions...")
+    clear_active_sessions()
+    
+    print("\nStarting training...")
+    os.system("python train_local.py")
