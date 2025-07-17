@@ -1,6 +1,7 @@
 from app import db
 from datetime import datetime
 from sqlalchemy import Text, Float, Integer, DateTime, String, Boolean, JSON
+from sqlalchemy.ext.declarative import declared_attr
 import pytz
 
 # Helper function for timezone-aware UTC timestamps
@@ -69,3 +70,18 @@ class AlgorithmConfig(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=utc_now)
     updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
+
+# ContFut model (for futures contracts) - adding this to resolve the import error
+class ContFut(db.Model):
+    __tablename__ = 'cont_fut'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    symbol = db.Column(db.String(10), nullable=False, unique=True)
+    name = db.Column(db.String(100), nullable=False)
+    exchange = db.Column(db.String(20), nullable=False)
+    tick_size = db.Column(db.Float, nullable=False)
+    value_per_tick = db.Column(db.Float, nullable=False)
+    margin = db.Column(db.Float)
+    trading_hours = db.Column(db.String(100))
+    expiry_pattern = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=utc_now)
