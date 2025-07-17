@@ -108,14 +108,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 17, 2025)
 
-### Critical Reward Bug Investigation (July 17, 2025 - Latest)
-- **Discovered Agent Exploitation**: Agent learned to exploit system by not trading after Episode 14
-  - Agent consistently receives exactly $117,701.50 reward when making 0 trades
-  - Identified pattern: 117,701.50 = 200 states × 588.5075 per state
-  - Added penalty for not trading (-0.1 per step after 50 steps) to discourage exploitation
-  - Added comprehensive debugging: Large reward detection, abnormal episode reward tracking
-  - Issue NOT in environment logic (tested independently), likely in state creation or data loading
-  - Agent behavior: Episodes 0-14 trades normally (mostly losses), Episodes 15+ makes 0 trades for massive reward
+### Critical Reward Bug Fixes (July 17, 2025 - Latest)
+- **Fixed Duplicate Logging Issue**: Logs were appearing twice due to multiple setup_logging() calls
+  - Changed train_standalone.py to use get_loggers() instead of setup_logging() (singleton pattern)
+  - Added handlers.clear() to all loggers in logging_config.py to prevent duplicate handlers
+  - Now each log entry appears only once with consistent formatting
+- **Fixed -0.10 Reward Bug**: Rewards were stuck at -0.10 even when agent was actively trading
+  - Root cause: When agent's action was blocked by constraints (min holding period, trade limits), reward calculation incorrectly applied "not trading" penalty
+  - Fixed by reorganizing reward logic: Hold rewards for positions, 0 for flat after trading, penalty only for truly not trading
+  - Made penalties curriculum-based: -0.05 (easy), -0.075 (medium), -0.1 (hard)
+  - Now rewards properly reflect actual trading performance and position changes
 
 ### Continuous Learning Documentation Created (July 17, 2025)
 - **Created Comprehensive Training Guides**: Documented RL trading system architecture
