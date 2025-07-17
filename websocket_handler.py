@@ -9,12 +9,15 @@ emit = lambda *args, **kwargs: None
 join_room = lambda *args, **kwargs: None
 leave_room = lambda *args, **kwargs: None
 disconnect = lambda *args, **kwargs: None
-from app import app, trading_engine, db, socketio
+from app import app, db, socketio
 from models import TradingSession, TrainingMetrics, Trade
 import threading
 import time
 
 logger = logging.getLogger(__name__)
+
+# Import trading_engine from routes to avoid circular imports
+trading_engine = None
 
 # Active connections tracking
 active_connections = {}

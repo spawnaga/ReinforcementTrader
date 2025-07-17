@@ -50,11 +50,6 @@ logging.info("PostgreSQL configured for high-concurrency multi-GPU training")
 db.init_app(app)
 # socketio.init_app(app)  # Temporarily disabled
 
-# Initialize trading engine before importing routes to avoid circular imports
-from trading_engine import TradingEngine
-
-trading_engine = TradingEngine()
-
 with app.app_context():
     # Create all tables
     db.create_all()

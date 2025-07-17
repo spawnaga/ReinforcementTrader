@@ -1,6 +1,5 @@
 from flask import request, jsonify
-from app import app, trading_engine
-from app import db, socketio
+from app import app, db, socketio
 from models import TradingSession, Trade, MarketData, TrainingMetrics, AlgorithmConfig
 from datetime import datetime, timezone
 import json
@@ -13,6 +12,10 @@ from data_manager import DataManager
 import websocket_handler
 
 logger = logging.getLogger(__name__)
+
+# Initialize trading engine here to avoid circular imports
+from trading_engine import TradingEngine
+trading_engine = TradingEngine()
 
 # ---------------------------------------------------------------------------
 # API Health Check and Root
