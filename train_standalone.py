@@ -191,7 +191,7 @@ def train_standalone():
         'gae_lambda': 0.95,
         'clip_range': 0.2,
         'value_coef': 0.5,
-        'entropy_coef': 0.01,
+        'entropy_coef': 0.05,  # Increased from 0.01 to encourage exploration (Grok AI)
         'transformer_layers': args.transformer_layers,
         'attention_dim': args.attention_dim,
         'tick_size': 0.25,
@@ -204,7 +204,7 @@ def train_standalone():
         'gradient_accumulation_steps': args.gradient_accumulation_steps,
         'training_loops': args.training_loops,
         'epochs_per_loop': args.epochs_per_loop,
-        'max_trades_per_episode': 10,  # Default curriculum learning value
+        'max_trades_per_episode': 20,  # Increased from 10 to encourage trading (Grok AI)
         'fill_probability': 0.95  # Default fill probability
     }
     
@@ -274,11 +274,12 @@ def train_standalone():
         
         # Log normalization statistics
         logger.info(f"Normalizing {len(numeric_cols)} numeric columns.")
-        close_idx = numeric_cols.index('close') if 'close' in numeric_cols else 0
-        logger.info(
-            f"Example - close price: mean={scaler.mean_[close_idx]:.2f}, "
-            f"std={scaler.scale_[close_idx]:.2f}"
-        )
+        if 'close' in numeric_cols:
+            close_idx = numeric_cols.index('close')
+            logger.info(
+                f"Example - close price: mean={scaler.mean_[close_idx]:.2f}, "
+                f"std={scaler.scale_[close_idx]:.2f}"
+            )
     
     # Create states with sliding window
     states_created = 0
@@ -578,6 +579,15 @@ def train_standalone():
                     action_probs={'buy': 0.33, 'sell': 0.33, 'hold': 0.34},  # Placeholder
                     reward=reward
                 )
+            
+            # Validate rewards for no-trade episodes (Grok AI recommendation)
+            if hasattr(env, 'trades_this_episode') and env.trades_this_episode == 0 and reward != 0:
+                loggers['algorithm'].warning(
+                    f"Non-zero reward {reward:.2f} in no-trade episode {episode}, step {step}, "
+                    f"position: {env.current_position}, last_position: {env.last_position}"
+                )
+                # Force zero reward for no-trade situations
+                reward = 0.0
             
             # Store experience
             algorithm.store_experience(state, action, reward, next_state, done)
