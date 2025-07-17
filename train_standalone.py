@@ -43,8 +43,39 @@ class SimpleDataLoader:
     def load_csv(self, filepath):
         """Load data from CSV file"""
         logger.info(f"Loading data from {filepath}")
-        df = pd.read_csv(filepath)
+        
+        # First, check if file has headers by reading first line
+        with open(filepath, 'r') as f:
+            first_line = f.readline().strip()
+            
+        # Check if first value is a large number (nanosecond timestamp)
+        first_value = first_line.split(',')[0]
+        has_headers = not (first_value.isdigit() and len(first_value) > 15)
+        
+        if has_headers:
+            # Load with headers
+            df = pd.read_csv(filepath)
+        else:
+            # Load without headers and assign column names
+            # Based on user's data format
+            column_names = ['timestamp', 'open', 'high', 'low', 'close', 'volume'] + \
+                         [f'feature_{i}' for i in range(10)]  # Additional columns
+            df = pd.read_csv(filepath, header=None, names=column_names[:len(first_line.split(','))])
+        
+        # Convert timestamp if it's in nanoseconds
+        if 'timestamp' in df.columns:
+            # Check if timestamp is in nanoseconds (very large numbers)
+            if df['timestamp'].iloc[0] > 1e15:
+                logger.info("Converting nanosecond timestamps to datetime...")
+                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ns')
+            elif not pd.api.types.is_datetime64_any_dtype(df['timestamp']):
+                # Try to convert to datetime if not already
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                
         logger.info(f"Loaded {len(df)} rows")
+        if 'timestamp' in df.columns:
+            logger.info(f"Date range: {df['timestamp'].min()} to {df['timestamp'].max()}")
+        
         return df
 
 def parse_args():
