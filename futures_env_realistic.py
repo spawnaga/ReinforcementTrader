@@ -376,10 +376,6 @@ class RealisticFuturesEnv(gym.Env):
     
     def get_reward(self, state: TimeSeriesState) -> float:
         """Calculate reward using realistic reward function with shaping and exploration bonus"""
-        # Small penalty for not trading to encourage action
-        if self.trades_this_episode == 0 and self.current_index > 50:
-            return -0.1  # Small penalty per step for not trading
-        
         # EXPLORATION BONUS: Small reward for opening positions in early episodes
         # This encourages the agent to explore trading rather than staying flat
         if self.last_position == 0 and self.current_position != 0:
@@ -535,6 +531,20 @@ class RealisticFuturesEnv(gym.Env):
                 
             # Clip holding rewards to prevent exploitation
             return np.clip(hold_reward, -100, 100)
+        
+        # If we're flat and have made some trades, no penalty
+        if self.current_position == 0 and self.trades_this_episode > 0:
+            return 0.0
+            
+        # Small penalty for not trading to encourage action, but only if truly not trading
+        if self.trades_this_episode == 0 and self.current_index > 50:
+            # Curriculum-based penalty - smaller in early episodes
+            if self.episode_number < 50:
+                return -0.05  # Very small penalty in easy mode
+            elif self.episode_number < 150:
+                return -0.075  # Small penalty in medium mode
+            else:
+                return -0.1  # Normal penalty in hard mode
         
         return 0.0
     
