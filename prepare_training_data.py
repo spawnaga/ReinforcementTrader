@@ -63,8 +63,20 @@ def prepare_data_for_training(filepath=None):
     # Initialize technical indicators with dataframe
     ti = TechnicalIndicators(df)
     
-    # Add all indicators
-    df = ti.add_all_indicators()
+    # Add common indicators
+    # Get list of indicators to calculate
+    indicators_to_calculate = ['SMA', 'EMA', 'RSI', 'MACD', 'BB', 'ATR', 'STOCH', 'ROC', 'MOM']
+    
+    # Calculate indicators
+    df = ti.calculate_indicators(indicators_to_calculate, 
+                                sma_period=20,
+                                ema_period=20,
+                                rsi_period=14,
+                                atr_period=14,
+                                bb_period=20,
+                                stoch_fastk=14,
+                                roc_period=10,
+                                mom_period=10)
     
     logger.info(f"Added {len(df.columns) - 5} technical indicators")
     logger.info(f"Total features: {len(df.columns)}")
@@ -98,15 +110,22 @@ def prepare_data_for_training(filepath=None):
     processed_dir = Path('./data/processed')
     processed_dir.mkdir(exist_ok=True)
     
-    # Save files
-    train_file = processed_dir / 'NQ_train_processed.parquet'
-    test_file = processed_dir / 'NQ_test_processed.parquet'
+    # Save files in both CSV and Parquet format
+    train_csv_file = processed_dir / 'NQ_train_processed.csv'
+    test_csv_file = processed_dir / 'NQ_test_processed.csv'
+    train_parquet_file = processed_dir / 'NQ_train_processed.parquet'
+    test_parquet_file = processed_dir / 'NQ_test_processed.parquet'
     
-    train_df.to_parquet(train_file, compression='snappy')
-    test_df.to_parquet(test_file, compression='snappy')
+    # Save as CSV for train_standalone.py
+    train_df.to_csv(train_csv_file, index=False)
+    test_df.to_csv(test_csv_file, index=False)
     
-    logger.info(f"Saved training data to {train_file}")
-    logger.info(f"Saved test data to {test_file}")
+    # Also save as parquet for faster loading
+    train_df.to_parquet(train_parquet_file, compression='snappy')
+    test_df.to_parquet(test_parquet_file, compression='snappy')
+    
+    logger.info(f"Saved training data to {train_csv_file} and {train_parquet_file}")
+    logger.info(f"Saved test data to {test_csv_file} and {test_parquet_file}")
     
     # Step 6: Display summary
     logger.info("\n" + "="*60)
