@@ -159,7 +159,7 @@ class TimeSeriesState:
 logger = logging.getLogger('trading.rewards')
 
 def calculate_reward(timestamp, action, position_before, position_after, entry_price, exit_price, position_type,
-                     value_per_tick, execution_cost, session_id=None):
+                     value_per_tick, execution_cost, session_id=None, tick_size=0.25):
     if action != 'EXIT' or position_before == 0:
         return 0.0  # No reward/log for non-exits or exits without position
 
@@ -169,7 +169,7 @@ def calculate_reward(timestamp, action, position_before, position_after, entry_p
         return 0.0  # Safeguard for None cases
 
     price_diff = exit_price - entry_price if position_type == 'long' else entry_price - exit_price
-    n_ticks = price_diff / 0.25  # Assuming tick_size=0.25
+    n_ticks = price_diff / tick_size
     gross_profit = n_ticks * value_per_tick
     net_profit = gross_profit - execution_cost
 
@@ -200,4 +200,3 @@ def calculate_reward(timestamp, action, position_before, position_after, entry_p
         logger.error(f"Logging failed: {e}. Partial data: {reward_details}")
 
     return reward
-

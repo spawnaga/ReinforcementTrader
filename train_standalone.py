@@ -202,7 +202,9 @@ def train_standalone():
         'gpu_ids': gpu_ids,
         'gradient_accumulation_steps': args.gradient_accumulation_steps,
         'training_loops': args.training_loops,
-        'epochs_per_loop': args.epochs_per_loop
+        'epochs_per_loop': args.epochs_per_loop,
+        'max_trades_per_episode': 10,  # Default curriculum learning value
+        'fill_probability': 0.95  # Default fill probability
     }
     
     logger.info(f"Starting {ticker} training on {device}")
@@ -285,12 +287,16 @@ def train_standalone():
     # Generate session ID early for use in environment
     session_id = datetime.now().strftime('%Y%m%d_%H%M%S') + '_' + str(uuid.uuid4())[:8]
     
-    # Create environment with session_id and disable old trading logger
+    # Create environment with ALL config parameters - CRITICAL FIX
     env = RealisticFuturesEnv(
         states=states,
         value_per_tick=config['value_per_tick'],
         tick_size=config['tick_size'],
         execution_cost_per_order=config['execution_cost_per_order'],
+        min_holding_periods=config['min_holding_periods'],
+        max_trades_per_episode=config['max_trades_per_episode'], 
+        slippage_ticks=config['slippage_ticks'],
+        fill_probability=config.get('fill_probability', 0.95),
         session_id=session_id,
         enable_trading_logger=False  # Use our new logging system instead
     )
@@ -366,10 +372,17 @@ def train_standalone():
         done = False
         step = 0
         
+        # Debug: Check initial state
+        if episode > 45:  # Debug episodes around 50
+            loggers['algorithm'].debug(f"Episode {episode} started, curriculum stage: {env.episode_number}")
+        
         # Create step progress bar
         step_pbar = tqdm(total=config['max_steps'], desc=f"Episode {episode+1}", 
                         unit="steps", leave=False,
                         bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}]')
+        
+        # Debug: Track rewards for no-trade episodes
+        step_rewards = [] if (episode > 45 and episode < 55) else None
         
         while not done and step < config['max_steps']:
             # Get action from algorithm
@@ -402,6 +415,25 @@ def train_standalone():
             
             # Take step in environment
             next_state, reward, done, info = env.step(action)
+            
+            # Debug: Check if reward is actually a large value from env
+            if episode >= 50 and abs(reward) > 100:
+                loggers['algorithm'].error(
+                    f"Episode {episode} LARGE RAW REWARD from env.step(): reward={reward:.2f}"
+                )
+                # Check if it's close to our suspicious value divided by steps
+                if abs(reward - 11725/200) < 10 or abs(reward - 11725/150) < 10:
+                    loggers['algorithm'].error(
+                        f"*** FOUND IT: Reward {reward:.2f} could accumulate to ~11725! ***"
+                    )
+            
+            # Debug specific episode 52
+            if episode == 52 and step < 10:
+                loggers['algorithm'].error(
+                    f"Episode 52 TRACE - Step {step}: action={action_names[action]}, "
+                    f"raw_reward={reward:.2f}, position={env.current_position}, "
+                    f"trades={env.trades_this_episode}, done={done}"
+                )
             
             # Debug large rewards
             if abs(reward) > 1000:
@@ -494,6 +526,17 @@ def train_standalone():
             episode_reward += reward
             step += 1
             
+            # Debug: Track rewards for suspicious episodes
+            if step_rewards is not None:
+                step_rewards.append(reward)
+                
+            # Debug: Track large step rewards and suspicious accumulation
+            if abs(reward) > 100 or (episode > 45 and step < 5):
+                loggers['algorithm'].debug(
+                    f"Episode {episode}, Step {step}: reward={reward:.2f}, "
+                    f"episode_reward={episode_reward:.2f}, trades={env.trades_this_episode}"
+                )
+            
             # Debug check for massive rewards
             if abs(episode_reward) > 100000 and env.trades_this_episode == 0:
                 loggers['algorithm'].error(
@@ -524,11 +567,42 @@ def train_standalone():
         all_rewards.append(episode_reward)
         
         # Debug reward accumulation
-        if abs(episode_reward) > 10000:
-            loggers['algorithm'].error(
-                f"ABNORMAL EPISODE REWARD: ${episode_reward:.2f} | "
-                f"Steps: {step} | Trades: {env.trades_this_episode if hasattr(env, 'trades_this_episode') else 'N/A'}"
+        if abs(episode_reward) > 10000 or (episode > 45 and env.trades_this_episode == 0):
+            loggers['algorithm'].warning(
+                f"Episode {episode} completed with unusual reward: ${episode_reward:.2f} | "
+                f"Steps: {step} | Trades: {env.trades_this_episode if hasattr(env, 'trades_this_episode') else 'N/A'} | "
+                f"First reward: {all_rewards[0] if all_rewards else 'N/A'}"
             )
+            
+            # Log detailed step rewards for debugging
+            if step_rewards is not None and env.trades_this_episode == 0:
+                loggers['algorithm'].warning(
+                    f"Step rewards analysis for no-trade episode {episode}:"
+                )
+                loggers['algorithm'].warning(
+                    f"  First 10 rewards: {step_rewards[:10] if len(step_rewards) >= 10 else step_rewards}"
+                )
+                loggers['algorithm'].warning(
+                    f"  Sum of all rewards: {sum(step_rewards):.2f}"
+                )
+                loggers['algorithm'].warning(
+                    f"  Number of non-zero rewards: {sum(1 for r in step_rewards if r != 0)}"
+                )
+                
+            # Check if observation contains large values
+            if abs(episode_reward) > 10000:
+                loggers['algorithm'].error(
+                    f"Episode {episode} ANOMALY: Checking state values..."
+                )
+                if hasattr(state, 'shape'):
+                    loggers['algorithm'].error(f"  State shape: {state.shape}")
+                    loggers['algorithm'].error(f"  State min: {np.min(state):.2f}, max: {np.max(state):.2f}")
+                    # Check for values close to episode_reward
+                    for i, val in enumerate(state):
+                        if abs(val - episode_reward) < 100:
+                            loggers['algorithm'].error(
+                                f"  State[{i}] = {val:.2f} is suspiciously close to episode_reward {episode_reward:.2f}!"
+                            )
         
         # Update episode progress bar
         avg_reward = sum(all_rewards[-10:]) / min(10, len(all_rewards))

@@ -177,9 +177,25 @@ class RealisticFuturesEnv(gym.Env):
             self.observation_space = spaces.Box(
                 low=-np.inf, high=np.inf, shape=state_shape, dtype=np.float32
             )
+        else:
+            # Default observation space when no states are available
+            default_shape = (60 + 1,) if self.add_current_position_to_state else (60,)
+            self.observation_space = spaces.Box(
+                low=-np.inf, high=np.inf, shape=default_shape, dtype=np.float32
+            )
     
     def _can_trade(self) -> bool:
         """Check if trading is allowed based on constraints"""
+        # Debug for episode 52
+        if hasattr(self, 'episode_number') and self.episode_number == 52 and self.current_index < 5:
+            trading_logger.error(
+                f"Episode 52 _can_trade CHECK at index {self.current_index}: "
+                f"states_traded={self.current_index in self.states_traded}, "
+                f"gap_check={self.current_index - self.last_trade_index}, "
+                f"trade_limit={self.trades_this_episode}/{self.max_trades_per_episode}, "
+                f"holding_check={self.holding_time}/{self.min_holding_periods} if position"
+            )
+        
         # Check if already traded at this state (anti-exploitation)
         if self.current_index in self.states_traded:
             trading_logger.debug(f"Already traded at state index {self.current_index}")
@@ -233,7 +249,30 @@ class RealisticFuturesEnv(gym.Env):
         
         # Get reward
         reward = self.get_reward(state)
+        
+        # CRITICAL DEBUG: Check if reward contains suspicious value
+        if abs(reward) > 50:  # Individual step rewards should never be this large
+            trading_logger.error(
+                f"SUSPICIOUS REWARD VALUE: Episode {self.episode_number}, Step {self.current_index}: "
+                f"get_reward() returned {reward:.2f} | price={state.price:.2f} | "
+                f"entry_price={self.entry_price} | total_net_profit={self.total_net_profit}"
+            )
+            # Check if reward is accidentally a price value
+            if abs(reward - state.price) < 1 or abs(reward - state.price*4) < 1:
+                trading_logger.error(
+                    f"*** BUG FOUND: Reward {reward:.2f} looks like price data! ***"
+                )
+        
         self.total_reward += reward
+        
+        # Debug first step rewards in problematic episodes
+        if self.episode_number >= 50 and self.current_index < 3:
+            trading_logger.info(
+                f"Episode {self.episode_number}, Step {self.current_index}: "
+                f"action={action}, reward={reward:.2f}, total_reward={self.total_reward:.2f}, "
+                f"position={self.current_position}, last_position={self.last_position}, "
+                f"trades={self.trades_this_episode}"
+            )
         
         # Debug massive rewards
         if abs(self.total_reward) > 10000 and self.trades_this_episode == 0:
@@ -246,6 +285,12 @@ class RealisticFuturesEnv(gym.Env):
         self.current_index += 1
         if self.current_index >= self.limit:
             self.done = True
+            # Debug log when episode ends
+            if self.episode_number >= 50 and self.trades_this_episode == 0:
+                trading_logger.error(
+                    f"Episode {self.episode_number} ENDING: total_reward={self.total_reward:.2f}, "
+                    f"last step reward={reward:.2f}, trades={self.trades_this_episode}"
+                )
         
         # Get next observation
         if not self.done:
@@ -253,6 +298,14 @@ class RealisticFuturesEnv(gym.Env):
             obs = self._get_observation(next_state)
         else:
             obs = np.zeros(self.observation_space.shape)
+            
+        # Debug: Check if the observation contains large values
+        if self.episode_number >= 50 and abs(self.total_reward) > 10000:
+            if not self.done and np.max(np.abs(obs)) > 10000:
+                trading_logger.error(
+                    f"Episode {self.episode_number}, Step {self.current_index}: "
+                    f"Observation contains large value! Max abs value: {np.max(np.abs(obs)):.2f}"
+                )
         
         return obs, reward, self.done, {}
     
@@ -540,11 +593,20 @@ class RealisticFuturesEnv(gym.Env):
         if self.trades_this_episode == 0 and self.current_index > 50:
             # Curriculum-based penalty - smaller in early episodes
             if self.episode_number < 50:
-                return -0.05  # Very small penalty in easy mode
+                penalty = -0.05  # Very small penalty in easy mode
             elif self.episode_number < 150:
-                return -0.075  # Small penalty in medium mode
+                penalty = -0.075  # Small penalty in medium mode
             else:
-                return -0.1  # Normal penalty in hard mode
+                penalty = -0.1  # Normal penalty in hard mode
+                
+            # Debug logging for no-trade penalties
+            if self.trading_logger and self.current_index == 51:
+                self.trading_logger.info(
+                    f"NO TRADE PENALTY: Episode {self.episode_number}, "
+                    f"applying {penalty} penalty per step for not trading"
+                )
+            
+            return penalty
         
         return 0.0
     
@@ -553,6 +615,12 @@ class RealisticFuturesEnv(gym.Env):
         # Handle seed if provided (for compatibility)
         if seed is not None:
             np.random.seed(seed)
+            
+        # Debug log total_reward before reset
+        if hasattr(self, 'episode_number') and self.episode_number >= 50:
+            trading_logger.info(
+                f"RESET Episode {self.episode_number}: total_reward before reset = {getattr(self, 'total_reward', 'NOT SET')}"
+            )
             
         # CURRICULUM LEARNING: Adjust episode parameters based on episode number
         self._apply_curriculum_learning()
@@ -571,13 +639,25 @@ class RealisticFuturesEnv(gym.Env):
         self._last_closed_entry_price = None
         self._last_closed_exit_price = None
         
-        # Reset anti-exploitation tracking
-        self.states_traded.clear()
-        self.last_trade_index = -10
-        self.trades_at_current_state = 0
+        # CRITICAL FIX: Reset anti-exploitation tracking for new episode
+        self.states_traded.clear()  # Clear the set of traded indices
+        self.last_trade_index = -10  # Reset to allow immediate trading
+        self.trades_at_current_state = 0  # Reset trades at current state
         
         # Increment episode number for next episode
         self.episode_number += 1
+        
+        # Debug log reset state for episodes with issues
+        if self.episode_number >= 50:
+            trading_logger.info(
+                f"Episode {self.episode_number} RESET COMPLETE: "
+                f"trades_this_episode={self.trades_this_episode}, "
+                f"last_trade_index={self.last_trade_index}, "
+                f"states_traded={len(self.states_traded)}, "
+                f"total_reward={self.total_reward}, "
+                f"max_trades={self.max_trades_per_episode}, "
+                f"min_holding={self.min_holding_periods}"
+            )
         
         if len(self.states) > 0:
             return self._get_observation(self.states[0])
