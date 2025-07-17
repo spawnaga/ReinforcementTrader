@@ -304,14 +304,14 @@ class FuturesEnv(gym.Env):
 
             # Log trade entry to file
             trading_logger.debug(
-                f"TRADE ENTRY: timestamp={state.ts}, position_type=LONG, entry_price={self.entry_price}, state_info={{'current_price': {state.price}, 'position_before': 0, 'position_after': 1}}")
+                f"TRADE ENTRY: timestamp={state.ts}, position_type=LONG, entry_price={self.entry_price}, target_price={state.price}, state_info={{'current_price': {state.price}, 'position_before': 0, 'position_after': 1}}")
 
             if self.trading_logger:
                 self.trading_logger.log_trade_entry(
                     timestamp=state.ts,
                     position_type='LONG',
                     entry_price=self.entry_price,
-                    target_price=None,  # Let RL agent decide exit
+                    target_price=state.price,
                     session_id=self.session_id,
                     state_info={'current_price': state.price, 'position_before': 0, 'position_after': 1}
                 )
@@ -324,14 +324,14 @@ class FuturesEnv(gym.Env):
                 )
 
     def sell(self, state: TimeSeriesState):
-        """generates a sell order"""
+        """Creates a sell order"""
         if self.current_position == -1:
-            # does not perform a sell
+            # already short, so does nothing
             pass
-
         elif self.current_position == 1:
             self.last_position = self.current_position
             self.current_position = 0
+
             self.exit_price = self.generate_random_fill_differential(state.price, -1)
             self.exit_time = state.ts
             self.exit_id = str(uuid4())
@@ -383,14 +383,14 @@ class FuturesEnv(gym.Env):
 
             # Log trade entry to file
             trading_logger.debug(
-                f"TRADE ENTRY: timestamp={state.ts}, position_type=SHORT, entry_price={self.entry_price}, state_info={{'current_price': {state.price}, 'position_before': 0, 'position_after': -1}}")
+                f"TRADE ENTRY: timestamp={state.ts}, position_type=SHORT, entry_price={self.entry_price}, target_price={state.price}, state_info={{'current_price': {state.price}, 'position_before': 0, 'position_after': -1}}")
 
             if self.trading_logger:
                 self.trading_logger.log_trade_entry(
                     timestamp=state.ts,
                     position_type='SHORT',
                     entry_price=self.entry_price,
-                    target_price=None,  # Let RL agent decide exit
+                    target_price=state.price,
                     session_id=self.session_id,
                     state_info={'current_price': state.price, 'position_before': 0, 'position_after': -1}
                 )
@@ -404,353 +404,192 @@ class FuturesEnv(gym.Env):
 
     def get_reward(self, state: TimeSeriesState) -> float:
         """
-        This environments default reward function. Override this class and method for a custom reward function
+        Reward of: 
+          - current state if position is flat
+          - (current price - avg_price) if position is long
+          - (avg_price - current_price) if position is short
+        times net P&L conversion
+
+        Returns
+        -------
+        reward: float
+          The reward for the current state
         """
-        net_profit = 0
-        if any([all([self.current_position == 0, self.last_position == 0]),
-                all([self.current_position == 1, self.last_position == 0]),
-                all([self.current_position == -1, self.last_position == 0])]):
-            # No reward for no action taken or opening a position (unless you want unrealized for holds)
-            if self.current_position != 0 and self.entry_price is not None:
-                # Optional: Reward unrealized profit for open positions
-                position_type = 'long' if self.current_position == 1 else 'short'
-                net_profit = calculate_reward(
+        # If the position changed this step, calculate the trade P&L
+        if self.current_position == 0 and self.last_position != 0:
+            # Just closed a position - use the stored entry/exit prices
+            if self._last_closed_entry_price is not None and self._last_closed_exit_price is not None:
+                position_type = 'long' if self.last_position == 1 else 'short'
+                reward = calculate_reward(
                     timestamp=state.ts,
-                    action='HOLD',
-                    position_before=self.current_position,
+                    action='EXIT',
+                    position_before=self.last_position,
                     position_after=self.current_position,
-                    entry_price=self.entry_price,
-                    exit_price=state.price,
+                    entry_price=self._last_closed_entry_price,
+                    exit_price=self._last_closed_exit_price,
                     position_type=position_type,
                     value_per_tick=self.value_per_tick,
-                    execution_cost=0,  # No cost for hold
+                    execution_cost=2 * self.execution_cost_per_order,
                     session_id=self.session_id,
                     tick_size=self.tick_size
                 )
-            return net_profit
-
-        else:
-            if all([self.current_position == 0, self.last_position == 1]):
-                # closed a long
-                # Use stored prices if current prices are None (after position was closed)
-                exit_price = self._last_closed_exit_price if self.exit_price is None else self.exit_price
-                entry_price = self._last_closed_entry_price if self.entry_price is None else self.entry_price
-
-                if exit_price is not None and entry_price is not None:
-                    # Call the function here for closed trade
-                    net_profit = calculate_reward(
+                # Log the reward
+                if self.trading_logger:
+                    self.trading_logger.log_reward_calculation(
+                        "TRADE EXIT REWARD",
                         timestamp=state.ts,
-                        action='EXIT',
-                        position_before=self.last_position,
-                        position_after=self.current_position,
-                        entry_price=entry_price,
-                        exit_price=exit_price,
-                        position_type='long',
-                        value_per_tick=self.value_per_tick,
-                        execution_cost=2 * self.execution_cost_per_order,
-                        session_id=self.session_id,
-                        tick_size=self.tick_size
+                        details={
+                            'position_type': position_type,
+                            'entry_price': self._last_closed_entry_price,
+                            'exit_price': self._last_closed_exit_price,
+                            'reward': reward,
+                            'session_id': self.session_id
+                        }
                     )
-                else:
-                    logger.warning(f"Missing price data: exit_price={exit_price}, entry_price={entry_price}")
-                    # Log error to trading logger
-                    trading_logger.debug(
-                        f"REWARD ERROR: Missing price data: exit_price={exit_price}, entry_price={entry_price}, position=LONG_CLOSED, state_price={state.price if state else None}, state_timestamp={state.ts if state else None}")
-                    if self.trading_logger:
-                        self.trading_logger.log_error(
-                            error_type="MISSING_PRICE_DATA",
-                            error_message=f"Cannot calculate reward - exit_price={exit_price}, entry_price={entry_price}",
-                            context={
-                                'position': 'LONG_CLOSED',
-                                'current_position': self.current_position,
-                                'last_position': self.last_position,
-                                'state_price': state.price if state else None,
-                                'state_timestamp': state.ts if state else None
-                            }
-                        )
-                    return 0
-            elif all([self.current_position == 0, self.last_position == -1]):
-                # closed a short
-                # Use stored prices if current prices are None (after position was closed)
-                exit_price = self._last_closed_exit_price if self.exit_price is None else self.exit_price
-                entry_price = self._last_closed_entry_price if self.entry_price is None else self.entry_price
-
-                if exit_price is not None and entry_price is not None:
-                    # Call the function here for closed trade
-                    net_profit = calculate_reward(
-                        timestamp=state.ts,
-                        action='EXIT',
-                        position_before=self.last_position,
-                        position_after=self.current_position,
-                        entry_price=entry_price,
-                        exit_price=exit_price,
-                        position_type='short',
-                        value_per_tick=self.value_per_tick,
-                        execution_cost=2 * self.execution_cost_per_order,
-                        session_id=self.session_id,
-                        tick_size=self.tick_size
-                    )
-                else:
-                    logger.warning(f"Missing price data: exit_price={exit_price}, entry_price={entry_price}")
-                    # Log error to trading logger
-                    trading_logger.debug(
-                        f"REWARD ERROR: Missing price data: exit_price={exit_price}, entry_price={entry_price}, position=SHORT_CLOSED, state_price={state.price if state else None}, state_timestamp={state.ts if state else None}")
-                    if self.trading_logger:
-                        self.trading_logger.log_error(
-                            error_type="MISSING_PRICE_DATA",
-                            error_message=f"Cannot calculate reward - exit_price={exit_price}, entry_price={entry_price}",
-                            context={
-                                'position': 'SHORT_CLOSED',
-                                'current_position': self.current_position,
-                                'last_position': self.last_position,
-                                'state_price': state.price if state else None,
-                                'state_timestamp': state.ts if state else None
-                            }
-                        )
-                    return 0
+                return reward
             else:
-                return net_profit
+                # Should not happen, but safeguard
+                return 0.0
+        
+        # Holding a position - calculate unrealized P&L (small reward for good positions)
+        elif self.current_position != 0 and self.entry_price is not None:
+            position_type = 'long' if self.current_position == 1 else 'short'
+            reward = calculate_reward(
+                timestamp=state.ts,
+                action='HOLD',
+                position_before=self.current_position,
+                position_after=self.current_position,
+                entry_price=self.entry_price,
+                exit_price=state.price,
+                position_type=position_type,
+                value_per_tick=self.value_per_tick,
+                execution_cost=0,  # No execution cost for holding
+                session_id=self.session_id,
+                tick_size=self.tick_size
+            )
+            return reward
+        
+        # Flat and not trading - no reward
+        else:
+            return 0.0
 
-            # Ensure net_profit is not None before adding
-            if net_profit is not None:
-                self.total_reward += net_profit
-            return net_profit
-
-    def generate_random_fill_differential(self, intended_price: float, side: int) -> float:
+    def generate_random_fill_differential(self, price: float, direction: int) -> float:
         """
-        Generate a random fill price based on the intended price and side
-
-        Args:
-            intended_price: The intended fill price
-            side: 1 for buy, -1 for sell
-
-        Returns:
-            Actual fill price
+        generates a random fill differential to simulate the dynamics of trading
+        
+        A buy order will fill at a higher price and sell order will fill at a lower price
         """
         if not self.can_generate_random_fills:
-            return intended_price
-
-        if side == 1:  # Buy order
-            differential = np.random.choice(self.long_values, p=self.long_probabilities)
-        else:  # Sell order
-            differential = np.random.choice(self.short_values, p=self.short_probabilities)
-
-        fill_price = intended_price + (differential * self.tick_size)
-        return round_to_nearest_increment(fill_price, self.tick_size)
+            return price
+        if direction == 1:
+            return round_to_nearest_increment(
+                np.random.choice(self.long_values, p=self.long_probabilities) + price,
+                self.tick_size
+            )
+        else:
+            return round_to_nearest_increment(
+                np.random.choice(self.short_values, p=self.short_probabilities) + price,
+                self.tick_size
+            )
 
     def step(self, action):
         """
-        This mimics OpenAIs training cycle, where the agent produces an action, and the action is provided to the step function of the environment.
-        The environment will return the expected (next_state, reward, done, info) tuple
-
-            _s == s' (next state)
-             s == s (the current state that the action is for)
-
+        Parameters
+        ----------
+        action: int
+          0 = buy, 1 = hold (do nothing), 2 = sell
+        
+        Returns
+        -------
+        state: np.array
+          array of prices up to the current position
+        reward: float
+          current step reward
+        done: bool
+          True if episode is over, False otherwise
         """
-        _s, s = self._get_next_state()
+        state = self.states[self.current_index]
+        self.current_price = state.price
 
-        if self.done:
-            if self.current_position != 0:
-                # Force close position at last price
-                if self.current_position == 1:
-                    self.sell(s)
-                    position_type = 'long'
-                elif self.current_position == -1:
-                    self.buy(s)
-                    position_type = 'short'
-                reward = self.get_reward(s)
-                info = {"message": f"episode end - forced close {position_type} position"}
-            else:
-                reward = 0.0
-                info = {"message": "episode end"}
-            return None, reward, True, info
+        # store position before action for reward calculation
+        self.last_position = self.current_position
 
-        current_state_price = s.price if s else None
-        next_state_price = _s.price if _s else current_state_price
-
+        # map action to function
         if action == 0:
-            # a buy action signal is received
-            if self.current_position == 1:
-                # a buy is recommended whilst in a long - no action
-                reward = self.get_reward(s)
-                info = {"message": "hold - a buy was recommended while in an open long position"}
-                return (_s, reward, self.done, info)
-            if self.current_position == 0:
-                # a buy is recommended by the agent whilst no position - creating a long
-                # this fills with pr(fill) == self.fill_probability
-                if np.random.choice(a=[0, 1],
-                                    size=1,
-                                    p=[1 - self.fill_probability, self.fill_probability])[0] == 1:
-
-                    self.buy(s)
-
-                    reward = self.get_reward(s)
-
-                    info = {
-                        "message": f"timestamp: {str(self.entry_time)}, long trade attempted at: {current_state_price}, filled at: {self.entry_price}"
-                    }
-                    return (_s, reward, self.done, info)
-                else:
-                    reward = 0
-                    info = {
-                        "message": "a long was recommended, but was not filled given the current fill probability"
-                    }
-                    return (_s, reward, self.done, info)
-
-            if self.current_position == -1:
-                # a buy is recommended by the agent whilst in a sell.
-                # This closes a short
-
-                self.buy(s)
-
-                reward = self.get_reward(s)
-
-                net_profit = reward
-
-                info = {
-                    "message": f"timestamp: {str(s.ts)}, short closed from {self.entry_price} to {self.exit_price} - total profit: {net_profit}"
-                }
-
-                self._close_position(reward, net_profit)
-
-                return (_s, reward, self.done, info)
-
-        elif action == 1:
-            # no action recommended
-            reward = self.get_reward(s)
-            info = {"message": "no action performed"}
-            return (_s, reward, self.done, info)
-
-
+            self.buy(state)
         elif action == 2:
-            # a sell signal is received
-            if self.current_position == 1:
-                # a sell is recommended by the agent whilst in a buy.
-                # This closes a long
+            self.sell(state)
+        # action == 1 is hold (do nothing)
 
-                self.sell(s)
+        # calculate reward
+        reward = self.get_reward(state)
+        self.total_reward += reward
 
-                reward = self.get_reward(s)
-
-                net_profit = reward
-
-                info = {
-                    "message": f"timestamp: {str(s.ts)}, long closed from {self.entry_price} to {self.exit_price} - total profit: {net_profit}"
-                }
-
-                self._close_position(reward, net_profit)
-
-                return (_s, reward, self.done, info)
-
-            if self.current_position == 0:
-                # a sell is recommended by the agent whilst no position - creating a short
-                # this fills with pr(fill) == self.fill_probability
-                if np.random.choice(a=[0, 1],
-                                    size=1,
-                                    p=[1 - self.fill_probability, self.fill_probability])[0] == 1:
-
-                    self.sell(s)
-
-                    reward = self.get_reward(s)
-
-                    info = {
-                        "message": f"timestamp: {str(self.entry_time)}, short trade attempted at: {current_state_price}, filled at: {self.entry_price}"
-                    }
-                    return (_s, reward, self.done, info)
-
-                else:
-                    reward = 0
-                    info = {
-                        "message": "a short was recommended, but was not filled given the current fill probability"
-                    }
-                    return (_s, reward, self.done, info)
-
-            if self.current_position == -1:
-                # a sell is recommended whilst in a short - no action
-                reward = self.get_reward(s)
-                info = {"message": "hold - a sell was recommended while in an open short position"}
-                return (_s, reward, self.done, info)
-
-    def _get_next_state(self) -> Tuple[TimeSeriesState, TimeSeriesState]:
-        """Get the next state and current state"""
-        if self.current_index >= len(self.states) - 1:
-            self.done = True
-            return None, self.states[self.current_index] if self.current_index < len(self.states) else None
-
-        current_state = self.states[self.current_index]
-        next_state = self.states[self.current_index + 1]
-
+        # check if we're done
         self.current_index += 1
+        if self.current_index >= self.limit:
+            self.done = True
 
-        return next_state, current_state
+        # get next observation
+        if not self.done:
+            next_state = self.states[self.current_index]
+            obs = self._get_observation(next_state)
+        else:
+            obs = None
 
-    def _close_position(self, reward: float, net_profit: float):
-        """Close the current position and record the trade"""
-        if self.entry_time and self.exit_time:
-            trade_record = [
-                self.entry_id,
-                self.entry_time,
-                self.entry_price,
-                self.exit_id,
-                self.exit_time,
-                self.exit_price,
-                net_profit,
-                self.last_position
-            ]
-            self.trades.append(trade_record)
+        return obs, reward, self.done, {}
 
-            # Reset position tracking
-            self.entry_time = None
-            self.entry_id = None
-            self.entry_price = None
-            self.exit_time = None
-            self.exit_id = None
-            self.exit_price = None
+    def _get_observation(self, state: TimeSeriesState):
+        """Get observation from state"""
+        if hasattr(state, 'data'):
+            if isinstance(state.data, np.ndarray):
+                return state.data.flatten().astype(np.float32)
+            elif hasattr(state.data, 'values'):
+                return state.data.values.flatten().astype(np.float32)
+            else:
+                return np.array(state.data).flatten().astype(np.float32)
+        else:
+            # Return price as a single feature if no other data
+            return np.array([state.price], dtype=np.float32)
 
-    def reset(self, e=None):
-        """Reset the environment to initial state"""
+    def reset(self):
+        """Reset the environment to the initial state"""
         self.done = False
         self.current_index = 0
-
         self.current_price = None
-        # attributes to maintain the current position
+        
+        # Reset positions
         self.current_position = 0
         self.last_position = 0
-
+        
+        # Reset entry/exit tracking
         self.entry_time = None
         self.entry_id = None
         self.entry_price = None
-
         self.exit_time = None
         self.exit_id = None
         self.exit_price = None
-
-        # Reset stored prices
         self._last_closed_entry_price = None
         self._last_closed_exit_price = None
-
+        
+        # Reset episode tracking
         self.total_reward = 0
         self.total_net_profit = 0
         self.orders = []
         self.trades = []
+        self.episode += 1
         self.feature_data = []
-
+        
+        # Get initial observation
         if self.states:
-            # Return the first state object directly for consistency with step()
-            initial_state = self.states[0]
-            return initial_state
-
-        # Return empty state if no states available
-        return None
+            return self._get_observation(self.states[0])
+        else:
+            return None
 
     def render(self, mode='human'):
-        """Render the environment"""
-        if mode == 'human':
-            print(f"Episode: {self.episode}")
-            print(f"Current Index: {self.current_index}")
-            print(f"Current Position: {self.current_position}")
-            print(f"Total Reward: {self.total_reward}")
-            print(f"Total Trades: {len(self.trades)}")
-            if self.trades:
-                profitable_trades = sum(1 for trade in self.trades if trade[6] > 0)
-                print(f"Profitable Trades: {profitable_trades}/{len(self.trades)}")
+        """Render the environment (not implemented)"""
+        pass
+    
+    def close(self):
+        """Close the environment"""
+        pass
