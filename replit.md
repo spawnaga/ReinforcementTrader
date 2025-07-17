@@ -155,7 +155,16 @@ Preferred communication style: Simple, everyday language.
   - Clear distinction between RL rewards and portfolio metrics
   - Old log files may still show the bug, but new runs are correct
 
-### Critical Reward Bug Fixes (July 17, 2025 - Latest)
+### Critical Reward Bug Fixes (July 17, 2025 - Latest) - RESOLVED
+- **Fixed 1214.79 Reward Bug with Grok AI Assistance**: Comprehensive fix implemented
+  - Root cause: State normalization was fitting independently per window + exploration bonuses in no-trade episodes
+  - Fixed state normalization to fit scaler once on entire training dataset
+  - Added reward validation to force zero rewards when trades_this_episode == 0
+  - Increased entropy coefficient (0.01 → 0.05) to encourage exploration
+  - Increased max_trades_per_episode (10 → 20) to prevent no-trade convergence
+  - Result: Agent now trades normally with proper rewards and no price-like values
+
+### Critical Reward Bug Fixes (July 17, 2025)
 - **Fixed AttributeError in Trading Logger**: Fixed 'NoneType' object has no attribute 'warning' at episode 57
   - Root cause: `self.trading_logger` was None when code tried to use warning() method
   - Fixed by adding null checks before using trading_logger in futures_env_realistic.py
