@@ -472,13 +472,12 @@ class RealisticFuturesEnv(gym.Env):
             
             # CURRICULUM-BASED REWARD SHAPING
             if self.episode_number < 50:
-                # EASY STAGE: Big rewards for profitable trades, reduced penalties for losses
+                # EASY STAGE: Small bonuses for profitable trades, reduced penalties for losses
                 if base_reward > 0:
-                    # Add 40% bonus for profitable trades in early episodes
-                    profit_bonus = base_reward * 0.4
-                    # Add bigger fixed bonus for any profitable trade
-                    fixed_bonus = 25.0
-                    total_reward = base_reward + profit_bonus + fixed_bonus
+                    # Add small fixed bonus for profitable trades (not percentage based!)
+                    # This encourages trading without distorting the reward signal
+                    fixed_bonus = 5.0  # Small $5 bonus for any profitable trade
+                    total_reward = base_reward + fixed_bonus
                     
                     if self.trading_logger:
                         self.trading_logger.log_reward_calculation(
@@ -487,15 +486,14 @@ class RealisticFuturesEnv(gym.Env):
                             details={
                                 'episode': self.episode_number,
                                 'base_reward': base_reward,
-                                'profit_bonus': profit_bonus,
                                 'fixed_bonus': fixed_bonus,
                                 'total_reward': total_reward
                             }
                         )
                     return total_reward
                 else:
-                    # Reduce losses by 30% to encourage exploration
-                    loss_reduction = abs(base_reward) * 0.3
+                    # Reduce losses by 10% to encourage exploration (not 30%!)
+                    loss_reduction = abs(base_reward) * 0.1
                     reduced_loss = base_reward + loss_reduction
                     
                     if self.trading_logger:
@@ -512,11 +510,11 @@ class RealisticFuturesEnv(gym.Env):
                     return max(reduced_loss, -200.0)  # Cap losses at -$200 in easy mode
                     
             elif self.episode_number < 150:
-                # MEDIUM STAGE: Moderate bonuses
+                # MEDIUM STAGE: Smaller bonuses
                 if base_reward > 0:
-                    profit_bonus = base_reward * 0.25
-                    fixed_bonus = 15.0
-                    total_reward = base_reward + profit_bonus + fixed_bonus
+                    # Small fixed bonus, no percentage multiplier
+                    fixed_bonus = 3.0  # $3 bonus for profitable trades
+                    total_reward = base_reward + fixed_bonus
                     
                     if self.trading_logger:
                         self.trading_logger.log_reward_calculation(
@@ -525,7 +523,6 @@ class RealisticFuturesEnv(gym.Env):
                             details={
                                 'episode': self.episode_number,
                                 'base_reward': base_reward,
-                                'profit_bonus': profit_bonus,
                                 'fixed_bonus': fixed_bonus,
                                 'total_reward': total_reward
                             }
@@ -537,11 +534,10 @@ class RealisticFuturesEnv(gym.Env):
                     return max(base_reward + loss_reduction, -350.0)
                     
             else:
-                # HARD STAGE: Minimal bonuses (realistic)
+                # HARD STAGE: No bonuses (realistic)
                 if base_reward > 0:
-                    profit_bonus = base_reward * 0.1
-                    fixed_bonus = 5.0
-                    total_reward = base_reward + profit_bonus + fixed_bonus
+                    # No bonus in hard mode - pure profit/loss
+                    total_reward = base_reward
                     
                     if self.trading_logger:
                         self.trading_logger.log_reward_calculation(
@@ -550,8 +546,6 @@ class RealisticFuturesEnv(gym.Env):
                             details={
                                 'episode': self.episode_number,
                                 'base_reward': base_reward,
-                                'profit_bonus': profit_bonus,
-                                'fixed_bonus': fixed_bonus,
                                 'total_reward': total_reward
                             }
                         )

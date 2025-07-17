@@ -1,0 +1,14 @@
+# Check for Large reward warnings around episode 39:
+grep -n "Episode 3[8-9]" logs/algorithm.log | grep -E "(Large reward|11[0-9]{3})"
+
+# Check rewards.log for episode 39:
+grep "Episode 39" logs/rewards.log | head -20
+
+# Check what happened in trading.log for episode 39:
+grep -A 10 -B 10 "Episode 39" logs/trading.log
+
+# Check if there are any error messages:
+grep -i "error\|warning" logs/*.log | grep -E "3[8-9]|episode"
+
+# Also check the first few steps of episode 39 in algorithm.log:
+grep -A 20 "Episode 39 started" logs/algorithm.log

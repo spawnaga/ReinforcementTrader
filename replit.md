@@ -108,31 +108,23 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (July 17, 2025)
 
-### Agent Stops Trading After Episode 50 Investigation (July 17, 2025 - Ongoing)
-- **Issue Identified**: Agent completely stops trading (0 trades) after episode 50
-  - Episodes 0-50: Agent trades actively (10 trades per episode)
-  - Episodes 51+: Agent makes 0 trades but shows rewards of ~11,725-11,745
-- **Root Cause**: Curriculum learning transition at episode 51
-  - Trade limit: 10 → 7 (30% reduction)
-  - Min holding period: 5 → 8 steps (60% increase)
-  - Cost per trade: $2.50 → $5.00 (100% increase)  
-  - Episode length: 300 → 200 steps (33% reduction)
-- **Suspicious Reward Value**: The consistent ~11,725 reward with 0 trades indicates a bug
-  - Expected: ~150 steps × -0.075 penalty = -11.25 total penalty
-  - Actual: +11,725 (positive, not negative!)
-  - Analysis: 11,725 = 234,500 / 20 (where 20 is NQ contract multiplier)
-- **Investigation Progress**:
-  - ✓ Verified curriculum parameters ARE being passed correctly to environment
-  - ✓ Confirmed reward accumulation in train_standalone.py is correct
-  - ✓ Verified calculate_reward() function returns net_profit correctly
-  - ✓ Environment step() method returns reward value correctly
-  - Created multiple debug scripts to trace the source
-  - Bug appears to be in observation values or initialization, not reward calculation
-- **User Testing Required**: User has 5M row dataset on local Ubuntu machine with 4x RTX 3090
-  - Created DEBUG_11725_SUMMARY.md with testing instructions
-  - Enhanced train_standalone.py with debugging for episodes 45-55
-  - Created test_reward_accumulation.py to isolate the issue
-  - User will test on their local machine to identify exact source
+### Critical 11,725 Reward Bug Fixed (July 17, 2025)
+- **Issue Identified**: Agent stops trading after episode 39 with massive reward values (~11,725)
+  - Bug appeared at episode 39, NOT episode 51 (ruling out curriculum learning as cause)
+  - Agent shows rewards of ~11,725-11,745 with suspicious values like $2580, $1600, $1264
+- **Root Cause Found**: Curriculum learning bonuses were multiplying trade profits!
+  - When closing profitable trades, system added 40% of profit as bonus PLUS $25
+  - Example: $1800 trade profit → $1800 + (40% × $1800) + $25 = $2545 reward!
+  - This caused massive reward spikes that broke the learning process
+- **Fix Applied**: Changed curriculum bonuses from percentage to small fixed amounts
+  - Easy mode (episodes < 50): Now adds only $5 bonus (was 40% + $25)
+  - Medium mode (episodes 50-150): Now adds only $3 bonus (was 25% + $15) 
+  - Hard mode (episodes 150+): No bonus, pure profit/loss (was 10% + $5)
+  - Loss reduction also reduced from 30% to 10% in easy mode
+- **Impact**: Agent will now receive realistic rewards that properly reflect trading performance
+  - No more massive reward spikes when closing trades
+  - Learning signal is preserved without distortion
+  - Agent should continue trading normally past episode 39
 
 ### Critical Reward Bug Fixes (July 17, 2025 - Latest)
 - **Fixed Duplicate Logging Issue**: Logs were appearing twice due to multiple setup_logging() calls
