@@ -22,7 +22,7 @@ load_dotenv()
 
 # Direct imports to avoid app.py
 from rl_algorithms.ane_ppo import ANEPPO
-from gym_futures.envs.futures_env import FuturesEnv
+from futures_env_realistic import RealisticFuturesEnv
 from gym_futures.envs.utils import TimeSeriesState
 from technical_indicators import TechnicalIndicators, add_time_based_indicators
 
@@ -237,7 +237,7 @@ def train_standalone():
     session_id = datetime.now().strftime('%Y%m%d_%H%M%S') + '_' + str(uuid.uuid4())[:8]
     
     # Create environment with session_id and disable old trading logger
-    env = FuturesEnv(
+    env = RealisticFuturesEnv(
         states=states,
         value_per_tick=config['value_per_tick'],
         tick_size=config['tick_size'],
@@ -327,7 +327,8 @@ def train_standalone():
             
             # Get current timestamp and price from state
             timestamp = state.ts if hasattr(state, 'ts') else datetime.now()
-            current_price = state.current_price if hasattr(state, 'current_price') else 0
+            # Fix: Get price from state.price instead of state.current_price
+            current_price = state.price if hasattr(state, 'price') else env.current_price if hasattr(env, 'current_price') else 0
             
             # Log agent's decision BEFORE taking action
             action_names = {0: 'BUY', 1: 'HOLD', 2: 'SELL'}
@@ -343,6 +344,13 @@ def train_standalone():
             
             # Take step in environment
             next_state, reward, done, info = env.step(action)
+            
+            # Debug large rewards
+            if abs(reward) > 1000:
+                loggers['algorithm'].warning(
+                    f"LARGE REWARD DETECTED: ${reward:.2f} at step {step}, "
+                    f"position: {env.current_position}, action: {action_names[action]}"
+                )
             
             # Log position changes to positions.log
             if env.current_position != env.last_position:
@@ -396,12 +404,15 @@ def train_standalone():
                     env.entry_time = timestamp  # Store entry time
                     env._entry_step = step  # Store entry step
                     
+                    # Get the actual entry price with slippage from the environment
+                    actual_entry_price = env.entry_price if hasattr(env, 'entry_price') and env.entry_price else current_price
+                    
                     loggers['positions'].info(
                         f"Position OPENED | {new_position} | Time: {timestamp} | "
-                        f"Entry Price: ${current_price:.2f}"
+                        f"Entry Price: ${actual_entry_price:.2f}"
                     )
                     loggers['trading'].info(
-                        f"OPENED {new_position} | Time: {timestamp} | Entry: ${current_price:.2f}"
+                        f"OPENED {new_position} | Time: {timestamp} | Entry: ${actual_entry_price:.2f}"
                     )
             
             # Log step reward
@@ -425,6 +436,19 @@ def train_standalone():
             episode_reward += reward
             step += 1
             
+            # Debug check for massive rewards
+            if abs(episode_reward) > 100000 and env.trades_this_episode == 0:
+                loggers['algorithm'].error(
+                    f"MASSIVE EPISODE REWARD DETECTED: ${episode_reward:.2f} | "
+                    f"Step: {step} | Last step reward: ${reward:.2f} | "
+                    f"Trades: {env.trades_this_episode} | Done: {done}"
+                )
+                # Check if it matches our suspicious value
+                if abs(episode_reward - 117701.50) < 0.01:
+                    loggers['algorithm'].error(
+                        "*** FOUND THE BUG: Episode reward matches 117701.50! ***"
+                    )
+            
             # Update step progress bar
             step_pbar.update(1)
             step_pbar.set_postfix({'reward': f'{episode_reward:.2f}'})
@@ -440,6 +464,13 @@ def train_standalone():
             tracker.end_episode(episode_reward, step)
         
         all_rewards.append(episode_reward)
+        
+        # Debug reward accumulation
+        if abs(episode_reward) > 10000:
+            loggers['algorithm'].error(
+                f"ABNORMAL EPISODE REWARD: ${episode_reward:.2f} | "
+                f"Steps: {step} | Trades: {env.trades_this_episode if hasattr(env, 'trades_this_episode') else 'N/A'}"
+            )
         
         # Update episode progress bar
         avg_reward = sum(all_rewards[-10:]) / min(10, len(all_rewards))
