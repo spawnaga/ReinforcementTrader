@@ -186,10 +186,10 @@ class RealisticFuturesEnv(gym.Env):
     
     def _can_trade(self) -> bool:
         """Check if trading is allowed based on constraints"""
-        # Debug for episode 52
-        if hasattr(self, 'episode_number') and self.episode_number == 52 and self.current_index < 5:
+        # Debug for episodes where trading stops
+        if hasattr(self, 'episode_number') and self.episode_number >= 15 and self.episode_number <= 20 and self.current_index < 5:
             trading_logger.error(
-                f"Episode 52 _can_trade CHECK at index {self.current_index}: "
+                f"Episode {self.episode_number} _can_trade CHECK at index {self.current_index}: "
                 f"states_traded={self.current_index in self.states_traded}, "
                 f"gap_check={self.current_index - self.last_trade_index}, "
                 f"trade_limit={self.trades_this_episode}/{self.max_trades_per_episode}, "
@@ -239,6 +239,16 @@ class RealisticFuturesEnv(gym.Env):
         
         # Store position before action for reward calculation
         self.last_position = self.current_position
+        
+        # Debug action decisions in problematic episodes
+        if self.episode_number >= 15 and self.episode_number <= 20:
+            if self.current_index < 10 or (self.current_index > 490 and self.current_index < 510):
+                trading_logger.info(
+                    f"Episode {self.episode_number} Step {self.current_index}: "
+                    f"Action={action}, Position={self.current_position}, "
+                    f"Trades={self.trades_this_episode}/{self.max_trades_per_episode}, "
+                    f"Can trade: {self._can_trade()}"
+                )
         
         # Map action to function
         if action == 0:
@@ -527,7 +537,8 @@ class RealisticFuturesEnv(gym.Env):
         # EXPLORATION BONUS: Small reward for opening positions in early episodes
         # This encourages the agent to explore trading rather than staying flat
         if self.last_position == 0 and self.current_position != 0:
-            if hasattr(self, 'episode_number') and self.episode_number < 100:
+            # Only give exploration bonus if we actually can trade (not blocked by constraints)
+            if hasattr(self, 'episode_number') and self.episode_number < 100 and self.trades_this_episode < self.max_trades_per_episode:
                 # Larger exploration bonus in early episodes, decreasing over time
                 exploration_bonus = 0.5 * (1.0 - self.episode_number / 100.0)
                 
@@ -619,6 +630,10 @@ class RealisticFuturesEnv(gym.Env):
                     # This encourages trading without distorting the reward signal
                     fixed_bonus = 5.0  # Small $5 bonus for any profitable trade
                     total_reward = base_reward + fixed_bonus
+                elif base_reward > -10:  # Small loss - still learning
+                    # Give tiny bonus for attempting trades that don't lose much
+                    learning_bonus = 2.0  # $2 bonus for small losses to encourage exploration
+                    total_reward = base_reward + learning_bonus
                     
                     if self.trading_logger:
                         self.trading_logger.log_reward_calculation(
@@ -900,7 +915,10 @@ class RealisticFuturesEnv(gym.Env):
         
         if self.episode_number < 50:
             # EASY STAGE: Help agent learn basic trading
-            self.max_trades_per_episode = 10  # Allow more trades to explore
+            # Don't override max_trades if it's already set higher
+            if not hasattr(self, '_original_max_trades'):
+                self._original_max_trades = self.max_trades_per_episode
+            self.max_trades_per_episode = max(10, self._original_max_trades)  # Use higher value
             self.min_holding_periods = 5  # Shorter holding requirement
             self.execution_cost_per_order = 2.5  # Lower costs
             self.slippage_ticks = 1  # Less slippage
@@ -940,9 +958,9 @@ class RealisticFuturesEnv(gym.Env):
         # Gradually reduce episode length to make it harder
         # Start with full data, then use less as training progresses
         if self.episode_number < 50:
-            self.limit = min(len(self.states), 300)  # Shorter episodes initially
+            self.limit = min(len(self.states), 500)  # Longer episodes to allow more trades
         elif self.episode_number < 150:
-            self.limit = min(len(self.states), 200)  # Standard episode length
+            self.limit = min(len(self.states), 400)  # Standard episode length
         else:
             self.limit = min(len(self.states), 150)  # Shorter, harder episodes
     
