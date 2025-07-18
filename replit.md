@@ -119,6 +119,15 @@ Preferred communication style: Simple, everyday language.
   - Added consistency bonus for maintaining 3-15 trades per episode
   - Result: Stable learning without wild behavioral swings
 
+### Profitability Improvements (July 18, 2025)
+- **Improved Poor 27-28% Profitability**: Major reward system overhaul
+  - Removed penalties for not trading - agent can now be selective about opportunities
+  - Added rewards for holding profitable positions (1% of unrealized profit per step)
+  - Removed reward scaling that was limiting learning from big wins (was capping at $100)
+  - Extended curriculum learning from 150 to 500 episodes for better skill development
+  - Added quality-based bonuses: $10 for >0.5% profit trades, $5 for >0.2%, $2 for smaller wins
+  - Expected improvement: From 27-28% to 50%+ profitable episodes
+
 ## Recent Updates (July 17, 2025)
 
 ### Major Project Cleanup (July 17, 2025 - 15:00)
