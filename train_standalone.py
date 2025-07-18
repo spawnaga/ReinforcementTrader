@@ -715,7 +715,13 @@ def train_standalone():
                     f"Re-initializing policy network to encourage exploration."
                 )
                 # Reset the policy network weights using ActorCritic's _init_weights
-                algorithm.policy_network.apply(algorithm.policy_network._init_weights)
+                # Handle DataParallel wrapper for multi-GPU
+                if hasattr(algorithm.policy_network, 'module'):
+                    # Multi-GPU case - access the underlying model
+                    algorithm.policy_network.module.apply(algorithm.policy_network.module._init_weights)
+                else:
+                    # Single GPU case
+                    algorithm.policy_network.apply(algorithm.policy_network._init_weights)
                 # Reset the optimizer using adaptive learning rate (Grok AI)
                 algorithm.optimizer = torch.optim.Adam(
                     algorithm.policy_network.parameters(), 
