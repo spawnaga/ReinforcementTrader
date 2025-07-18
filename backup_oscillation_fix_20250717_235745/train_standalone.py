@@ -376,7 +376,7 @@ def train_standalone():
         gamma=config.get('gamma', 0.99),
         gae_lambda=config.get('gae_lambda', 0.95),
         clip_range=config.get('clip_range', 0.2),
-        entropy_coef=config.get('entropy_coef', 0.05),
+        entropy_coef=config.get('entropy_coef', 0.01),
         value_loss_coef=config.get('value_coef', 0.5),
         batch_size=config.get('batch_size', 32),
         n_epochs=config.get('update_epochs', 10),
