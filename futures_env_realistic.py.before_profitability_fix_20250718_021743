@@ -639,46 +639,40 @@ class RealisticFuturesEnv(gym.Env):
                             f"AFTER calculate_reward: base_reward=${base_reward:.2f}"
                         )
             
-            # Allow full rewards - don't cap successful trades!
-            # The agent needs to experience the full benefit of great trades
-            # to learn what works. Only cap extreme outliers.
-            if abs(base_reward) > 1000:
-                # Only scale truly extreme rewards to prevent instability
+            # CRITICAL FIX: Scale down large rewards to prevent learning instability
+            # Rewards over $100 are scaled down logarithmically
+            if abs(base_reward) > 100:
                 sign = 1 if base_reward > 0 else -1
-                scaled_reward = sign * (1000 + 10 * np.log(abs(base_reward) / 1000))
+                scaled_reward = sign * (100 + 10 * np.log(abs(base_reward) / 100))
                 
                 if self.trading_logger:
                     self.trading_logger.warning(
-                        f"EXTREME REWARD SCALING: ${base_reward:.2f} scaled to ${scaled_reward:.2f}"
+                        f"REWARD SCALING: Large reward ${base_reward:.2f} scaled to ${scaled_reward:.2f}"
                     )
                 
                 base_reward = scaled_reward
             
             # CURRICULUM-BASED REWARD SHAPING
-            if self.episode_number < 200:
+            if self.episode_number < 50:
                 # EASY STAGE: Small bonuses for profitable trades, reduced penalties for losses
                 if base_reward > 0:
-                    # Reward based on trade quality, not just profit
-                    profit_ratio = base_reward / (abs(self._last_closed_entry_price) * 0.01)  # Profit as % of entry
-                    
-                    if profit_ratio > 0.5:  # > 0.5% profit
-                        quality_bonus = 10.0  # Great trade
-                    elif profit_ratio > 0.2:  # > 0.2% profit
-                        quality_bonus = 5.0   # Good trade
-                    else:
-                        quality_bonus = 2.0   # Small profit
-                    
-                    total_reward = base_reward + quality_bonus
+                    # Add small fixed bonus for profitable trades (not percentage based!)
+                    # This encourages trading without distorting the reward signal
+                    fixed_bonus = 5.0  # Small $5 bonus for any profitable trade
+                    total_reward = base_reward + fixed_bonus
+                elif base_reward > -10:  # Small loss - still learning
+                    # Give tiny bonus for attempting trades that don't lose much
+                    learning_bonus = 2.0  # $2 bonus for small losses to encourage exploration
+                    total_reward = base_reward + learning_bonus
                     
                     if self.trading_logger:
                         self.trading_logger.log_reward_calculation(
-                            "QUALITY TRADE BONUS",
+                            "CURRICULUM EASY: PROFITABLE TRADE",
                             timestamp=state.ts,
                             details={
                                 'episode': self.episode_number,
                                 'base_reward': base_reward,
-                                'profit_ratio': profit_ratio,
-                                'quality_bonus': quality_bonus,
+                                'fixed_bonus': fixed_bonus,
                                 'total_reward': total_reward
                             }
                         )
@@ -701,7 +695,7 @@ class RealisticFuturesEnv(gym.Env):
                         )
                     return max(reduced_loss, -200.0)  # Cap losses at -$200 in easy mode
                     
-            elif self.episode_number < 500:
+            elif self.episode_number < 150:
                 # MEDIUM STAGE: Smaller bonuses
                 if base_reward > 0:
                     # Small fixed bonus, no percentage multiplier
@@ -824,9 +818,9 @@ class RealisticFuturesEnv(gym.Env):
                         base_penalty *= 0.5  # Halve the penalty
             
             # Curriculum-based adjustment
-            if self.episode_number < 200:
+            if self.episode_number < 50:
                 penalty = base_penalty * 0.5  # Very small in easy mode
-            elif self.episode_number < 500:
+            elif self.episode_number < 150:
                 penalty = base_penalty * 0.75  # Small in medium mode
             else:
                 penalty = base_penalty  # Normal in hard mode
@@ -986,7 +980,7 @@ class RealisticFuturesEnv(gym.Env):
         # Stage 2 (Episodes 51-150): Medium - normal market conditions
         # Stage 3 (Episodes 151+): Hard - more volatile markets, stricter constraints
         
-        if self.episode_number < 200:
+        if self.episode_number < 50:
             # EASY STAGE: Help agent learn basic trading
             # Don't override max_trades if it's already set higher
             if not hasattr(self, '_original_max_trades'):
@@ -1003,7 +997,7 @@ class RealisticFuturesEnv(gym.Env):
             if self.trading_logger:
                 self.trading_logger.log_state_debug("curriculum", f"Easy stage (Episode {self.episode_number})")
                 
-        elif self.episode_number < 500:
+        elif self.episode_number < 150:
             # MEDIUM STAGE: Normal trading conditions
             self.max_trades_per_episode = 7  # Moderate trade limit
             self.min_holding_periods = 8  # Medium holding period
@@ -1030,9 +1024,9 @@ class RealisticFuturesEnv(gym.Env):
         
         # Gradually reduce episode length to make it harder
         # Start with full data, then use less as training progresses
-        if self.episode_number < 200:
+        if self.episode_number < 50:
             self.limit = min(len(self.states), 500)  # Longer episodes to allow more trades
-        elif self.episode_number < 500:
+        elif self.episode_number < 150:
             self.limit = min(len(self.states), 400)  # Standard episode length
         else:
             self.limit = min(len(self.states), 150)  # Shorter, harder episodes
