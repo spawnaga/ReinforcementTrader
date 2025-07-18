@@ -678,43 +678,39 @@ class RealisticFuturesEnv(gym.Env):
             return np.zeros(self.observation_space.shape)
     
     def _get_observation(self, state: TimeSeriesState):
-        """Get observation with optional position information"""
+        """Get observation with only OHLCV + time features"""
+        # Extract OHLCV values (first 5 features)
         if hasattr(state, 'flatten'):
-            obs = state.flatten()
+            full_obs = state.flatten()
         elif hasattr(state, 'data'):
             data = state.data
-            # If it's a DataFrame, exclude non-numeric columns
             if hasattr(data, 'select_dtypes'):
                 numeric_data = data.select_dtypes(include=[np.number])
-                obs = numeric_data.values.flatten()
+                full_obs = numeric_data.values.flatten()
             elif hasattr(data, 'values'):
-                obs = data.values.flatten()
+                full_obs = data.values.flatten()
             else:
-                obs = np.array(data).flatten()
+                full_obs = np.array(data).flatten()
         else:
-            # If state is already an array
-            obs = np.array(state).flatten()
+            full_obs = np.array(state).flatten()
+        
+        # Extract only OHLCV (first 5) + time features (last 6: sin_time, cos_time, sin_weekday, cos_weekday, sin_hour, cos_hour)
+        ohlcv = full_obs[:5] if len(full_obs) >= 5 else np.zeros(5)
+        
+        # Time features are typically at the end (indices 54-59 in the full 60-feature state)
+        if len(full_obs) >= 60:
+            time_features = full_obs[54:60]  # sin/cos time features
+        else:
+            time_features = np.zeros(6)
+        
+        # Combine OHLCV + time features (total: 11 features)
+        obs = np.concatenate([ohlcv, time_features])
         
         # Ensure all values are numeric
         obs = np.nan_to_num(obs, nan=0.0, posinf=0.0, neginf=0.0)
         
         if self.add_current_position_to_state:
             obs = np.append(obs, self.current_position)
-            
-            # Add risk metrics to observation
-            if self.current_position != 0:
-                risk_metrics = self._get_risk_metrics(state)
-                # Add normalized risk information
-                risk_features = np.array([
-                    risk_metrics['unrealized_ticks'] / 20.0,  # Normalized by typical move
-                    risk_metrics['holding_time'] / 50.0,  # Normalized by typical hold time
-                    risk_metrics['pnl_ratio'] * 10.0  # Scaled P&L ratio
-                ])
-            else:
-                # Pad with zeros when not in position to maintain consistent size
-                risk_features = np.zeros(3)
-            
-            obs = np.concatenate([obs, risk_features])
         
         return obs.astype(np.float32)
     
