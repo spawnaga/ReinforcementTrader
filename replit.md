@@ -119,21 +119,28 @@ Preferred communication style: Simple, everyday language.
   - Added consistency bonus for maintaining 3-15 trades per episode
   - Result: Stable learning without wild behavioral swings
 
-### Profitability Improvement Attempts (July 18, 2025) - FAILED
+### Profitability Improvement Attempts (July 18, 2025) - COMPLETE FAILURE
 - **Multiple Failed Attempts to Improve 27-28% Profitability**:
   - Attempt 1: Removed all penalties → Result: Agent traded too little (18.2% profitability)
   - Attempt 2: Added quality bonuses → Result: Agent became too cautious
   - Attempt 3: Balanced rewards → Result: Profitability dropped to 6.7%!
   - Attempt 4: Hard-coded stop losses → User correctly rejected (not AI-driven)
-- **AI-Driven Approach Implemented**:
-  - Risk-aware reward shaping that teaches natural risk management
-  - Added risk metrics to observations (unrealized P&L, holding time, P&L ratio)
-  - Agent can now see its current profit/loss to make informed exit decisions
-  - No hard-coded rules - AI learns when to exit based on market conditions
-- **Core Issues Identified**:
-  - Agent loses more on losing trades ($50+) than wins on winning trades ($20-30)
-  - Poor risk/reward ratio is the fundamental problem
-  - Agent needs better market understanding to decide exits
+  - Attempt 5: AI-driven risk metrics → Result: Agent learned to HOLD 100% (not trade at all!)
+- **Critical Failure Identified**:
+  - AI achieved 100% HOLD probability - completely stopped trading
+  - Only 15-20% profitability rate (WORSE than random trading)
+  - Massive losses when trading ($500-700 per episode)
+  - Current approach is fundamentally flawed
+- **Root Cause Analysis**:
+  - Wrong features: 64 technical indicators don't predict profitable trades
+  - Wrong approach: Throwing ML at price data without market understanding
+  - Missing critical info: No order flow, no microstructure, no regime detection
+  - Result: AI learned that not trading is safer than trading poorly
+- **Path Forward Identified**:
+  - Need complete architecture overhaul focusing on market microstructure
+  - Simple strategies (mean reversion, breakout) outperform current complex ML
+  - Must use features that actually predict price movements (order flow, VWAP, etc.)
+  - Professional trading requires market understanding, not pattern matching
 
 ## Recent Updates (July 17, 2025)
 
