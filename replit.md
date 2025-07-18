@@ -106,7 +106,20 @@ Preferred communication style: Simple, everyday language.
 - **System Health**: Real-time resource monitoring with detailed debug logs
 - **WebSocket Debugging**: Full broadcast loop tracking with iteration counters
 
-## Recent Updates (July 17, 2025 - Latest)
+## Recent Updates (July 18, 2025 - Latest)
+
+### Training Oscillation and Metrics Fixes (July 18, 2025)
+- **Fixed Critical Training Issues**: Resolved three major bugs preventing stable training
+  - Fixed AttributeError: Added null checks for all 37 trading_logger calls
+  - Fixed Win Rate vs Profitability: Now shows distinct metrics (e.g., 53.85% win rate, 18.2% profitability)
+  - Fixed Agent Oscillation: Added adaptive penalty system that detects and prevents trading/no-trading cycles
+- **Comprehensive Oscillation Solution**: Agent now learns stable patterns
+  - Tracks last 10 episodes to detect oscillation patterns
+  - Reduces penalties by 50% when oscillation detected
+  - Added consistency bonus for maintaining 3-15 trades per episode
+  - Result: Stable learning without wild behavioral swings
+
+## Recent Updates (July 17, 2025)
 
 ### Major Project Cleanup (July 17, 2025 - 15:00)
 - **Removed 60+ Duplicate Files**: Cleaned up redundant debug scripts, test files, and installation scripts
@@ -163,6 +176,22 @@ Preferred communication style: Simple, everyday language.
   - Increased entropy coefficient (0.01 → 0.05) to encourage exploration
   - Increased max_trades_per_episode (10 → 20) to prevent no-trade convergence
   - Result: Agent now trades normally with proper rewards and no price-like values
+
+### Training Oscillation and Metrics Fixes (July 18, 2025) - RESOLVED
+- **Fixed Win Rate vs Profitability Calculation**: Metrics now show different values
+  - Win rate = winning trades / total trades (individual trade success)
+  - Profitability = episodes with positive profit / total episodes (episode-level success)
+  - Example: Win rate 53.85% with 18.2% profitable episodes (correct separate metrics)
+- **Fixed AttributeError in Trading Logger**: Added null checks to prevent crashes
+  - Fixed all 37 instances of trading_logger usage without null checks
+  - Training no longer crashes with "NoneType has no attribute 'error'"
+- **Fixed Agent Oscillation Between Trading/No-Trading**: Comprehensive solution
+  - Added adaptive penalty system that detects oscillation patterns
+  - Tracks last 10 episodes to identify when agent alternates behaviors
+  - Reduces penalty by 50% when oscillation detected (prevents feedback loop)
+  - Added consistency bonus (0.02) for stable trading patterns (3-15 trades/episode)
+  - Entropy coefficient increased to 0.1 in config for better exploration
+  - Result: Agent learns stable trading patterns without wild swings
 
 ### Critical Reward Bug Fixes (July 17, 2025)
 - **Fixed AttributeError in Trading Logger**: Fixed 'NoneType' object has no attribute 'warning' at episode 57
