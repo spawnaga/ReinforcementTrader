@@ -123,6 +123,10 @@ def parse_args():
                         help='Gradient accumulation steps')
     parser.add_argument('--num-workers', type=int, default=4, help='Data loader workers')
     
+    # Feature selection arguments
+    parser.add_argument('--features', nargs='+', default=None,
+                        help='Specific features to use (e.g., ohlcv sin_time cos_time sin_weekday cos_weekday sin_hour cos_hour)')
+    
     return parser.parse_args()
 
 def setup_gpu_devices(args):
@@ -217,16 +221,47 @@ def train_standalone():
     loader = SimpleDataLoader()
     df = loader.load_csv(data_file)
     
-    # Add technical indicators if not already present
-    if 'RSI_14' not in df.columns:
-        logger.info("Adding technical indicators...")
+    # Add features based on command line argument
+    if args.features:
+        logger.info(f"Using only specified features: {args.features}")
         
-        # First add time-based indicators
-        df = add_time_based_indicators(df)
+        # Always add time-based indicators if timestamp exists
+        if 'timestamp' in df.columns:
+            df = add_time_based_indicators(df)
         
-        # Then add technical indicators using TechnicalIndicators class
-        ti = TechnicalIndicators(df)
-        df = ti.calculate_indicators(['SMA', 'EMA', 'RSI', 'MACD', 'BB', 'ATR'])
+        # Start with OHLCV columns
+        keep_cols = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+        
+        # Add requested time features
+        time_features = {
+            'sin_time': 'sin_time',
+            'cos_time': 'cos_time',
+            'sin_weekday': 'sin_weekday', 
+            'cos_weekday': 'cos_weekday',
+            'sin_hour': 'sin_hour',
+            'cos_hour': 'cos_hour'
+        }
+        
+        for feature in args.features:
+            if feature in time_features and time_features[feature] in df.columns:
+                keep_cols.append(time_features[feature])
+        
+        # Keep only specified columns
+        available_cols = [col for col in keep_cols if col in df.columns]
+        logger.info(f"Keeping columns: {available_cols}")
+        df = df[available_cols]
+        
+    else:
+        # Default behavior - add all indicators
+        if 'RSI_14' not in df.columns:
+            logger.info("Adding all technical indicators...")
+            
+            # First add time-based indicators
+            df = add_time_based_indicators(df)
+            
+            # Then add technical indicators using TechnicalIndicators class
+            ti = TechnicalIndicators(df)
+            df = ti.calculate_indicators(['SMA', 'EMA', 'RSI', 'MACD', 'BB', 'ATR'])
     
     # Split data
     train_size = int(0.8 * len(df))
