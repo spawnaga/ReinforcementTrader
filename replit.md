@@ -119,14 +119,21 @@ Preferred communication style: Simple, everyday language.
   - Added consistency bonus for maintaining 3-15 trades per episode
   - Result: Stable learning without wild behavioral swings
 
-### Profitability Improvements (July 18, 2025)
-- **Improved Poor 27-28% Profitability**: Major reward system overhaul
-  - Removed penalties for not trading - agent can now be selective about opportunities
-  - Added rewards for holding profitable positions (1% of unrealized profit per step)
-  - Removed reward scaling that was limiting learning from big wins (was capping at $100)
-  - Extended curriculum learning from 150 to 500 episodes for better skill development
-  - Added quality-based bonuses: $10 for >0.5% profit trades, $5 for >0.2%, $2 for smaller wins
-  - Expected improvement: From 27-28% to 50%+ profitable episodes
+### Profitability Improvement Attempts (July 18, 2025) - FAILED
+- **Multiple Failed Attempts to Improve 27-28% Profitability**:
+  - Attempt 1: Removed all penalties → Result: Agent traded too little (18.2% profitability)
+  - Attempt 2: Added quality bonuses → Result: Agent became too cautious
+  - Attempt 3: Balanced rewards → Result: Profitability dropped to 6.7%!
+  - Attempt 4: Hard-coded stop losses → User correctly rejected (not AI-driven)
+- **AI-Driven Approach Implemented**:
+  - Risk-aware reward shaping that teaches natural risk management
+  - Added risk metrics to observations (unrealized P&L, holding time, P&L ratio)
+  - Agent can now see its current profit/loss to make informed exit decisions
+  - No hard-coded rules - AI learns when to exit based on market conditions
+- **Core Issues Identified**:
+  - Agent loses more on losing trades ($50+) than wins on winning trades ($20-30)
+  - Poor risk/reward ratio is the fundamental problem
+  - Agent needs better market understanding to decide exits
 
 ## Recent Updates (July 17, 2025)
 
