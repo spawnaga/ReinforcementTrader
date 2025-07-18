@@ -173,16 +173,13 @@ class RealisticFuturesEnv(gym.Env):
             
             if self.add_current_position_to_state:
                 state_shape = (state_shape[0] + 1,)
-                # Add space for risk metrics (3 additional features when in position)
-                # We'll use the max possible size for the observation space
-                state_shape = (state_shape[0] + 3,)
             
             self.observation_space = spaces.Box(
                 low=-np.inf, high=np.inf, shape=state_shape, dtype=np.float32
             )
         else:
             # Default observation space when no states are available
-            default_shape = (60 + 1 + 3,) if self.add_current_position_to_state else (60,)
+            default_shape = (60 + 1,) if self.add_current_position_to_state else (60,)
             self.observation_space = spaces.Box(
                 low=-np.inf, high=np.inf, shape=default_shape, dtype=np.float32
             )
@@ -538,92 +535,371 @@ class RealisticFuturesEnv(gym.Env):
                 )
     
     def get_reward(self, state: TimeSeriesState) -> float:
-        """AI-focused reward that teaches risk management without hard rules"""
+        """Calculate reward using realistic reward function with shaping and exploration bonus"""
+        # Complete reward debugging (Grok AI recommendation)
+        if self.trading_logger:
+            self.trading_logger.debug(
+                f"get_reward: episode={self.episode_number}, current_position={self.current_position}, "
+                f"last_position={self.last_position}, entry_price={self.entry_price}, "
+                f"exit_price={self._last_closed_exit_price}, trades_this_episode={getattr(self, 'trades_this_episode', 0)}"
+            )
         
-        # Only reward on closed positions
+        # NEW DEBUG: Trace reward path for episodes with issues
+        if self.episode_number >= 60 and self.trades_this_episode == 0:
+            if self.trading_logger:
+                self.trading_logger.warning(
+                    f"REWARD PATH DEBUG: Episode {self.episode_number}, Step {self.current_index}, "
+                    f"last_pos={self.last_position}, curr_pos={self.current_position}, "
+                    f"trades={self.trades_this_episode}, entry_price={self.entry_price}"
+                )
+        
+        # CRITICAL BUG CHECK: Ensure we're not accidentally returning state data as reward
+        if hasattr(state, 'price') and abs(state.price) > 1000:
+            if self.trading_logger:
+                self.trading_logger.warning(
+                    f"STATE PRICE IS LARGE: {state.price} at step {self.current_index}"
+                )
+        
+        # EXPLORATION BONUS: Small reward for opening positions in early episodes
+        # This encourages the agent to explore trading rather than staying flat
+        if self.last_position == 0 and self.current_position != 0:
+            # Only give exploration bonus if we actually can trade (not blocked by constraints)
+            if hasattr(self, 'episode_number') and self.episode_number < 100 and self.trades_this_episode < self.max_trades_per_episode:
+                # Larger exploration bonus in early episodes, decreasing over time
+                exploration_bonus = 0.5 * (1.0 - self.episode_number / 100.0)
+                
+                # DEBUG: Log exploration bonus
+                if self.episode_number < 10 and self.trading_logger:
+                    if self.trading_logger:
+                        self.trading_logger.info(
+                            f"EXPLORATION BONUS: Returning ${exploration_bonus:.2f}"
+                        )
+                
+                # DEBUG CHECK
+                if abs(exploration_bonus) > 100:
+                    if self.trading_logger:
+                        self.trading_logger.error(f"HUGE EXPLORATION BONUS: {exploration_bonus}")
+                
+                return exploration_bonus
+            return 0.0
+        
+        # Calculate reward for closed positions
         if self.current_position == 0 and self.last_position != 0:
-            # Calculate actual P&L
+            base_reward = 0.0
+            
+            # DEBUG: Log when calculating reward for closed position
+            if self.episode_number < 10 and self.trading_logger:
+                if self.trading_logger:
+                    self.trading_logger.info(
+                        f"CALCULATING REWARD FOR CLOSED POSITION: last_pos={self.last_position}"
+                    )
+            
             if self.last_position == 1:  # Closed long
-                gross_pnl = ((self._last_closed_exit_price - self._last_closed_entry_price) / self.tick_size) * self.value_per_tick
+                base_reward = calculate_reward(
+                    timestamp=state.ts,
+                    action='EXIT',
+                    position_before=self.last_position,
+                    position_after=self.current_position,
+                    entry_price=self._last_closed_entry_price,
+                    exit_price=self._last_closed_exit_price,
+                    position_type='long',
+                    value_per_tick=self.value_per_tick,
+                    execution_cost=2 * self.execution_cost_per_order,
+                    session_id=self.session_id,
+                    tick_size=self.tick_size
+                )
             else:  # Closed short
-                gross_pnl = ((self._last_closed_entry_price - self._last_closed_exit_price) / self.tick_size) * self.value_per_tick
+                # DEBUG: Log before calling calculate_reward
+                if self.episode_number < 10 and self.trading_logger:
+                    gross_profit = ((self._last_closed_entry_price - self._last_closed_exit_price) / self.tick_size) * self.value_per_tick
+                    if self.trading_logger:
+                        self.trading_logger.info(
+                            f"BEFORE calculate_reward: entry={self._last_closed_entry_price}, "
+                            f"exit={self._last_closed_exit_price}, gross_profit=${gross_profit:.2f}"
+                        )
+                
+                base_reward = calculate_reward(
+                    timestamp=state.ts,
+                    action='EXIT',
+                    position_before=self.last_position,
+                    position_after=self.current_position,
+                    entry_price=self._last_closed_entry_price,
+                    exit_price=self._last_closed_exit_price,
+                    position_type='short',
+                    value_per_tick=self.value_per_tick,
+                    execution_cost=2 * self.execution_cost_per_order,
+                    session_id=self.session_id,
+                    tick_size=self.tick_size
+                )
+                
+                # DEBUG: Log after calling calculate_reward
+                if self.episode_number < 10 and self.trading_logger:
+                    if self.trading_logger:
+                        self.trading_logger.info(
+                            f"AFTER calculate_reward: base_reward=${base_reward:.2f}"
+                        )
             
-            # Subtract costs
-            net_pnl = gross_pnl - (2 * self.execution_cost_per_order)
+            # Allow full rewards - don't cap successful trades!
+            # The agent needs to experience the full benefit of great trades
+            # to learn what works. Only cap extreme outliers.
+            if abs(base_reward) > 1000:
+                # Only scale truly extreme rewards to prevent instability
+                sign = 1 if base_reward > 0 else -1
+                scaled_reward = sign * (1000 + 10 * np.log(abs(base_reward) / 1000))
+                
+                if self.trading_logger:
+                    self.trading_logger.warning(
+                        f"EXTREME REWARD SCALING: ${base_reward:.2f} scaled to ${scaled_reward:.2f}"
+                    )
+                
+                base_reward = scaled_reward
             
-            # Risk-aware reward shaping
-            # Teach the agent about risk/reward ratio through the reward signal
-            if net_pnl > 0:
-                # Reward good risk/reward trades more
-                # The agent will learn that bigger wins are better
-                reward = net_pnl
-                
-                # Bonus for excellent trades to encourage letting winners run
-                profit_ticks = gross_pnl / self.value_per_tick
-                if profit_ticks > 20:  # Great trade
-                    reward *= 1.5  # 50% bonus
-                elif profit_ticks > 10:  # Good trade
-                    reward *= 1.2  # 20% bonus
-                
-            else:
-                # Penalize losses more heavily to teach risk management
-                # This encourages the agent to avoid big losses
-                loss_ticks = abs(gross_pnl / self.value_per_tick)
-                
-                if loss_ticks > 20:  # Terrible loss
-                    reward = net_pnl * 2.0  # Double penalty
-                elif loss_ticks > 10:  # Bad loss
-                    reward = net_pnl * 1.5  # 50% extra penalty
+            # CURRICULUM-BASED REWARD SHAPING
+            if self.episode_number < 200:
+                # EASY STAGE: Small bonuses for profitable trades, reduced penalties for losses
+                if base_reward > 0:
+                    # Reward based on trade quality, not just profit
+                    profit_ratio = base_reward / (abs(self._last_closed_entry_price) * 0.01)  # Profit as % of entry
+                    
+                    if profit_ratio > 0.5:  # > 0.5% profit
+                        quality_bonus = 10.0  # Great trade
+                    elif profit_ratio > 0.2:  # > 0.2% profit
+                        quality_bonus = 5.0   # Good trade
+                    else:
+                        quality_bonus = 2.0   # Small profit
+                    
+                    total_reward = base_reward + quality_bonus
+                    
+                    if self.trading_logger:
+                        self.trading_logger.log_reward_calculation(
+                            "QUALITY TRADE BONUS",
+                            timestamp=state.ts,
+                            details={
+                                'episode': self.episode_number,
+                                'base_reward': base_reward,
+                                'profit_ratio': profit_ratio,
+                                'quality_bonus': quality_bonus,
+                                'total_reward': total_reward
+                            }
+                        )
+                    return total_reward
                 else:
-                    reward = net_pnl  # Normal loss
-            
-            return reward
-        
-        # Small penalty for holding too long (opportunity cost)
-        if self.current_position != 0 and hasattr(self, '_entry_step'):
-            holding_time = self.current_index - self._entry_step
-            if holding_time > 50:  # Held for too long
-                return -0.1
-        
-        return 0.0
-    
-    def _get_risk_metrics(self, state: TimeSeriesState) -> dict:
-        """Calculate risk metrics to help agent make better decisions"""
-        metrics = {}
-        
-        if self.current_position != 0 and self.entry_price is not None:
-            current_price = state.price
-            
-            # Calculate unrealized P&L
-            if self.current_position == 1:
-                unrealized_pnl = (current_price - self.entry_price) * 2 - self.execution_cost_per_order
-                unrealized_ticks = (current_price - self.entry_price) / self.tick_size
+                    # Reduce losses by 10% to encourage exploration (not 30%!)
+                    loss_reduction = abs(base_reward) * 0.1
+                    reduced_loss = base_reward + loss_reduction
+                    
+                    if self.trading_logger:
+                        self.trading_logger.log_reward_calculation(
+                            "CURRICULUM EASY: LOSS REDUCTION",
+                            timestamp=state.ts,
+                            details={
+                                'episode': self.episode_number,
+                                'base_loss': base_reward,
+                                'reduction': loss_reduction,
+                                'final_loss': reduced_loss
+                            }
+                        )
+                    return max(reduced_loss, -200.0)  # Cap losses at -$200 in easy mode
+                    
+            elif self.episode_number < 500:
+                # MEDIUM STAGE: Smaller bonuses
+                if base_reward > 0:
+                    # Small fixed bonus, no percentage multiplier
+                    fixed_bonus = 3.0  # $3 bonus for profitable trades
+                    total_reward = base_reward + fixed_bonus
+                    
+                    if self.trading_logger:
+                        self.trading_logger.log_reward_calculation(
+                            "CURRICULUM MEDIUM: PROFITABLE TRADE",
+                            timestamp=state.ts,
+                            details={
+                                'episode': self.episode_number,
+                                'base_reward': base_reward,
+                                'fixed_bonus': fixed_bonus,
+                                'total_reward': total_reward
+                            }
+                        )
+                    return total_reward
+                else:
+                    # Small loss reduction
+                    loss_reduction = abs(base_reward) * 0.15
+                    return max(base_reward + loss_reduction, -350.0)
+                    
             else:
-                unrealized_pnl = (self.entry_price - current_price) * 2 - self.execution_cost_per_order
-                unrealized_ticks = (self.entry_price - current_price) / self.tick_size
-            
-            metrics['unrealized_pnl'] = unrealized_pnl
-            metrics['unrealized_ticks'] = unrealized_ticks
-            metrics['holding_time'] = self.current_index - self._entry_step if hasattr(self, '_entry_step') else 0
-            
-            # Risk/reward info
-            metrics['pnl_ratio'] = unrealized_pnl / (self.entry_price * 2) if self.entry_price > 0 else 0
-        else:
-            metrics['unrealized_pnl'] = 0
-            metrics['unrealized_ticks'] = 0
-            metrics['holding_time'] = 0
-            metrics['pnl_ratio'] = 0
+                # HARD STAGE: No bonuses (realistic)
+                if base_reward > 0:
+                    # No bonus in hard mode - pure profit/loss
+                    total_reward = base_reward
+                    
+                    if self.trading_logger:
+                        self.trading_logger.log_reward_calculation(
+                            "CURRICULUM HARD: PROFITABLE TRADE",
+                            timestamp=state.ts,
+                            details={
+                                'episode': self.episode_number,
+                                'base_reward': base_reward,
+                                'total_reward': total_reward
+                            }
+                        )
+                    return total_reward
+                else:
+                    # Full losses, realistic trading
+                    return max(base_reward, -500.0)  # Cap losses at -$500 per trade
         
-        return metrics
+        # Small reward for holding (encourages patience) but penalize holding too long
+        if self.current_position != 0 and self.entry_price is not None:
+            position_type = 'long' if self.current_position == 1 else 'short'
+            hold_reward = calculate_reward(
+                timestamp=state.ts,
+                action='HOLD',
+                position_before=self.current_position,
+                position_after=self.current_position,
+                entry_price=self.entry_price,
+                exit_price=state.price,
+                position_type=position_type,
+                value_per_tick=self.value_per_tick,
+                execution_cost=0,
+                session_id=self.session_id,
+                tick_size=self.tick_size
+            )
+            
+            # Add penalty for holding too long to encourage closing positions
+            if self.holding_time > 100:  # After 100 steps
+                holding_penalty = -0.5 * (self.holding_time - 100) / 100  # Gradually increase penalty
+                hold_reward += holding_penalty
+                
+            # DEBUG: Check hold_reward before clipping
+            if abs(hold_reward) > 1000:
+                if self.trading_logger:
+                    self.trading_logger.error(
+                        f"HUGE HOLD REWARD BEFORE CLIP: {hold_reward} at step {self.current_index}, "
+                        f"entry_price={self.entry_price}, current_price={state.price}"
+                    )
+            
+            # Clip holding rewards to prevent exploitation
+            clipped_reward = np.clip(hold_reward, -100, 100)
+            
+            # DEBUG: Check if clipping changed a large value
+            if abs(hold_reward - clipped_reward) > 0.01:
+                if self.trading_logger:
+                    self.trading_logger.warning(
+                        f"HOLD REWARD CLIPPED: {hold_reward} -> {clipped_reward}"
+                    )
+            
+            return clipped_reward
+        
+        # If we're flat and have made some trades, no penalty
+        if self.current_position == 0 and self.trades_this_episode > 0:
+            return 0.0
+            
+        # Consistency bonus - reward stable trading patterns
+        if hasattr(self, '_recent_trade_counts') and len(self._recent_trade_counts) >= 3:
+            recent_avg = sum(self._recent_trade_counts[-3:]) / 3
+            if 3 <= recent_avg <= 15 and 2 <= self.trades_this_episode <= 20:
+                # Small bonus for consistent trading (not too few, not too many)
+                consistency_reward = 0.02
+                if self.trading_logger:
+                    self.trading_logger.debug(f"Consistency bonus: {consistency_reward}")
+                return consistency_reward
+            
+        # Adaptive penalty for not trading that decreases if agent is learning
+        if self.trades_this_episode == 0 and self.current_index > 50:
+            # Calculate adaptive penalty based on recent performance
+            base_penalty = -0.05
+            
+            # If agent has been oscillating, reduce penalty
+            if hasattr(self, '_recent_trade_counts'):
+                # Track last 10 episodes trade counts
+                if len(self._recent_trade_counts) >= 10:
+                    # Count oscillations (0 trades followed by many trades)
+                    oscillations = 0
+                    for i in range(1, len(self._recent_trade_counts)):
+                        if self._recent_trade_counts[i-1] == 0 and self._recent_trade_counts[i] > 5:
+                            oscillations += 1
+                        elif self._recent_trade_counts[i-1] > 5 and self._recent_trade_counts[i] == 0:
+                            oscillations += 1
+                    
+                    # Reduce penalty if oscillating
+                    if oscillations > 2:
+                        base_penalty *= 0.5  # Halve the penalty
+            
+            # Curriculum-based adjustment
+            if self.episode_number < 200:
+                penalty = base_penalty * 0.5  # Very small in easy mode
+            elif self.episode_number < 500:
+                penalty = base_penalty * 0.75  # Small in medium mode
+            else:
+                penalty = base_penalty  # Normal in hard mode
+                
+            # CRITICAL DEBUG: Check what's happening in episode 61+
+            if self.episode_number >= 60:
+                if self.trading_logger:
+                    self.trading_logger.log_error(
+                        "no_trade_path",
+                        f"ABOUT TO RETURN NO-TRADE PENALTY: Episode {self.episode_number}, Step {self.current_index}",
+                        {
+                            "penalty": penalty,
+                            "trades": self.trades_this_episode,
+                            "position": self.current_position,
+                            "price": state.price if state else None
+                        }
+                    )
+                
+                # CRITICAL: Check if state price could be causing issue
+                if state and hasattr(state, 'price'):
+                    price_div_2_75 = state.price / 2.75
+                    if 1200 < price_div_2_75 < 1600:
+                        if self.trading_logger:
+                            self.trading_logger.log_error(
+                                "price_division_bug",
+                                f"*** FOUND BUG: price/2.75 = {price_div_2_75:.2f} is in reward range! ***",
+                                {"price": state.price, "tick_size": self.tick_size}
+                            )
+                
+            # DEBUG: Track penalty accumulation
+            if self.trading_logger and (self.current_index == 51 or self.current_index == 100 or self.current_index == 150):
+                if self.trading_logger:
+                    self.trading_logger.log_error(
+                        "penalty_tracking",
+                        f"NO TRADE PENALTY: Episode {self.episode_number}, Step {self.current_index}",
+                        {"penalty": penalty, "total_reward": self.total_reward}
+                    )
+            
+            # CRITICAL: Check if penalty is being applied incorrectly
+            if abs(penalty) > 1:
+                if self.trading_logger:
+                    self.trading_logger.log_error(
+                        "penalty_error",
+                        f"PENALTY TOO LARGE: {penalty} at step {self.current_index}",
+                        {}
+                    )
+            
+            return penalty
+        
+        # FINAL DEBUG CHECK: Catch the exact bug
+        final_reward = 0.0
+        
+        # NEW DEBUG: Log what path we're taking when we have 0 trades
+        if self.episode_number >= 60 and self.trades_this_episode == 0:
+            if self.trading_logger:
+                self.trading_logger.error(
+                    f"FELL THROUGH TO END: Episode {self.episode_number}, Step {self.current_index}, "
+                    f"position={self.current_position}, entry_price={self.entry_price}, "
+                    f"About to return: {final_reward}"
+                )
+        
+        # Log if we're about to return a suspicious value
+        if abs(final_reward) > 1000:
+            if self.trading_logger:
+                self.trading_logger.error(
+                    f"ABOUT TO RETURN HUGE REWARD: {final_reward} at step {self.current_index}, "
+                    f"episode {self.episode_number}, trades={self.trades_this_episode}"
+                )
+        
+        return final_reward
     
     def reset(self, seed=None, options=None):
         """Reset the environment for a new episode"""
-        # Track profitable episodes for consistency bonus
-        if not hasattr(self, '_recent_profitable_episodes'):
-            self._recent_profitable_episodes = []
-        
-        # Track consecutive wins
-        self._consecutive_wins = 0
         # Handle seed if provided (for compatibility)
         if seed is not None:
             np.random.seed(seed)
@@ -700,21 +976,6 @@ class RealisticFuturesEnv(gym.Env):
         
         if self.add_current_position_to_state:
             obs = np.append(obs, self.current_position)
-            
-            # Add risk metrics to observation
-            if self.current_position != 0:
-                risk_metrics = self._get_risk_metrics(state)
-                # Add normalized risk information
-                risk_features = np.array([
-                    risk_metrics['unrealized_ticks'] / 20.0,  # Normalized by typical move
-                    risk_metrics['holding_time'] / 50.0,  # Normalized by typical hold time
-                    risk_metrics['pnl_ratio'] * 10.0  # Scaled P&L ratio
-                ])
-            else:
-                # Pad with zeros when not in position to maintain consistent size
-                risk_features = np.zeros(3)
-            
-            obs = np.concatenate([obs, risk_features])
         
         return obs.astype(np.float32)
     
