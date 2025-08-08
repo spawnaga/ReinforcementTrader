@@ -496,3 +496,67 @@ class RiskManager:
         except Exception as e:
             logger.error(f"Error checking stop trading condition: {str(e)}")
             return True  # Conservative approach - stop on error
+
+    def adjust_risk_level(self, pnl: float, market_volatility: float = 1.0) -> None:
+        """
+        Dynamically adjust risk level based on performance and market conditions
+        """
+        # Update performance history
+        self.performance_history.append(pnl)
+        if len(self.performance_history) > 50:
+            self.performance_history.pop(0)
+
+        # Update win/loss streaks
+        if pnl > 0:
+            self.win_streak += 1
+            self.loss_streak = 0
+        elif pnl < 0:
+            self.loss_streak += 1
+            self.win_streak = 0
+
+        # Calculate recent performance
+        recent_pnl = sum(self.performance_history[-10:]) if len(self.performance_history) >= 10 else sum(self.performance_history)
+
+        # Adjust risk level based on performance
+        if recent_pnl > 1000:  # Strong performance
+            if self.current_risk_level != RiskLevel.HIGH:
+                logger.info(f"Increasing risk level to HIGH due to strong performance (PNL: {recent_pnl:.2f})")
+                self.current_risk_level = RiskLevel.HIGH
+        elif recent_pnl > 500:  # Good performance
+            if self.current_risk_level != RiskLevel.MEDIUM:
+                logger.info(f"Increasing risk level to MEDIUM due to good performance (PNL: {recent_pnl:.2f})")
+                self.current_risk_level = RiskLevel.MEDIUM
+        elif recent_pnl > 0:  # Positive performance
+            if self.current_risk_level != RiskLevel.LOW:
+                logger.info(f"Setting risk level to LOW due to positive performance (PNL: {recent_pnl:.2f})")
+                self.current_risk_level = RiskLevel.LOW
+        else:  # Negative performance
+            if self.current_risk_level != RiskLevel.LOW:
+                logger.info(f"Reducing risk level to LOW due to negative performance (PNL: {recent_pnl:.2f})")
+                self.current_risk_level = RiskLevel.LOW
+
+        # Adjust for market volatility
+        self.market_volatility = market_volatility
+        if market_volatility > 1.5:  # High volatility
+            if self.current_risk_level != RiskLevel.LOW:
+                logger.info(f"Reducing risk level to LOW due to high market volatility ({market_volatility:.2f})")
+                self.current_risk_level = RiskLevel.LOW
+        elif market_volatility < 0.7:  # Low volatility
+            if self.current_risk_level != RiskLevel.MEDIUM:
+                logger.info(f"Increasing risk level to MEDIUM due to low market volatility ({market_volatility:.2f})")
+                self.current_risk_level = RiskLevel.MEDIUM
+
+        # Adjust risk limits based on current risk level
+        if self.current_risk_level == RiskLevel.HIGH:
+            self.risk_limits.max_position_size = 10
+            self.risk_limits.max_daily_loss = 2000.0
+        elif self.current_risk_level == RiskLevel.MEDIUM:
+            self.risk_limits.max_position_size = 5
+            self.risk_limits.max_daily_loss = 1000.0
+        elif self.current_risk_level == RiskLevel.LOW:
+            self.risk_limits.max_position_size = 3
+            self.risk_limits.max_daily_loss = 500.0
+
+        logger.debug(f"Risk level adjusted to {self.current_risk_level.value} | "
+                    f"Win streak: {self.win_streak} | Loss streak: {self.loss_streak} | "
+                    f"Recent PNL: {recent_pnl:.2f} | Market volatility: {market_volatility:.2f}")

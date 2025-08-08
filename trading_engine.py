@@ -37,6 +37,7 @@ class TradingEngine:
         self.ib_integration = IBIntegration()
         self.risk_manager = RiskManager()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.market_volatility = 1.0  # Will be updated dynamically
         self.gpu_count = 0
         if torch.cuda.is_available():
             self.gpu_count = torch.cuda.device_count()
@@ -731,6 +732,18 @@ class TradingEngine:
                     'profitable_trades': len([t for t in completed_trades if t.get('profit_loss', 0) > 0]),
                     'average_trade_profit': np.mean([t.get('profit_loss', 0) for t in completed_trades]) if completed_trades else 0
                 }
+
+                # Calculate total episode profit for risk management
+                total_episode_profit = sum(t.get('profit_loss', 0) for t in completed_trades)
+
+                # Update market volatility estimate (simplified - in practice would use real volatility)
+                # This is a placeholder - in a real system you'd calculate from price data
+                if len(completed_trades) > 0:
+                    self.market_volatility = 1.0 + (len(completed_trades) * 0.05)  # Simple heuristic
+
+                # Adjust risk level based on performance
+                self.risk_manager.adjust_risk_level(total_episode_profit, self.market_volatility)
+
             else:
                 episode_metrics = {
                     'steps': step_count,
@@ -739,6 +752,8 @@ class TradingEngine:
                     'profitable_trades': 0,
                     'average_trade_profit': 0
                 }
+                total_episode_profit = 0
+                self.risk_manager.adjust_risk_level(total_episode_profit, self.market_volatility)
 
             # Save trades from the episode to database
             self._save_episode_trades(session_id, env)

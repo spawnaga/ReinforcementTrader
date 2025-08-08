@@ -84,10 +84,10 @@ class RealisticFuturesEnv(gym.Env):
     
     metadata = {'render.modes': ['human']}
 
-    def __init__(self,
-                 states: Sequence[TimeSeriesState],
+    def __init__(self, 
+                 states: Sequence[TimeSeriesState], 
                  value_per_tick: float,
-                 tick_size: float,
+                 tick_size: float, 
                  fill_probability: float = 0.95,  # Not all trades fill
                  execution_cost_per_order: float = 5.0,  # $5 per side
                  min_holding_periods: int = 10,  # Must hold for 10 time steps
@@ -95,8 +95,8 @@ class RealisticFuturesEnv(gym.Env):
                  slippage_ticks: int = 2,  # Average 2 tick slippage
                  add_current_position_to_state: bool = True,
                  session_id: Optional[int] = None,
-                 enable_trading_logger: bool = True,
-                 default_position_size: int = 1):
+                 enable_trading_logger: bool = True):
+        
         self.states = states
         self.limit = len(self.states)
         self.value_per_tick = value_per_tick
@@ -110,14 +110,11 @@ class RealisticFuturesEnv(gym.Env):
         self.min_holding_periods = min_holding_periods
         self.max_trades_per_episode = max_trades_per_episode
         self.slippage_ticks = slippage_ticks
-        self.default_position_size = default_position_size
         
         # Tracking variables
         self.holding_time = 0
         self.trades_this_episode = 0
         self.last_trade_time = None
-        self.default_position_size = 1  # Default to 1 contract
-        self.current_position_size = 1  # Will be adjusted dynamically
         
         # Standard environment variables
         self.done = False
@@ -226,20 +223,6 @@ class RealisticFuturesEnv(gym.Env):
                 return False
         
         return True
-    def _update_position_size(self):
-        """Update position size based on risk management and performance"""
-        # This is a simplified version - in practice you'd use the risk manager
-        # For now, we'll use a simple heuristic based on win streak
-        if hasattr(self, "_win_streak"):
-            if self._win_streak >= 3:
-                self.current_position_size = min(3, self.default_position_size + 1)  # Max 3 contracts
-            elif self._win_streak >= 1:
-                self.current_position_size = self.default_position_size
-            else:
-                self.current_position_size = 1  # Conservative when losing
-        else:
-            self.current_position_size = self.default_position_size
-
     
     def _apply_slippage(self, price: float, direction: int) -> float:
         """Apply realistic slippage to order fills"""
@@ -259,8 +242,6 @@ class RealisticFuturesEnv(gym.Env):
         # Update holding time
         if self.current_position != 0:
             self.holding_time += 1
-        # Update position size based on current performance
-        self._update_position_size()
         
         # Store position before action for reward calculation
         self.last_position = self.current_position
@@ -486,7 +467,7 @@ class RealisticFuturesEnv(gym.Env):
                     entry_price=self.entry_price,
                     target_price=state.price,
                     session_id=self.session_id,
-                    state_info={'current_price': state.price, 'position_size': self.current_position_size}
+                    state_info={'current_price': state.price}
                 )
     
     def sell(self, state: TimeSeriesState):
@@ -521,7 +502,7 @@ class RealisticFuturesEnv(gym.Env):
                     entry_price=self.entry_price,
                     exit_price=self.exit_price,
                     session_id=self.session_id,
-                    state_info={'current_price': state.price, 'position_size': self.current_position_size}
+                    state_info={'current_price': state.price}
                 )
             
             self.current_position = 0
@@ -557,12 +538,9 @@ class RealisticFuturesEnv(gym.Env):
                 )
     
     def get_reward(self, state: TimeSeriesState) -> float:
-        """Calculate reward with focus on profitability, not activity"""
+        """AI-focused reward that teaches risk management without hard rules"""
         
-        # Track reward components for debugging
-        reward_components = {}
-        
-        # 1. CLOSED POSITION REWARDS (primary signal)
+        # Only reward on closed positions
         if self.current_position == 0 and self.last_position != 0:
             # Calculate actual P&L
             if self.last_position == 1:  # Closed long
@@ -571,124 +549,44 @@ class RealisticFuturesEnv(gym.Env):
                 gross_pnl = ((self._last_closed_entry_price - self._last_closed_exit_price) / self.tick_size) * self.value_per_tick
             
             # Subtract costs
-            net_pnl = gross_pnl - (2 * self.execution_cost_per_order * self.current_position_size)
-            reward_components['closed_pnl'] = net_pnl
+            net_pnl = gross_pnl - (2 * self.execution_cost_per_order)
             
-            # Quality bonus for good trades
+            # Risk-aware reward shaping
+            # Teach the agent about risk/reward ratio through the reward signal
             if net_pnl > 0:
-                profit_pct = (net_pnl / (abs(self._last_closed_entry_price) * self.value_per_tick / self.tick_size / self.current_position_size)) * 100
+                # Reward good risk/reward trades more
+                # The agent will learn that bigger wins are better
+                reward = net_pnl
                 
-                if profit_pct > 1.0:  # Excellent trade (>1%)
-                    quality_bonus = 20.0
-                elif profit_pct > 0.5:  # Good trade (>0.5%)
-                    quality_bonus = 10.0
-                elif profit_pct > 0.2:  # Decent trade (>0.2%)
-                    quality_bonus = 5.0
-                else:
-                    quality_bonus = 2.0  # Any profitable trade
+                # Bonus for excellent trades to encourage letting winners run
+                profit_ticks = gross_pnl / self.value_per_tick
+                if profit_ticks > 20:  # Great trade
+                    reward *= 1.5  # 50% bonus
+                elif profit_ticks > 10:  # Good trade
+                    reward *= 1.2  # 20% bonus
                 
-                reward_components['quality_bonus'] = quality_bonus
-                
-                # Streak bonus for consecutive wins
-                if hasattr(self, '_consecutive_wins'):
-                    self._consecutive_wins += 1
-                    if self._consecutive_wins >= 3:
-                        streak_bonus = 5.0 * min(self._consecutive_wins, 5)
-                        reward_components['streak_bonus'] = streak_bonus
-                else:
-                    self._consecutive_wins = 1
             else:
-                # Reset win streak on loss
-                self._consecutive_wins = 0
+                # Penalize losses more heavily to teach risk management
+                # This encourages the agent to avoid big losses
+                loss_ticks = abs(gross_pnl / self.value_per_tick)
                 
-                # Small penalty reduction for close losses (learning to avoid big losses)
-                if -50 < net_pnl < 0:
-                    reward_components['close_loss_reduction'] = 5.0
+                if loss_ticks > 20:  # Terrible loss
+                    reward = net_pnl * 2.0  # Double penalty
+                elif loss_ticks > 10:  # Bad loss
+                    reward = net_pnl * 1.5  # 50% extra penalty
+                else:
+                    reward = net_pnl  # Normal loss
             
-            # Cap extreme values to prevent instability
-            base_reward = sum(reward_components.values())
-            if abs(base_reward) > 1000:
-                capped_reward = 1000 if base_reward > 0 else -1000
-                reward_components['capping_applied'] = capped_reward - base_reward
-                base_reward = capped_reward
-            
-            # Log reward calculation
-            if self.trading_logger:
-                self.trading_logger.log_reward_calculation(
-                    "CLOSED_POSITION_REWARD",
-                    timestamp=state.ts,
-                    details={
-                        'episode': self.episode_number,
-                        'components': reward_components,
-                        'total': base_reward
-                    }
-                )
-            
-            return base_reward
+            return reward
         
-        # 2. HOLDING POSITION REWARDS (encourage good holds, discourage bad ones)
-        if self.current_position != 0 and self.entry_price is not None:
-            current_price = state.price
-            
-            if self.current_position == 1:  # Long position
-                unrealized_pnl = ((current_price - self.entry_price) / self.tick_size) * self.value_per_tick * self.current_position_size
-            else:  # Short position
-                unrealized_pnl = ((self.entry_price - current_price) / self.tick_size) * self.value_per_tick * self.current_position_size
-            
-            # Progressive rewards/penalties based on unrealized P&L
-            if unrealized_pnl > 100:  # Strong profit
-                hold_reward = 2.0  # Encourage holding winners
-                reward_components['profitable_hold'] = hold_reward
-            elif unrealized_pnl > 50:  # Good profit
-                hold_reward = 1.0
-                reward_components['profitable_hold'] = hold_reward
-            elif unrealized_pnl > 0:  # Small profit
-                hold_reward = 0.5
-                reward_components['profitable_hold'] = hold_reward
-            elif unrealized_pnl > -50:  # Small loss
-                hold_reward = -0.5  # Slight penalty to encourage exit
-                reward_components['small_loss_hold'] = hold_reward
-            elif unrealized_pnl > -100:  # Moderate loss
-                hold_reward = -1.0
-                reward_components['moderate_loss_hold'] = hold_reward
-            else:  # Large loss
-                hold_reward = -2.0  # Strong penalty to teach stop losses
-                reward_components['large_loss_hold'] = hold_reward
-            
-            # Time decay penalty for holding too long
-            if self.holding_time > 50:
-                time_penalty = -0.1 * min((self.holding_time - 50) / 50, 2.0)
-                reward_components['time_decay'] = time_penalty
-                hold_reward += time_penalty
-            
-            if self.trading_logger and self.episode_number % 50 == 0:
-                self.trading_logger.debug(
-                    f"Hold reward: {hold_reward:.2f}, unrealized_pnl: ${unrealized_pnl:.2f}, hold_time: {self.holding_time}"
-                )
-            
-            return hold_reward
+        # Small penalty for holding too long (opportunity cost)
+        if self.current_position != 0 and hasattr(self, '_entry_step'):
+            holding_time = self.current_index - self._entry_step
+            if holding_time > 50:  # Held for too long
+                return -0.1
         
-        # 3. FLAT POSITION (NO PENALTY!)
-        # Being selective is good - only trade when there's opportunity
-        # No penalty for waiting for good setups
-        
-        # Small exploration bonus in early episodes to encourage initial learning
-        if self.episode_number < 50 and self.trades_this_episode == 0 and self.current_index > 100:
-            # Very small negative to nudge towards trying trades, but not punishing
-            exploration_nudge = -0.01
-            reward_components['exploration_nudge'] = exploration_nudge
-            return exploration_nudge
-        
-        # Consistency bonus for maintaining good trading frequency
-        if hasattr(self, '_recent_profitable_episodes'):
-            recent_profitable_rate = sum(self._recent_profitable_episodes[-10:]) / min(len(self._recent_profitable_episodes), 10)
-            if recent_profitable_rate > 0.4 and 2 <= self.trades_this_episode <= 10:
-                consistency_bonus = 1.0
-                reward_components['consistency_bonus'] = consistency_bonus
-                return consistency_bonus
-        
-        # Default: No reward, no penalty for being flat
         return 0.0
+    
     def _get_risk_metrics(self, state: TimeSeriesState) -> dict:
         """Calculate risk metrics to help agent make better decisions"""
         metrics = {}
@@ -726,18 +624,6 @@ class RealisticFuturesEnv(gym.Env):
         
         # Track consecutive wins
         self._consecutive_wins = 0
-        # Track profitable episodes for consistency bonus
-        if not hasattr(self, '_recent_profitable_episodes'):
-            self._recent_profitable_episodes = []
-        
-        # Track consecutive wins
-        self._consecutive_wins = 0
-        # Initialize win streak tracking
-        if not hasattr(self, "_win_streak"):
-            self._win_streak = 0
-
-        # Reset position size
-        self.current_position_size = self.default_position_size
         # Handle seed if provided (for compatibility)
         if seed is not None:
             np.random.seed(seed)
